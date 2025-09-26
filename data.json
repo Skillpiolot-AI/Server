@@ -1,0 +1,706 @@
+[
+    {
+        "jobTitle": "Civil Engineer",
+        "averageSalary": "$78,000",
+        "description": "Design, build, and maintain infrastructure projects like roads, bridges, and buildings.",
+        "skills": [
+            "AutoCAD",
+            "Structural Analysis",
+            "Project Management",
+            "Construction Materials",
+            "Surveying"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Institute of Technology (IIT) Bombay",
+                "fees": "$3,000/year",
+                "duration": "4 years"
+            },
+            {
+                "name": "Indian Institute of Technology (IIT) Delhi",
+                "fees": "$3,500/year",
+                "duration": "4 years"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 70000 },
+            { "year": 2019, "salary": 73000 },
+            { "year": 2020, "salary": 75000 },
+            { "year": 2021, "salary": 78000 },
+            { "year": 2022, "salary": 78000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 30000 },
+            { "year": 2019, "hires": 35000 },
+            { "year": 2020, "hires": 40000 },
+            { "year": 2021, "hires": 45000 },
+            { "year": 2022, "hires": 50000 }
+        ],
+        "workEnvironment": "Civil engineers work in offices and on construction sites, ensuring that projects meet standards.",
+        "challenges": [
+            "Meeting regulatory requirements",
+            "Working with large-scale projects"
+        ],
+        "rewards": [
+            "Building infrastructure that benefits society",
+            "High demand for skilled engineers"
+        ]
+    },
+    {
+        "jobTitle": "Product Manager",
+        "averageSalary": "$115,000",
+        "description": "Lead the development of products from conception to launch, working with cross-functional teams.",
+        "skills": [
+            "Agile Methodology",
+            "Leadership",
+            "Product Roadmapping",
+            "User Research",
+            "Data Analysis"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Institute of Management (IIM) Ahmedabad",
+                "fees": "$30,000/year",
+                "duration": "2 years (MBA)"
+            },
+            {
+                "name": "Indian Institute of Management (IIM) Bangalore",
+                "fees": "$32,000/year",
+                "duration": "2 years (MBA)"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 90000 },
+            { "year": 2019, "salary": 95000 },
+            { "year": 2020, "salary": 100000 },
+            { "year": 2021, "salary": 110000 },
+            { "year": 2022, "salary": 115000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 20000 },
+            { "year": 2019, "hires": 25000 },
+            { "year": 2020, "hires": 30000 },
+            { "year": 2021, "hires": 35000 },
+            { "year": 2022, "hires": 40000 }
+        ],
+        "workEnvironment": "Product managers work in corporate settings, coordinating between technical, marketing, and sales teams.",
+        "challenges": [
+            "Balancing conflicting priorities",
+            "Driving product innovation within time and budget constraints"
+        ],
+        "rewards": [
+            "Direct impact on product success",
+            "High salary potential"
+        ]
+    },
+    {
+        "jobTitle": "Pharmacist",
+        "averageSalary": "$120,000",
+        "description": "Dispense medications and advise patients on their safe use.",
+        "skills": [
+            "Pharmaceutical Science",
+            "Drug Interactions",
+            "Patient Counseling",
+            "Inventory Management"
+        ],
+        "topColleges": [
+            {
+                "name": "Jamia Hamdard",
+                "fees": "$2,500/year",
+                "duration": "4 years (PharmD)"
+            },
+            {
+                "name": "National Institute of Pharmaceutical Education and Research (NIPER) Mohali",
+                "fees": "$3,000/year",
+                "duration": "4 years (PharmD)"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 115000 },
+            { "year": 2019, "salary": 117000 },
+            { "year": 2020, "salary": 118000 },
+            { "year": 2021, "salary": 119000 },
+            { "year": 2022, "salary": 120000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 30000 },
+            { "year": 2019, "hires": 35000 },
+            { "year": 2020, "hires": 38000 },
+            { "year": 2021, "hires": 40000 },
+            { "year": 2022, "hires": 42000 }
+        ],
+        "workEnvironment": "Pharmacists typically work in retail or hospital settings, ensuring accurate prescription filling.",
+        "challenges": [
+            "Managing high volumes of prescriptions",
+            "Staying current with new medications"
+        ],
+        "rewards": [
+            "Helping patients improve their health",
+            "High salary and job security"
+        ]
+    },
+    {
+        "jobTitle": "Psychologist",
+        "averageSalary": "$85,000",
+        "description": "Provide mental health counseling and support for individuals facing emotional and psychological challenges.",
+        "skills": [
+            "Clinical Assessment",
+            "Therapeutic Techniques",
+            "Communication",
+            "Empathy",
+            "Crisis Intervention"
+        ],
+        "topColleges": [
+            {
+                "name": "Delhi University",
+                "fees": "$2,000/year",
+                "duration": "2 years (M.A.)"
+            },
+            {
+                "name": "Tata Institute of Social Sciences (TISS) Mumbai",
+                "fees": "$2,500/year",
+                "duration": "2 years (M.A.)"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 70000 },
+            { "year": 2019, "salary": 75000 },
+            { "year": 2020, "salary": 80000 },
+            { "year": 2021, "salary": 85000 },
+            { "year": 2022, "salary": 85000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 20000 },
+            { "year": 2019, "hires": 22000 },
+            { "year": 2020, "hires": 25000 },
+            { "year": 2021, "hires": 27000 },
+            { "year": 2022, "hires": 30000 }
+        ],
+        "workEnvironment": "Psychologists work in clinical settings, private practices, or schools, providing therapy and counseling.",
+        "challenges": [
+            "Managing emotionally draining situations",
+            "Maintaining professional boundaries"
+        ],
+        "rewards": [
+            "Making a difference in people's lives",
+            "Opportunities for self-employment"
+        ]
+    },
+    {
+        "jobTitle": "Architect",
+        "averageSalary": "$90,000",
+        "description": "Design and oversee the construction of buildings, ensuring functionality and aesthetic appeal.",
+        "skills": [
+            "AutoCAD",
+            "Revit",
+            "Building Codes",
+            "Project Management",
+            "Design Principles"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Institute of Technology (IIT) Kharagpur",
+                "fees": "$3,000/year",
+                "duration": "5 years"
+            },
+            {
+                "name": "National Institute of Design (NID) Ahmedabad",
+                "fees": "$2,500/year",
+                "duration": "5 years"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 80000 },
+            { "year": 2019, "salary": 85000 },
+            { "year": 2020, "salary": 87000 },
+            { "year": 2021, "salary": 89000 },
+            { "year": 2022, "salary": 90000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 15000 },
+            { "year": 2019, "hires": 16000 },
+            { "year": 2020, "hires": 17000 },
+            { "year": 2021, "hires": 18000 },
+            { "year": 2022, "hires": 20000 }
+        ],
+        "workEnvironment": "Architects split time between office work and construction sites to ensure that designs are implemented accurately.",
+        "challenges": [
+            "Balancing design creativity with practicality",
+            "Managing project budgets and timelines"
+        ],
+        "rewards": [
+            "Creating visually and functionally appealing spaces",
+            "Diverse career opportunities"
+        ]
+    },
+    {
+        "jobTitle": "Data Scientist",
+        "averageSalary": "$120,000",
+        "description": "Analyze complex data to help organizations make informed decisions and optimize their operations.",
+        "skills": [
+            "Statistical Analysis",
+            "Machine Learning",
+            "Data Visualization",
+            "Python/R",
+            "Big Data Technologies"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Statistical Institute (ISI) Kolkata",
+                "fees": "$2,500/year",
+                "duration": "2 years (M.Sc.)"
+            },
+            {
+                "name": "Indian Institute of Science (IISc) Bangalore",
+                "fees": "$3,000/year",
+                "duration": "2 years (M.Sc.)"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 100000 },
+            { "year": 2019, "salary": 105000 },
+            { "year": 2020, "salary": 110000 },
+            { "year": 2021, "salary": 115000 },
+            { "year": 2022, "salary": 120000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 25000 },
+            { "year": 2019, "hires": 28000 },
+            { "year": 2020, "hires": 30000 },
+            { "year": 2021, "hires": 32000 },
+            { "year": 2022, "hires": 35000 }
+        ],
+        "workEnvironment": "Data scientists typically work in corporate offices or tech companies, analyzing data and building models.",
+        "challenges": [
+            "Handling and processing large datasets",
+            "Interpreting complex data patterns"
+        ],
+        "rewards": [
+            "High demand for data science skills",
+            "Impactful work in decision-making processes"
+        ]
+    },
+    {
+        "jobTitle": "Software Engineer",
+        "averageSalary": "$110,000",
+        "description": "Develop, test, and maintain software applications and systems.",
+        "skills": [
+            "Programming",
+            "Software Development Life Cycle (SDLC)",
+            "System Design",
+            "Debugging",
+            "Version Control"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Institute of Technology (IIT) Madras",
+                "fees": "$3,000/year",
+                "duration": "4 years"
+            },
+            {
+                "name": "Indian Institute of Technology (IIT) Kanpur",
+                "fees": "$3,500/year",
+                "duration": "4 years"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 100000 },
+            { "year": 2019, "salary": 105000 },
+            { "year": 2020, "salary": 108000 },
+            { "year": 2021, "salary": 110000 },
+            { "year": 2022, "salary": 110000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 50000 },
+            { "year": 2019, "hires": 55000 },
+            { "year": 2020, "hires": 60000 },
+            { "year": 2021, "hires": 65000 },
+            { "year": 2022, "hires": 70000 }
+        ],
+        "workEnvironment": "Software engineers work in office settings or remotely, developing and maintaining software applications.",
+        "challenges": [
+            "Keeping up with rapidly changing technologies",
+            "Managing software bugs and performance issues"
+        ],
+        "rewards": [
+            "High salary potential",
+            "Opportunities for innovation and growth"
+        ]
+    },
+    {
+        "jobTitle": "Financial Analyst",
+        "averageSalary": "$95,000",
+        "description": "Evaluate financial data, create financial models, and provide investment recommendations.",
+        "skills": [
+            "Financial Modeling",
+            "Investment Analysis",
+            "Risk Management",
+            "Excel",
+            "Accounting"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Institute of Management (IIM) Calcutta",
+                "fees": "$30,000/year",
+                "duration": "2 years (MBA)"
+            },
+            {
+                "name": "Indian Institute of Management (IIM) Lucknow",
+                "fees": "$32,000/year",
+                "duration": "2 years (MBA)"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 85000 },
+            { "year": 2019, "salary": 88000 },
+            { "year": 2020, "salary": 90000 },
+            { "year": 2021, "salary": 92000 },
+            { "year": 2022, "salary": 95000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 18000 },
+            { "year": 2019, "hires": 19000 },
+            { "year": 2020, "hires": 20000 },
+            { "year": 2021, "hires": 21000 },
+            { "year": 2022, "hires": 22000 }
+        ],
+        "workEnvironment": "Financial analysts work in corporate settings, often in investment banks, financial institutions, or consultancy firms.",
+        "challenges": [
+            "Analyzing complex financial data",
+            "Predicting market trends accurately"
+        ],
+        "rewards": [
+            "High earning potential",
+            "Career advancement opportunities"
+        ]
+    },
+    {
+        "jobTitle": "Biomedical Engineer",
+        "averageSalary": "$95,000",
+        "description": "Design and develop medical devices and technologies to improve patient care.",
+        "skills": [
+            "Medical Device Design",
+            "Bioinformatics",
+            "Regulatory Compliance",
+            "3D Printing",
+            "Data Analysis"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Institute of Technology (IIT) Hyderabad",
+                "fees": "$3,000/year",
+                "duration": "4 years"
+            },
+            {
+                "name": "Manipal Institute of Technology",
+                "fees": "$3,500/year",
+                "duration": "4 years"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 85000 },
+            { "year": 2019, "salary": 88000 },
+            { "year": 2020, "salary": 90000 },
+            { "year": 2021, "salary": 93000 },
+            { "year": 2022, "salary": 95000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 12000 },
+            { "year": 2019, "hires": 13000 },
+            { "year": 2020, "hires": 14000 },
+            { "year": 2021, "hires": 15000 },
+            { "year": 2022, "hires": 16000 }
+        ],
+        "workEnvironment": "Biomedical engineers work in laboratories, hospitals, and the offices of manufacturers, developing new healthcare technologies.",
+        "challenges": [
+            "Meeting regulatory standards",
+            "Balancing innovation with patient safety"
+        ],
+        "rewards": [
+            "Improving patient outcomes through technology",
+            "High demand for medical devices"
+        ]
+    },
+    {
+        "jobTitle": "Marketing Analyst",
+        "averageSalary": "$75,000",
+        "description": "Analyze market trends and customer data to develop strategies that increase sales and brand awareness.",
+        "skills": [
+            "Data Analysis",
+            "Market Research",
+            "SEO",
+            "Google Analytics",
+            "Communication"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Institute of Management (IIM) Bangalore",
+                "fees": "$32,000/year",
+                "duration": "2 years (MBA)"
+            },
+            {
+                "name": "Indian School of Business (ISB) Hyderabad",
+                "fees": "$35,000/year",
+                "duration": "1 year (PGP)"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 60000 },
+            { "year": 2019, "salary": 65000 },
+            { "year": 2020, "salary": 70000 },
+            { "year": 2021, "salary": 73000 },
+            { "year": 2022, "salary": 75000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 10000 },
+            { "year": 2019, "hires": 11000 },
+            { "year": 2020, "hires": 12000 },
+            { "year": 2021, "hires": 13000 },
+            { "year": 2022, "hires": 14000 }
+        ],
+        "workEnvironment": "Marketing analysts work in office environments, analyzing market data and developing marketing strategies.",
+        "challenges": [
+            "Keeping up with market trends",
+            "Interpreting complex data sets"
+        ],
+        "rewards": [
+            "Opportunities to influence company strategies",
+            "Diverse career paths in marketing"
+        ]
+    },
+    {
+        "jobTitle": "Mechanical Engineer",
+        "averageSalary": "$80,000",
+        "description": "Design, analyze, and manufacture mechanical systems and devices.",
+        "skills": [
+            "CAD Software",
+            "Thermodynamics",
+            "Fluid Dynamics",
+            "Manufacturing Processes",
+            "Mechanical Design"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Institute of Technology (IIT) Delhi",
+                "fees": "$3,500/year",
+                "duration": "4 years"
+            },
+            {
+                "name": "Indian Institute of Technology (IIT) Roorkee",
+                "fees": "$3,000/year",
+                "duration": "4 years"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 75000 },
+            { "year": 2019, "salary": 77000 },
+            { "year": 2020, "salary": 78000 },
+            { "year": 2021, "salary": 79000 },
+            { "year": 2022, "salary": 80000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 20000 },
+            { "year": 2019, "hires": 21000 },
+            { "year": 2020, "hires": 22000 },
+            { "year": 2021, "hires": 23000 },
+            { "year": 2022, "hires": 24000 }
+        ],
+        "workEnvironment": "Mechanical engineers work in factories, design offices, and research facilities, focusing on designing and testing mechanical systems.",
+        "challenges": [
+            "Meeting design specifications",
+            "Managing project deadlines"
+        ],
+        "rewards": [
+            "Opportunities in diverse industries",
+            "Impactful engineering solutions"
+        ]
+    },
+    {
+        "jobTitle": "Journalist",
+        "averageSalary": "$60,000",
+        "description": "Research, write, and report news stories and articles for various media outlets.",
+        "skills": [
+            "Writing",
+            "Research",
+            "Interviewing",
+            "Digital Media",
+            "Editing"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Institute of Mass Communication (IIMC) Delhi",
+                "fees": "$2,000/year",
+                "duration": "1 year (PG Diploma)"
+            },
+            {
+                "name": "Jamia Millia Islamia",
+                "fees": "$1,500/year",
+                "duration": "2 years (M.A.)"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 55000 },
+            { "year": 2019, "salary": 58000 },
+            { "year": 2020, "salary": 60000 },
+            { "year": 2021, "salary": 62000 },
+            { "year": 2022, "salary": 60000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 12000 },
+            { "year": 2019, "hires": 13000 },
+            { "year": 2020, "hires": 14000 },
+            { "year": 2021, "hires": 15000 },
+            { "year": 2022, "hires": 16000 }
+        ],
+        "workEnvironment": "Journalists work in newsrooms, on location, or remotely, writing and reporting news.",
+        "challenges": [
+            "Meeting tight deadlines",
+            "Ensuring accuracy in reporting"
+        ],
+        "rewards": [
+            "Opportunity to inform the public",
+            "Dynamic and varied work environment"
+        ]
+    },
+    {
+        "jobTitle": "Environmental Scientist",
+        "averageSalary": "$85,000",
+        "description": "Study and develop solutions to environmental problems, focusing on issues like pollution and conservation.",
+        "skills": [
+            "Environmental Policy",
+            "Field Research",
+            "Data Analysis",
+            "GIS",
+            "Report Writing"
+        ],
+        "topColleges": [
+            {
+                "name": "Jawaharlal Nehru University (JNU) Delhi",
+                "fees": "$2,500/year",
+                "duration": "2 years (M.Sc.)"
+            },
+            {
+                "name": "Indian Institute of Technology (IIT) Guwahati",
+                "fees": "$3,000/year",
+                "duration": "2 years (M.Sc.)"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 75000 },
+            { "year": 2019, "salary": 77000 },
+            { "year": 2020, "salary": 78000 },
+            { "year": 2021, "salary": 80000 },
+            { "year": 2022, "salary": 85000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 15000 },
+            { "year": 2019, "hires": 16000 },
+            { "year": 2020, "hires": 17000 },
+            { "year": 2021, "hires": 18000 },
+            { "year": 2022, "hires": 19000 }
+        ],
+        "workEnvironment": "Environmental scientists work in laboratories, field sites, and offices, analyzing data and conducting research.",
+        "challenges": [
+            "Dealing with complex environmental issues",
+            "Balancing scientific research with policy implementation"
+        ],
+        "rewards": [
+            "Contributing to environmental protection",
+            "Diverse research opportunities"
+        ]
+    },
+    {
+        "jobTitle": "HR Manager",
+        "averageSalary": "$90,000",
+        "description": "Oversee recruitment, employee relations, and organizational development within a company.",
+        "skills": [
+            "Recruitment",
+            "Employee Relations",
+            "Performance Management",
+            "HR Software",
+            "Compliance"
+        ],
+        "topColleges": [
+            {
+                "name": "Indian Institute of Management (IIM) Indore",
+                "fees": "$28,000/year",
+                "duration": "2 years (MBA)"
+            },
+            {
+                "name": "Indian Institute of Management (IIM) Kozhikode",
+                "fees": "$30,000/year",
+                "duration": "2 years (MBA)"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 85000 },
+            { "year": 2019, "salary": 88000 },
+            { "year": 2020, "salary": 90000 },
+            { "year": 2021, "salary": 92000 },
+            { "year": 2022, "salary": 90000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 18000 },
+            { "year": 2019, "hires": 19000 },
+            { "year": 2020, "hires": 20000 },
+            { "year": 2021, "hires": 21000 },
+            { "year": 2022, "hires": 22000 }
+        ],
+        "workEnvironment": "HR managers work in office environments, handling employee relations, recruitment, and organizational development.",
+        "challenges": [
+            "Managing employee disputes",
+            "Ensuring compliance with labor laws"
+        ],
+        "rewards": [
+            "Impacting company culture",
+            "Opportunities for leadership and development"
+        ]
+    },
+    {
+        "jobTitle": "Economist",
+        "averageSalary": "$95,000",
+        "description": "Analyze economic data to forecast trends, provide advice, and develop policies.",
+        "skills": [
+            "Economic Theory",
+            "Quantitative Analysis",
+            "Econometrics",
+            "Data Interpretation",
+            "Policy Analysis"
+        ],
+        "topColleges": [
+            {
+                "name": "Delhi School of Economics (DSE)",
+                "fees": "$2,000/year",
+                "duration": "2 years (M.A.)"
+            },
+            {
+                "name": "Indian Statistical Institute (ISI) Delhi",
+                "fees": "$3,000/year",
+                "duration": "2 years (M.Sc.)"
+            }
+        ],
+        "salaryTrends": [
+            { "year": 2018, "salary": 90000 },
+            { "year": 2019, "salary": 92000 },
+            { "year": 2020, "salary": 94000 },
+            { "year": 2021, "salary": 96000 },
+            { "year": 2022, "salary": 95000 }
+        ],
+        "hiringTrends": [
+            { "year": 2018, "hires": 12000 },
+            { "year": 2019, "hires": 13000 },
+            { "year": 2020, "hires": 14000 },
+            { "year": 2021, "hires": 15000 },
+            { "year": 2022, "hires": 16000 }
+        ],
+        "workEnvironment": "Economists work in academic institutions, government agencies, or private sector firms, analyzing and advising on economic issues.",
+        "challenges": [
+            "Dealing with unpredictable economic conditions",
+            "Translating complex data into actionable insights"
+        ],
+        "rewards": [
+            "Influencing economic policy",
+            "Opportunities for research and consultancy"
+        ]
+    }
+]
