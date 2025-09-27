@@ -166,6 +166,17 @@ app.get("/api/job-info/:jobTitle", (req, res) => {
 });
 
 
+// Add this to your Express server
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  })
+})
+
+
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
