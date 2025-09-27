@@ -13,20 +13,26 @@ const UserActivitySchema = new mongoose.Schema({
   activityType: {
     type: String,
     required: true,
-    enum: [
-      'login',
-      'logout', 
-      'page_visit',
-      'quiz_taken',
-      'career_recommendation_viewed',
-      'profile_updated',
-      'video_watched',
-      'workshop_registered',
-      'mentor_appointment',
-      'resource_downloaded',
-      'community_post',
-      'idle_timeout'
-    ]
+    activityType: {
+      type: String,
+      required: true,
+      enum: [
+        'login',
+        'logout',
+        'page_visit',
+        'quiz_taken',
+        'career_recommendation_viewed',
+        'profile_updated',
+        'profile_access', 
+        'video_watched',
+        'workshop_registered',
+        'mentor_appointment',
+        'resource_downloaded',
+        'community_post',
+        'idle_timeout'
+      ]
+    }
+
   },
   page: {
     type: String,
