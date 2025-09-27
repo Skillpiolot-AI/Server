@@ -196,32 +196,6 @@ exports.getUserAppointments = async (req, res) => {
 
 
 
-
-// exports.completeSession = async (req, res) => {
-//   try {
-//     const { appointmentId } = req.params;
-    
-//     const appointment = await MentorAppointment.findById(appointmentId);
-    
-//     if (!appointment) {
-//       return res.status(404).json({ message: 'Appointment not found' });
-//     }
-    
-//     if (appointment.mentorId.toString() !== req.user._id.toString()) {
-//       return res.status(403).json({ message: 'Not authorized to complete this session' });
-//     }
-    
-//     appointment.status = 'completed';
-//     await appointment.save();
-    
-//     res.json({ message: 'Session marked as completed successfully' });
-//   } catch (error) {
-//     console.error('Error completing session:', error);
-//     res.status(500).json({ message: 'Server Error' });
-//   }
-// };
-
-
 exports.completeSession = async (req, res) => {
   try {
     const { appointmentId } = req.params;
@@ -287,7 +261,7 @@ exports.getMentorFeedback = async (req, res) => {
   try {
     const { mentorId } = req.params;
     
-    console.log('Received mentorId:', mentorId); // Add this line for debugging
+    console.log('Received mentorId:', mentorId); 
 
     if (!mentorId) {
       return res.status(400).json({ message: 'mentorId is required' });
@@ -337,18 +311,6 @@ exports.getMentorData = async (req, res) => {
   }
 };
 
-// exports.getMentorAppointments = async (req, res) => {
-//   try {
-//     const mentorId = req.params.id;
-//     const appointments = await MentorAppointment.find({ mentorId })
-//       .populate('userId', 'name email')
-//       .sort({ scheduledDate: 1 });
-//     res.json(appointments);
-//   } catch (error) {
-//     console.error('Error fetching mentor appointments:', error);
-//     res.status(500).json({ message: 'Server Error' });
-//   }
-// };
 
 exports.getMentorNotes = async (req, res) => {
   try {
