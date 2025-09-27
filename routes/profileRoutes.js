@@ -3,7 +3,7 @@ const router = express.Router();
 const Profile = require('../models/Profile');
 const { verifyToken } = require('../middleware/auth');
 
-// Get user profile
+
 router.get('/', verifyToken, async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user._id });
@@ -16,20 +16,18 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
-// Create or update user profile
+
 router.post('/', verifyToken, async (req, res) => {
   try {
     let profile = await Profile.findOne({ user: req.user._id });
     
     if (profile) {
-      // Update existing profile
       profile = await Profile.findOneAndUpdate(
         { user: req.user._id },
         { $set: req.body },
         { new: true }
       );
     } else {
-      // Create new profile
       profile = new Profile({
         user: req.user._id,
         ...req.body
@@ -43,7 +41,7 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-// Add project
+
 router.post('/project', verifyToken, async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user._id });
@@ -55,7 +53,6 @@ router.post('/project', verifyToken, async (req, res) => {
   }
 });
 
-// Add certification
 router.post('/certification', verifyToken, async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user._id });
@@ -67,7 +64,7 @@ router.post('/certification', verifyToken, async (req, res) => {
   }
 });
 
-// Add goal
+
 router.post('/goal', verifyToken, async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user._id });

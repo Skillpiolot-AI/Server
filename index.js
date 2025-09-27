@@ -15,22 +15,23 @@ const workshopRoutes = require('./routes/workshopRoutes');
 const resourceRoutes = require('./routes/resourceRoutes');
 const communityRoutes = require('./routes/communityRoutes');
 const profileRoutes = require('./routes/profileRoutes'); 
+const analyticsRoutes = require("./routes/analyticsRoutes");
 const path = require('path');
 const fs = require('fs');
 
 require("dotenv").config();
 
-const cors = require('cors'); // Import cors
+const cors = require('cors'); 
 const interestRoutes = require('./routes/interestRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Connect to MongoDB
+
 connectDB();
 
-// Middleware
-app.use(cors()); // Enable CORS
+
+app.use(cors()); 
 app.use(express.json({ limit: '10mb' }));
 
 
@@ -55,6 +56,7 @@ app.use('/api/workshops', workshopRoutes);
 app.use('/api', resourceRoutes);
 app.use('/api/profile', profileRoutes); 
 app.use('/api', communityRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 
 app.post("/api/gemini-suggestion", async (req, res) => {
@@ -133,6 +135,8 @@ app.post("/api/gemini-suggestion", async (req, res) => {
     res.status(500).json({ error: "Failed to get a valid career suggestion. Please try again." });
   }
 });
+
+
 
 
 app.get("/api/job-info/:jobTitle", (req, res) => {
