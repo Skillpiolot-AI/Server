@@ -26,7 +26,7 @@
     "express",
     "mongodb"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "Ujjwal Jha",
   "license": "MIT",
   "dependencies": {
     "@emailjs/nodejs": "^4.0.4",
