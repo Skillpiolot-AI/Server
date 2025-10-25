@@ -5,6 +5,7 @@ const connectDB = async () => {
     await mongoose.connect('mongodb+srv://ujjwal:123@cluster0.w3h2a.mongodb.net/SIH?retryWrites=true&w=majority&appName=Cluster0', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 10000,
     });
     console.log('MongoDB connected successfully');
   } catch (error) {

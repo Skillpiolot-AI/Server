@@ -18,7 +18,6 @@ const profileRoutes = require('./routes/profileRoutes');
 const analyticsRoutes = require("./routes/analyticsRoutes");
 const updateRoutes = require('./routes/updateRoutes'); 
 const universityRoutes = require('./routes/universityRoutes'); 
-const collegeRoutes = require('./routes/collegeRoutes');
 
 const path = require('path');
 const fs = require('fs');
@@ -64,7 +63,6 @@ app.use('/api/questions', require('./routes/questions'));
 app.use('/api/assessments', require('./routes/assessments'));
 app.use('/api/careers', require('./routes/careers'));
 
-app.use('/api/colleges', collegeRoutes);
 
 
 app.post("/api/gemini-suggestion", async (req, res) => {
@@ -179,5 +177,6 @@ app.get('/health', (req, res) => {
   })
 })
 
-console.log("Skipping DB connection...");
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
