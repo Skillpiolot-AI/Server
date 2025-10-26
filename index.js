@@ -36,8 +36,7 @@ connectDB();
 app.use(cors()); 
 app.use(express.json({ limit: '10mb' }));
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-console.log(GEMINI_API_KEY)
+
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -67,82 +66,6 @@ app.use('/api/careers', require('./routes/careers'));
 app.use('/api/colleges', collegeRoutes);
 
 
-app.post("/api/gemini-suggestion", async (req, res) => {
-  const { quizData, validJobTitles = [] } = req.body;
-
-  if (!Array.isArray(validJobTitles) || validJobTitles.length === 0) {
-    return res.status(400).json({ error: "Invalid or missing validJobTitles in request body" });
-  }
-
-  const prompt = `Based on the following quiz responses, suggest a suitable career path from the following list of job titles: ${validJobTitles.join(", ")}
-
-  Quiz responses:
-  ${JSON.stringify(quizData, null, 2)}
-  
-  Analyze the user's answers carefully and suggest a career path that best matches their interests and skills as indicated by their choices. You must only choose from the provided list of job titles.
-  
-  Format the output in a JSON object following this structure:
-  {
-    "career": "<predicted career from the provided list>",
-    "description": "<brief description of why this career path suits the person based on their specific answers>"
-  }
-  Make sure the output is relevant to the given profile and follows the format. Do not include any explanations or additional text. Only provide the formatted JSON output.`;
-
-  const payload = {
-    contents: [
-      {
-        parts: [
-          {
-            text: prompt,
-          },
-        ],
-      },
-    ],
-  };
-
-  try {
-    console.log("Sending request with payload:", JSON.stringify(payload, null, 2));
-    
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      payload,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("API response:", JSON.stringify(response.data, null, 2));
-
-    const content = response.data.candidates && response.data.candidates[0] && response.data.candidates[0].content;
-    
-    if (content && content.parts && content.parts[0] && content.parts[0].text) {
-      let suggestion;
-      try {
-        suggestion = JSON.parse(content.parts[0].text);
-      } catch (parseError) {
-        const jsonMatch = content.parts[0].text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          suggestion = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error("Failed to extract JSON from API response");
-        }
-      }
-
-      if (validJobTitles.includes(suggestion.career)) {
-        res.json(suggestion);
-      } else {
-        throw new Error("Invalid career suggestion");
-      }
-    } else {
-      throw new Error("Content not found in API response");
-    }
-  } catch (error) {
-    console.error("Error making API request:", error.message);
-    res.status(500).json({ error: "Failed to get a valid career suggestion. Please try again." });
-  }
-});
 
 app.get("/api/job-info/:jobTitle", (req, res) => {
   const { jobTitle } = req.params;
@@ -179,5 +102,4 @@ app.get('/health', (req, res) => {
   })
 })
 
-console.log("Skipping DB connection...");
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

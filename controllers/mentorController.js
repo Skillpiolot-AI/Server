@@ -107,37 +107,78 @@ exports.getMentors = async (req, res) => {
     }
   };
   
-
-
-
+// In mentorController.js - Replace the bookAppointment function
 
 exports.bookAppointment = async (req, res) => {
   try {
     const { mentorId, userId, date } = req.body;
     
-    if (!mongoose.Types.ObjectId.isValid(mentorId) || !mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'Invalid mentor or user ID' });
+    console.log('Received booking request:', { mentorId, userId, date });
+
+    // Validate that IDs are provided
+    if (!mentorId || !userId) {
+      return res.status(400).json({ 
+        message: 'Mentor ID and User ID are required',
+        received: { mentorId, userId }
+      });
     }
 
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(mentorId)) {
+      console.log('Invalid mentorId format:', mentorId);
+      return res.status(400).json({ 
+        message: 'Invalid mentor ID format',
+        mentorId: mentorId
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      console.log('Invalid userId format:', userId);
+      return res.status(400).json({ 
+        message: 'Invalid user ID format',
+        userId: userId
+      });
+    }
+
+    // Check if mentor exists
     const mentor = await User.findById(mentorId);
-    const user = await User.findById(userId);
-
-    if (!mentor || !user) {
-      return res.status(404).json({ message: 'Mentor or User not found' });
+    if (!mentor) {
+      console.log('Mentor not found:', mentorId);
+      return res.status(404).json({ message: 'Mentor not found' });
     }
 
+    if (mentor.role !== 'Mentor') {
+      return res.status(400).json({ message: 'Selected user is not a mentor' });
+    }
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      console.log('User not found:', userId);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Create new appointment
     const newAppointment = new MentorAppointment({
-      mentorId,
-      userId,
-      requestedDate: date
+      mentorId: mentorId,  // Mongoose will automatically convert string to ObjectId
+      userId: userId,      // Mongoose will automatically convert string to ObjectId
+      requestedDate: date || new Date()
     });
 
     await newAppointment.save();
 
-    res.status(201).json({ message: 'Appointment booked successfully' });
+    console.log('Appointment created successfully:', newAppointment._id);
+
+    res.status(201).json({ 
+      message: 'Appointment booked successfully',
+      appointmentId: newAppointment._id
+    });
   } catch (error) {
     console.error('Error booking appointment:', error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ 
+      message: 'Server Error',
+      error: error.message 
+    });
   }
 };
 
