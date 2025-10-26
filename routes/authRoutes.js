@@ -595,7 +595,7 @@ const router = express.Router();
 const { emailTemplates } = require('../config/email');
 
 const JWT_SECRET = process.env.JWT_SECRET || "eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcyNTI4MDAzMCwiaWF0IjoxNzI1MjgwMDMwfQ" ;
-const FRONTEND_URL = process.env.FRONTEND_URL ;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 // Helper function to get location from IP
 const getLocationFromIP = async (ipAddress) => {

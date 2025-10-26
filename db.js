@@ -1,12 +1,22 @@
 const mongoose = require('mongoose');
+// Load environment variables from a .env file when present. If the project
+// already configures dotenv elsewhere, this call is harmless (it will noop).
+require('dotenv').config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb+srv://ujjwal:123@cluster0.w3h2a.mongodb.net/SIH?retryWrites=true&w=majority&appName=Cluster0', {
+    const mongoURL = process.env.mongo_url || process.env.MONGO_URL;
+    if (!mongoURL) {
+      console.error('Missing MongoDB connection string. Set "mongo_url" or "MONGO_URL" in the environment.');
+      process.exit(1);
+    }
+
+    await mongoose.connect(mongoURL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 10000,
     });
+
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
