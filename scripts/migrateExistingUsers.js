@@ -9,8 +9,8 @@ const User = require('../models/User');
 const EmailVerification = require('../models/EmailVerification');
 const { sendEmailFast, verificationEmailTemplate } = require('../config/mailHelper');
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-const MONGO_URI = process.env.MONGO_URI;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://ujjwal:123@cluster0.w3h2a.mongodb.net/SIH?retryWrites=true&w=majority&appName=Cluster0";
 
 // Connect to MongoDB
 const connectDB = async () => {

@@ -592,8 +592,9 @@ const {
   verificationSuccessTemplate
 } = require('../config/mailHelper');
 const router = express.Router();
+const { emailTemplates } = require('../config/email');
 
-const JWT_SECRET = process.env.JWT_SECRET ;
+const JWT_SECRET = process.env.JWT_SECRET || "eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcyNTI4MDAzMCwiaWF0IjoxNzI1MjgwMDMwfQ" ;
 const FRONTEND_URL = process.env.FRONTEND_URL ;
 
 // Helper function to get location from IP
@@ -1310,6 +1311,8 @@ router.post('/deny-login', async (req, res) => {
 });
 
 
+// Replace your forgot-password route with this fixed version
+
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
 
@@ -1367,18 +1370,20 @@ router.post('/forgot-password', async (req, res) => {
     console.log('✅ OTP created:', otpDoc.otp);
     console.log('OTP expires at:', new Date(otpDoc.createdAt.getTime() + 10 * 60 * 1000));
 
-    // Send OTP via email
+    
+    const { emailTemplates } = require('../config/email');
+
+    // Send OTP via email using sendEmailFast (with retry logic)
     console.log('📧 Sending email...');
     
     try {
-      const emailResult = await sendEmail(
+      const emailResult = await sendEmailFast(
         email,
         emailTemplates.otpEmail(user.name, otpDoc.otp, 10)
       );
 
       console.log('✅ Email sent successfully!');
       console.log('Message ID:', emailResult.messageId);
-      console.log('Preview URL:', emailResult.previewUrl);
 
       // Log activity
       await logUserActivity(user, 'password_reset_requested', {
@@ -1390,13 +1395,11 @@ router.post('/forgot-password', async (req, res) => {
       res.json({ 
         message: 'Password reset code sent to your email. Please check your inbox.',
         success: true,
-        // Include preview URL for development testing
-        previewUrl: emailResult.previewUrl,
         // For debugging only - remove in production
-        debug: {
+        debug: process.env.NODE_ENV === 'development' ? {
           otp: otpDoc.otp,
           expiresIn: '10 minutes'
-        }
+        } : undefined
       });
     } catch (emailError) {
       console.error('❌ Error sending OTP email:');
@@ -1551,7 +1554,7 @@ router.post('/resend-otp', async (req, res) => {
 
     // Send OTP via email
     try {
-      const emailResult = await sendEmail(
+      const emailResult = await sendEmailFast(
         email,
         emailTemplates.otpEmail(user.name, otpDoc.otp, 10)
       );
