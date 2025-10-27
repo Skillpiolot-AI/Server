@@ -258,7 +258,7 @@ app.get('/api/admin/scheduler-status', (req, res) => {
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running on port ${PORT}`);
   console.log(`📅 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL }`);
   
   // Initialize scheduled jobs
   console.log('\n⏰ Initializing scheduled jobs...');
