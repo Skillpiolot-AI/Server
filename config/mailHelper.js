@@ -1,297 +1,327 @@
+// config/mailHelper.js - Fast and reliable email service with templates
+
 const nodemailer = require('nodemailer');
 
-// Email configuration
-const emailConfig = {
+// Configure transporter for fast delivery
+const transporter = nodemailer.createTransport({
   host: 'smtp.hostinger.com',
   port: 465,
   secure: true,
   auth: {
     user: 'no-reply@pratimesh.com',
     pass: 'Ujjwaljha_12'
-  }
-};
+  },
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100,
+  rateDelta: 1000,
+  rateLimit: 10
+});
 
-// Create reusable transporter
-const transporter = nodemailer.createTransport(emailConfig);
-
-// Verify transporter configuration
-transporter.verify(function (error, success) {
+// Verify transporter on startup
+transporter.verify((error, success) => {
   if (error) {
-    console.error('❌ Email configuration error:', error);
+    console.error('❌ Email transporter error:', error);
   } else {
-    console.log('✅ Email server is ready to send messages');
+    console.log('✅ Email server ready for fast delivery');
   }
 });
 
-// Email template for account verification
-const verificationEmailTemplate = (name, verificationLink, username) => ({
-  subject: 'Verify Your Spark Account - Welcome!',
-  html: `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #3F3FF3; color: white; padding: 30px; text-align: center; border-radius: 5px 5px 0 0; }
-        .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-top: none; }
-        .verify-box { background-color: white; border: 2px solid #3F3FF3; padding: 20px; text-align: center; margin: 20px 0; border-radius: 5px; }
-        .verify-button { display: inline-block; padding: 15px 40px; background-color: #3F3FF3; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0; }
-        .verify-button:hover { background-color: #2F2FD3; }
-        .info-box { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-        .welcome-icon { font-size: 48px; margin-bottom: 10px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="welcome-icon">🎉</div>
-          <h1>Welcome to Spark!</h1>
-        </div>
-        <div class="content">
-          <p>Hello <strong>${name}</strong>,</p>
-          <p>Thank you for signing up for Spark Career Guidance Portal! We're excited to have you join our community.</p>
-          
-          <div class="verify-box">
-            <h2 style="color: #3F3FF3; margin-top: 0;">Verify Your Email Address</h2>
-            <p>To get started, please verify your email address by clicking the button below:</p>
-            <a href="${verificationLink}" class="verify-button">Verify My Account</a>
-            <p style="font-size: 12px; color: #666; margin-top: 15px;">This link will expire in 24 hours</p>
-          </div>
+// Email template styles
+const emailStyles = `
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 0 auto; padding: 0; }
+    .header { background: linear-gradient(135deg, #3F3FF3 0%, #2F2FD3 100%); color: white; padding: 30px; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; }
+    .content { background: #ffffff; padding: 40px 30px; }
+    .button { display: inline-block; padding: 14px 32px; background: #3F3FF3; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0; }
+    .button:hover { background: #2F2FD3; }
+    .info-box { background: #f8f9ff; border-left: 4px solid #3F3FF3; padding: 15px; margin: 20px 0; border-radius: 4px; }
+    .warning-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; }
+    .success-box { background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; border-radius: 4px; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; background: #f5f5f5; }
+    .code { font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #3F3FF3; text-align: center; padding: 20px; background: #f8f9ff; border-radius: 8px; margin: 20px 0; }
+    .location-info { background: #fff; border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; margin: 15px 0; }
+    .location-info strong { color: #3F3FF3; }
+  </style>
+`;
 
-          <div class="info-box">
-            <strong>📝 Your Account Details:</strong><br>
-            Username: <strong>${username}</strong><br>
-            Email: <strong>${name}</strong>
-          </div>
-
-          <p><strong>What happens after verification?</strong></p>
-          <ul>
-            <li>Full access to personalized career assessments</li>
-            <li>Connect with industry mentors</li>
-            <li>Access exclusive job listings</li>
-            <li>Continuous learning resources</li>
-          </ul>
-
-          <p style="margin-top: 30px; font-size: 14px; color: #666;">
-            If the button doesn't work, copy and paste this link into your browser:<br>
-            <a href="${verificationLink}" style="color: #3F3FF3; word-break: break-all;">${verificationLink}</a>
-          </p>
-
-          <p style="margin-top: 20px;">If you didn't create an account, please ignore this email.</p>
-          
-          <p style="margin-top: 30px;">Best regards,<br><strong>Spark Career Guidance Team</strong></p>
-        </div>
-        <div class="footer">
-          <p>This is an automated email. Please do not reply to this message.</p>
-          <p>&copy; 2025 Spark Career Guidance. All rights reserved.</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `,
-  text: `Hello ${name},\n\nThank you for signing up for Spark Career Guidance Portal!\n\nPlease verify your email address by clicking this link:\n${verificationLink}\n\nYour username: ${username}\n\nThis link will expire in 24 hours.\n\nIf you didn't create an account, please ignore this email.\n\nBest regards,\nSpark Career Guidance Team`
-});
-
-// Email template for suspicious location login
-const suspiciousLocationTemplate = (name, location, verificationLink, deviceInfo) => ({
-  subject: '⚠️ New Login from Unrecognized Location - Spark Security Alert',
-  html: `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #dc3545; color: white; padding: 30px; text-align: center; border-radius: 5px 5px 0 0; }
-        .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-top: none; }
-        .alert-box { background-color: #fff3cd; border: 2px solid #ffc107; padding: 20px; margin: 20px 0; border-radius: 5px; }
-        .location-info { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #dc3545; }
-        .verify-button { display: inline-block; padding: 15px 40px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 5px; }
-        .deny-button { display: inline-block; padding: 15px 40px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 5px; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-        .security-icon { font-size: 48px; margin-bottom: 10px; }
-        .action-buttons { text-align: center; margin: 20px 0; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="security-icon">🔐</div>
-          <h1>Security Alert</h1>
-        </div>
-        <div class="content">
-          <p>Hello <strong>${name}</strong>,</p>
-          
-          <div class="alert-box">
-            <h3 style="margin-top: 0; color: #856404;">⚠️ Unusual Login Detected</h3>
-            <p>We detected a login to your Spark account from a new or unrecognized location.</p>
-          </div>
-
-          <div class="location-info">
-            <strong>📍 Login Details:</strong><br>
-            Location: <strong>${location.city || 'Unknown'}, ${location.region || 'Unknown'}, ${location.country || 'Unknown'}</strong><br>
-            Device: <strong>${deviceInfo.device || 'Unknown'}</strong><br>
-            Browser: <strong>${deviceInfo.browser || 'Unknown'}</strong><br>
-            Time: <strong>${new Date().toLocaleString()}</strong>
-          </div>
-
-          <h3>Was this you?</h3>
-          <p>If you recognize this login, please confirm it was you by clicking the button below:</p>
-
-          <div class="action-buttons">
-            <a href="${verificationLink}?action=verify" class="verify-button">✓ Yes, This Was Me</a>
-            <a href="${verificationLink}?action=deny" class="deny-button">✗ No, Secure My Account</a>
-          </div>
-
-          <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; margin: 20px 0; border-radius: 5px;">
-            <strong>🛡️ Security Tip:</strong> If this wasn't you, click "No, Secure My Account" immediately. We'll help you secure your account and change your password.
-          </div>
-
-          <p style="margin-top: 30px; font-size: 14px; color: #666;">
-            If the buttons don't work, copy and paste this link into your browser:<br>
-            <a href="${verificationLink}" style="color: #3F3FF3; word-break: break-all;">${verificationLink}</a>
-          </p>
-
-          <p style="margin-top: 30px;">Best regards,<br><strong>Spark Security Team</strong></p>
-        </div>
-        <div class="footer">
-          <p>This is an automated security email. Please do not reply to this message.</p>
-          <p>If you need help, contact our support team.</p>
-          <p>&copy; 2025 Spark Career Guidance. All rights reserved.</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `,
-  text: `Hello ${name},\n\nSecurity Alert: We detected a login to your Spark account from a new location.\n\nLocation: ${location.city}, ${location.region}, ${location.country}\nDevice: ${deviceInfo.device}\nBrowser: ${deviceInfo.browser}\nTime: ${new Date().toLocaleString()}\n\nIf this was you, verify it here:\n${verificationLink}?action=verify\n\nIf this wasn't you, secure your account immediately:\n${verificationLink}?action=deny\n\nBest regards,\nSpark Security Team`
-});
-
-// Email template for successful verification
-const verificationSuccessTemplate = (name) => ({
-  subject: '✅ Account Verified Successfully - Welcome to Spark!',
-  html: `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #28a745; color: white; padding: 30px; text-align: center; border-radius: 5px 5px 0 0; }
-        .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-top: none; }
-        .success-icon { font-size: 64px; margin-bottom: 10px; }
-        .feature-box { background-color: white; padding: 15px; margin: 10px 0; border-left: 4px solid #28a745; }
-        .login-button { display: inline-block; padding: 15px 40px; background-color: #3F3FF3; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="success-icon">✅</div>
-          <h1>Account Verified!</h1>
-        </div>
-        <div class="content">
-          <p>Hello <strong>${name}</strong>,</p>
-          <p>Congratulations! Your email has been successfully verified. Your Spark Career Guidance account is now fully activated!</p>
-
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login" class="login-button">Login to Your Account</a>
-          </div>
-
-          <h3 style="color: #3F3FF3;">What's Next?</h3>
-          
-          <div class="feature-box">
-            <strong>📊 Complete Your Profile</strong><br>
-            Add your skills, experience, and career interests
-          </div>
-
-          <div class="feature-box">
-            <strong>🎯 Take Career Assessments</strong><br>
-            Discover your strengths and find the perfect career path
-          </div>
-
-          <div class="feature-box">
-            <strong>👥 Connect with Mentors</strong><br>
-            Get guidance from industry professionals
-          </div>
-
-          <div class="feature-box">
-            <strong>💼 Explore Opportunities</strong><br>
-            Access exclusive job listings and resources
-          </div>
-
-          <p style="margin-top: 30px;">We're here to support your career journey every step of the way!</p>
-          
-          <p style="margin-top: 30px;">Best regards,<br><strong>Spark Career Guidance Team</strong></p>
-        </div>
-        <div class="footer">
-          <p>&copy; 2025 Spark Career Guidance. All rights reserved.</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `,
-  text: `Hello ${name},\n\nCongratulations! Your email has been successfully verified.\n\nYour Spark Career Guidance account is now fully activated!\n\nLogin now: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/login\n\nBest regards,\nSpark Career Guidance Team`
-});
-
-// Function to send email
-const sendEmail = async (to, template) => {
+// Fast email sending function
+const sendMail = async (to, template) => {
   try {
+    console.log(`📧 Sending email to: ${to}`);
+    console.log(`📋 Subject: ${template.subject}`);
+
     const mailOptions = {
-      from: '"Spark Career Guidance" <no-reply@pratimesh.com>',
+      from: {
+        name: 'Spark Career Guidance',
+        address: 'no-reply@pratimesh.com'
+      },
       to: to,
       subject: template.subject,
       text: template.text,
-      html: template.html
+      html: template.html,
+      priority: 'high'
     };
 
+    const startTime = Date.now();
     const info = await transporter.sendMail(mailOptions);
+    const endTime = Date.now();
 
-    console.log('✅ Email sent successfully');
-    console.log('📧 To:', to);
-    console.log('📝 Message ID:', info.messageId);
+    console.log(`✅ Email sent successfully in ${endTime - startTime}ms`);
+    console.log(`📨 Message ID: ${info.messageId}`);
 
     return {
       success: true,
-      messageId: info.messageId
+      messageId: info.messageId,
+      responseTime: endTime - startTime,
+      previewUrl: nodemailer.getTestMessageUrl(info)
     };
   } catch (error) {
-    console.error('❌ Error sending email:', error);
+    console.error('❌ Email sending failed:', error);
     throw error;
   }
 };
 
-// Fast email sending with retry logic
-const sendEmailFast = async (to, template, retries = 3) => {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      console.log(`⚡ Attempt ${attempt}/${retries} - Sending email to ${to}`);
-      const result = await sendEmail(to, template);
-      console.log(`✅ Email sent successfully on attempt ${attempt}`);
-      return result;
-    } catch (error) {
-      console.error(`❌ Attempt ${attempt} failed:`, error.message);
-      
-      if (attempt === retries) {
-        console.error('❌ All retry attempts failed');
-        throw new Error(`Failed to send email after ${retries} attempts: ${error.message}`);
-      }
-      
-      // Wait before retrying (exponential backoff)
-      const waitTime = Math.pow(2, attempt) * 1000;
-      console.log(`⏳ Waiting ${waitTime}ms before retry...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-    }
-  }
+// Template function: Email Verification
+const verificationEmailTemplate = (name, verificationLink, username) => ({
+  subject: '✉️ Verify Your Email - Spark Career Guidance',
+  html: `
+    <!DOCTYPE html>
+    <html>
+    <head>${emailStyles}</head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🎯 Welcome to Spark!</h1>
+        </div>
+        <div class="content">
+          <h2>Hello ${name}! 👋</h2>
+          <p>Thank you for signing up with Spark Career Guidance Portal. We're excited to have you on board!</p>
+          
+          <p><strong>To get started, please verify your email address:</strong></p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationLink}" class="button">
+              ✅ Verify My Email
+            </a>
+          </div>
+          
+          <div class="info-box">
+            <p><strong>📋 Verification Details:</strong></p>
+            <ul>
+              <li>This link will expire in <strong>24 hours</strong></li>
+              <li>Click the button above to activate your account</li>
+              <li>Once verified, you'll have full access to all features</li>
+            </ul>
+          </div>
+          
+          <p style="margin-top: 30px;">If the button doesn't work, copy and paste this link into your browser:</p>
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 4px; word-break: break-all; font-size: 13px;">
+            ${verificationLink}
+          </div>
+          
+          <div class="warning-box" style="margin-top: 30px;">
+            <p><strong>⚠️ Didn't sign up?</strong></p>
+            <p>If you didn't create an account, please ignore this email.</p>
+          </div>
+          
+          <p style="margin-top: 30px;">Best regards,<br><strong>The Spark Team</strong></p>
+        </div>
+        <div class="footer">
+          <p>This is an automated message, please do not reply.</p>
+          <p>&copy; 2025 Spark Career Guidance. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
+  text: `Hello ${name}!\n\nWelcome to Spark Career Guidance Portal!\n\nPlease verify your email by clicking this link:\n${verificationLink}\n\nThis link expires in 24 hours.\n\nBest regards,\nThe Spark Team`
+});
+
+// Template function: Verification Success
+const verificationSuccessTemplate = (name) => ({
+  subject: '🎉 Email Verified Successfully - Spark',
+  html: `
+    <!DOCTYPE html>
+    <html>
+    <head>${emailStyles}</head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🎉 Account Verified!</h1>
+        </div>
+        <div class="content">
+          <h2>Congratulations ${name}! 🎊</h2>
+          
+          <div class="success-box">
+            <p style="margin: 0; font-size: 18px;">✅ Your email has been successfully verified!</p>
+          </div>
+          
+          <p>Your account is now fully activated and ready to use.</p>
+          
+          <p><strong>What's next?</strong></p>
+          <ul>
+            <li>Complete your profile</li>
+            <li>Explore career assessments</li>
+            <li>Connect with mentors</li>
+            <li>Access exclusive resources</li>
+          </ul>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="http://localhost:5173/login" class="button">
+              🚀 Start Exploring
+            </a>
+          </div>
+          
+          <p style="margin-top: 30px;">Welcome aboard!<br><strong>The Spark Team</strong></p>
+        </div>
+        <div class="footer">
+          <p>&copy; 2025 Spark Career Guidance. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
+  text: `Congratulations ${name}!\n\nYour email has been successfully verified!\n\nYour account is now fully activated. Log in to start exploring!\n\nBest regards,\nThe Spark Team`
+});
+
+// Template function: Suspicious Location
+const suspiciousLocationTemplate = (name, location, verificationLink, deviceInfo) => ({
+  subject: '🔐 New Login Location Detected - Spark',
+  html: `
+    <!DOCTYPE html>
+    <html>
+    <head>${emailStyles}</head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🔐 Security Alert</h1>
+        </div>
+        <div class="content">
+          <h2>Hello ${name},</h2>
+          
+          <div class="warning-box">
+            <p style="margin: 0; font-size: 16px;"><strong>⚠️ We detected a login from a new location</strong></p>
+          </div>
+          
+          <p>A login attempt was made to your account from a location we don't recognize.</p>
+          
+          <div class="location-info">
+            <p><strong>📍 Login Details:</strong></p>
+            <ul style="margin: 10px 0;">
+              <li><strong>Location:</strong> ${location.city}, ${location.region}, ${location.country}</li>
+              <li><strong>Device:</strong> ${deviceInfo.device}</li>
+              <li><strong>Browser:</strong> ${deviceInfo.browser}</li>
+              <li><strong>OS:</strong> ${deviceInfo.os}</li>
+              <li><strong>Time:</strong> ${new Date().toLocaleString()}</li>
+            </ul>
+          </div>
+          
+          <p><strong>Was this you?</strong></p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationLink}" class="button" style="background: #28a745;">
+              ✅ Yes, It Was Me
+            </a>
+          </div>
+          
+          <div class="warning-box" style="margin-top: 30px;">
+            <p><strong>🚨 If this wasn't you:</strong></p>
+            <ul>
+              <li>Change your password immediately</li>
+              <li>Review your recent account activity</li>
+              <li>Contact our support team</li>
+            </ul>
+          </div>
+          
+          <p style="margin-top: 30px;">Stay safe,<br><strong>The Spark Security Team</strong></p>
+        </div>
+        <div class="footer">
+          <p>This is an automated security message.</p>
+          <p>&copy; 2025 Spark Career Guidance. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
+  text: `Hello ${name},\n\nWe detected a login from a new location:\n\nLocation: ${location.city}, ${location.region}, ${location.country}\nDevice: ${deviceInfo.device}\nBrowser: ${deviceInfo.browser}\n\nWas this you?\nVerify: ${verificationLink}\n\nIf not, secure your account immediately.\n\nBest regards,\nThe Spark Security Team`
+});
+
+// Legacy template-based functions for backward compatibility
+const sendVerificationEmail = async (email, name, verificationLink, token) => {
+  const template = verificationEmailTemplate(name, verificationLink, token);
+  return await sendMail(email, template);
+};
+
+const sendVerificationSuccessEmail = async (email, name, username) => {
+  const template = verificationSuccessTemplate(name);
+  return await sendMail(email, template);
+};
+
+const sendLocationVerificationEmail = async (email, name, loginDetails, verificationLink) => {
+  // Convert old format to new format
+  const location = {
+    city: loginDetails.location?.city || 'Unknown',
+    region: loginDetails.location?.region || 'Unknown',
+    country: loginDetails.location?.country || 'Unknown'
+  };
+  const deviceInfo = {
+    device: loginDetails.userAgent || 'Unknown Device',
+    browser: 'Unknown',
+    os: 'Unknown'
+  };
+  const template = suspiciousLocationTemplate(name, location, verificationLink, deviceInfo);
+  return await sendMail(email, template);
+};
+
+const sendLocationVerifiedEmail = async (email, name) => {
+  const template = {
+    subject: '✅ New Location Verified - Spark',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>${emailStyles}</head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✅ Location Verified</h1>
+          </div>
+          <div class="content">
+            <h2>Hello ${name},</h2>
+            
+            <div class="success-box">
+              <p style="margin: 0; font-size: 16px;">✅ Your new login location has been verified!</p>
+            </div>
+            
+            <p>Thank you for confirming your identity. This location has been added to your trusted devices.</p>
+            
+            <p style="margin-top: 30px;">Stay secure,<br><strong>The Spark Team</strong></p>
+          </div>
+          <div class="footer">
+            <p>&copy; 2025 Spark Career Guidance. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `Hello ${name},\n\nYour new login location has been verified successfully!\n\nStay secure,\nThe Spark Team`
+  };
+  return await sendMail(email, template);
 };
 
 module.exports = {
   transporter,
-  sendEmail,
-  sendEmailFast,
+  sendMail,
+  sendEmailFast: sendMail, // ✅ Alias for compatibility
+  // Template functions
   verificationEmailTemplate,
+  verificationSuccessTemplate,
   suspiciousLocationTemplate,
-  verificationSuccessTemplate
+  // Legacy functions
+  sendVerificationEmail,
+  sendVerificationSuccessEmail,
+  sendLocationVerificationEmail,
+  sendLocationVerifiedEmail
 };

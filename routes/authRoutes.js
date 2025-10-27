@@ -569,10 +569,7 @@
 // module.exports = router;
 
 
-
-// routes/authRoutes.js - Enhanced with OTP functionality
-
-
+// routes/authRoutes.js
 const express = require('express');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
@@ -585,21 +582,22 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
-const {
-  sendEmailFast,
-  verificationEmailTemplate,
-  suspiciousLocationTemplate,
-  verificationSuccessTemplate
-} = require('../config/mailHelper');
 const router = express.Router();
 
-const JWT_SECRET = process.env.JWT_SECRET ;
-const FRONTEND_URL = process.env.FRONTEND_URL ;
+// Import email utilities
+const { sendEmailFast } = require('../config/mailHelper');
+const { emailTemplates: otpEmailTemplates } = require('../config/email');
+const adminEmailTemplates = require('../config/emailTemplates');
 
-// Helper function to get location from IP
+// Constants
+const JWT_SECRET = process.env.JWT_SECRET;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+// ==================== HELPER FUNCTIONS ====================
+
+// Get location from IP
 const getLocationFromIP = async (ipAddress) => {
   try {
-    // Use ipapi.co for IP geolocation (free tier: 1000 requests/day)
     const response = await axios.get(`https://ipapi.co/${ipAddress}/json/`, {
       timeout: 5000
     });
@@ -622,7 +620,7 @@ const getLocationFromIP = async (ipAddress) => {
   }
 };
 
-// Helper function to parse user agent
+// Parse user agent
 const parseUserAgent = (userAgent) => {
   const ua = userAgent || '';
   
@@ -646,32 +644,29 @@ const parseUserAgent = (userAgent) => {
   return { device, browser, os };
 };
 
-// Helper function to check if location is suspicious
+// Check if location is suspicious
 const isLocationSuspicious = async (user, currentIP, currentLocation) => {
-  // Get user's login history
-  const recentLogins = user.loginHistory.slice(-5); // Last 5 logins
+  const recentLogins = user.loginHistory.slice(-5);
   
   if (recentLogins.length === 0) {
-    return false; // First login, not suspicious
+    return false;
   }
   
-  // Check if IP matches recent logins
   const ipMatch = recentLogins.some(login => login.ipAddress === currentIP);
   if (ipMatch) return false;
   
-  // Check if country matches recent logins
   const countryMatch = recentLogins.some(login => 
     login.location?.country === currentLocation.country
   );
   
   if (!countryMatch && currentLocation.country !== 'Unknown') {
-    return true; // Different country, suspicious
+    return true;
   }
   
   return false;
 };
 
-// Helper function to log activity
+// Log user activity
 const logUserActivity = async (user, activityType, details, req) => {
   try {
     const sessionId = req.sessionID || uuidv4();
@@ -707,7 +702,9 @@ const logUserActivity = async (user, activityType, details, req) => {
   }
 };
 
-// ==================== SIGNUP WITH EMAIL VERIFICATION ====================
+// ==================== AUTHENTICATION ROUTES ====================
+
+// Signup
 router.post('/signup', async (req, res) => {
   const { username, name, email, password, confirmPassword, newsletter, subscription, role = 'User' } = req.body;
   
@@ -745,7 +742,6 @@ router.post('/signup', async (req, res) => {
       finalRole = role;
     }
 
-    // Create user (not verified yet)
     const newUser = new User({
       username,
       name,
@@ -754,14 +750,13 @@ router.post('/signup', async (req, res) => {
       role: finalRole,
       newsletter,
       subscription,
-      isVerified: false, // Email not verified yet
-      isActive: false // Account not active until verified
+      isVerified: false,
+      isActive: false
     });
 
     await newUser.save();
     console.log('✅ User created:', newUser._id);
 
-    // Create verification token
     const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
     const userAgent = req.get('User-Agent') || 'Unknown';
     
@@ -774,11 +769,10 @@ router.post('/signup', async (req, res) => {
 
     console.log('✅ Verification token created:', verification.token);
 
-    // Create verification link
     const verificationLink = `${FRONTEND_URL}/verify-email?token=${verification.token}`;
 
-    // Send verification email
     try {
+      const { verificationEmailTemplate } = require('../config/mailHelper');
       await sendEmailFast(
         email,
         verificationEmailTemplate(name, verificationLink, username)
@@ -807,7 +801,6 @@ router.post('/signup', async (req, res) => {
     } catch (emailError) {
       console.error('❌ Failed to send verification email:', emailError);
       
-      // Delete user if email fails
       await User.findByIdAndDelete(newUser._id);
       await EmailVerification.findByIdAndDelete(verification._id);
       
@@ -822,7 +815,7 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// ==================== VERIFY EMAIL ====================
+// Verify Email
 router.post('/verify-email', async (req, res) => {
   const { token } = req.body;
 
@@ -837,7 +830,6 @@ router.post('/verify-email', async (req, res) => {
       });
     }
 
-    // Find verification record
     const verification = await EmailVerification.findOne({ token });
 
     if (!verification) {
@@ -847,7 +839,6 @@ router.post('/verify-email', async (req, res) => {
       });
     }
 
-    // Verify the token
     const result = await verification.verify();
 
     if (!result.success) {
@@ -858,7 +849,6 @@ router.post('/verify-email', async (req, res) => {
       });
     }
 
-    // Update user account
     const user = await User.findById(verification.userId);
     
     if (!user) {
@@ -874,8 +864,8 @@ router.post('/verify-email', async (req, res) => {
 
     console.log('✅ Email verified successfully for:', user.email);
 
-    // Send success email
     try {
+      const { verificationSuccessTemplate } = require('../config/mailHelper');
       await sendEmailFast(
         user.email,
         verificationSuccessTemplate(user.name)
@@ -884,7 +874,6 @@ router.post('/verify-email', async (req, res) => {
       console.error('Failed to send success email:', emailError);
     }
 
-    // Log activity
     await logUserActivity(user, 'email_verified', {
       verificationTime: new Date()
     }, req);
@@ -904,7 +893,7 @@ router.post('/verify-email', async (req, res) => {
   }
 });
 
-// ==================== RESEND VERIFICATION EMAIL ====================
+// Resend Verification Email
 router.post('/resend-verification', async (req, res) => {
   const { email } = req.body;
 
@@ -928,13 +917,11 @@ router.post('/resend-verification', async (req, res) => {
       });
     }
 
-    // Delete old verification tokens
     await EmailVerification.deleteMany({ 
       userId: user._id, 
       isVerified: false 
     });
 
-    // Create new verification token
     const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
     const userAgent = req.get('User-Agent') || 'Unknown';
     
@@ -947,7 +934,7 @@ router.post('/resend-verification', async (req, res) => {
 
     const verificationLink = `${FRONTEND_URL}/verify-email?token=${verification.token}`;
 
-    // Send email
+    const { verificationEmailTemplate } = require('../config/mailHelper');
     await sendEmailFast(
       email,
       verificationEmailTemplate(user.name, verificationLink, user.username)
@@ -969,7 +956,7 @@ router.post('/resend-verification', async (req, res) => {
   }
 });
 
-// ==================== LOGIN WITH LOCATION VERIFICATION ====================
+// Login
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -977,7 +964,6 @@ router.post('/login', async (req, res) => {
   console.log('Username:', username);
 
   try {
-    // Find user
     const user = await User.findOne({
       $or: [
         { username },
@@ -993,7 +979,6 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Check if email is verified
     if (!user.isVerified) {
       console.log('⚠️ Email not verified');
       return res.status(403).json({
@@ -1003,7 +988,6 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Check account status
     if (user.isLocked) {
       await logUserActivity(user, 'login_attempt', {
         success: false,
@@ -1032,7 +1016,6 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       await user.incLoginAttempts();
@@ -1052,12 +1035,10 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Reset login attempts
     if (user.loginAttempts > 0) {
       await user.resetLoginAttempts();
     }
 
-    // Get location info
     const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
     const userAgent = req.get('User-Agent') || 'Unknown';
     const location = await getLocationFromIP(ipAddress);
@@ -1066,13 +1047,11 @@ router.post('/login', async (req, res) => {
     console.log('📍 Location:', location);
     console.log('💻 Device:', deviceInfo);
 
-    // Check if location is suspicious
     const isSuspicious = await isLocationSuspicious(user, ipAddress, location);
 
     if (isSuspicious) {
       console.log('⚠️ Suspicious location detected');
 
-      // Create login verification
       const loginVerification = await LoginVerification.createLoginVerification(
         user._id,
         user.email,
@@ -1082,11 +1061,10 @@ router.post('/login', async (req, res) => {
         deviceInfo
       );
 
-      // Create verification link
       const verificationLink = `${FRONTEND_URL}/verify-login?token=${loginVerification.token}`;
 
-      // Send suspicious login email
       try {
+        const { suspiciousLocationTemplate } = require('../config/mailHelper');
         await sendEmailFast(
           user.email,
           suspiciousLocationTemplate(user.name, location, verificationLink, deviceInfo)
@@ -1108,11 +1086,9 @@ router.post('/login', async (req, res) => {
         });
       } catch (emailError) {
         console.error('❌ Failed to send suspicious login email:', emailError);
-        // Continue with login if email fails
       }
     }
 
-    // Normal login flow
     const token = jwt.sign(
       { 
         id: user._id, 
@@ -1123,11 +1099,9 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    // Start session
     const sessionId = uuidv4();
     await user.startSession(sessionId, ipAddress, userAgent);
 
-    // Update login history with location
     user.loginHistory.push({
       timestamp: new Date(),
       ipAddress,
@@ -1171,7 +1145,402 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ==================== GET LOGIN VERIFICATION DETAILS ====================
+// Logout
+router.post('/logout', async (req, res) => {
+  try {
+    const token = req.headers['authorization']?.split(' ')[1];
+    
+    if (token) {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const user = await User.findById(decoded.id);
+      
+      if (user) {
+        await user.endSession();
+        
+        await logUserActivity(user, 'logout', {
+          logoutTime: new Date(),
+          sessionId: user.currentSession?.sessionId
+        }, req);
+      }
+    }
+
+    res.json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.json({ success: true, message: 'Logged out successfully' });
+  }
+});
+
+// ==================== PASSWORD MANAGEMENT ====================
+
+// Forgot Password
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  console.log('\n🔐 Forgot Password Request');
+  console.log('Email:', email);
+
+  try {
+    if (!email) {
+      console.log('❌ No email provided');
+      return res.status(400).json({ 
+        message: 'Email is required',
+        success: false
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    console.log('User found:', user ? 'Yes' : 'No');
+
+    if (!user) {
+      console.log('⚠️ User not found, but sending success response');
+      return res.status(200).json({ 
+        message: 'If an account exists with this email, you will receive a password reset code.',
+        success: true
+      });
+    }
+
+    if (!user.isActive) {
+      console.log('❌ User account is not active');
+      return res.status(403).json({ 
+        message: 'Account is deactivated. Please contact administrator.',
+        success: false
+      });
+    }
+
+    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
+    const userAgent = req.get('User-Agent') || 'Unknown';
+
+    console.log('Creating OTP...');
+    
+    const otpDoc = await OTP.createOTP(email.toLowerCase(), 'password_reset', ipAddress, userAgent);
+    
+    console.log('✅ OTP created:', otpDoc.otp);
+
+    try {
+      const emailResult = await sendEmailFast(
+        email,
+        otpEmailTemplates.otpEmail(user.name, otpDoc.otp, 10)
+      );
+
+      console.log('✅ Email sent successfully!');
+
+      await logUserActivity(user, 'password_reset_requested', {
+        requestTime: new Date(),
+        ipAddress,
+        otpSent: true
+      }, req);
+
+      res.json({ 
+        message: 'Password reset code sent to your email. Please check your inbox.',
+        success: true
+      });
+    } catch (emailError) {
+      console.error('❌ Error sending OTP email:', emailError);
+      
+      res.status(500).json({ 
+        message: 'Failed to send reset code. Please try again later.',
+        success: false,
+        error: emailError.message
+      });
+    }
+  } catch (error) {
+    console.error('❌ Forgot password error:', error);
+    
+    res.status(500).json({ 
+      message: 'Server error. Please try again later.',
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Verify OTP
+router.post('/verify-otp', async (req, res) => {
+  const { email, otp } = req.body;
+
+  console.log('\n🔍 Verifying OTP');
+  console.log('Email:', email);
+  console.log('OTP:', otp);
+
+  try {
+    if (!email || !otp) {
+      return res.status(400).json({ 
+        message: 'Email and OTP are required',
+        success: false
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      console.log('❌ User not found');
+      return res.status(404).json({ 
+        message: 'User not found',
+        success: false
+      });
+    }
+
+    const otpDoc = await OTP.findValidOTP(email.toLowerCase(), 'password_reset');
+
+    if (!otpDoc) {
+      console.log('❌ No valid OTP found');
+      return res.status(400).json({ 
+        message: 'No valid OTP found. Please request a new one.',
+        success: false
+      });
+    }
+
+    const verificationResult = await otpDoc.verifyOTP(otp);
+
+    if (!verificationResult.success) {
+      await logUserActivity(user, 'otp_verification_failed', {
+        attemptTime: new Date(),
+        attemptsRemaining: otpDoc.maxAttempts - otpDoc.attempts,
+        reason: verificationResult.message
+      }, req);
+
+      return res.status(400).json(verificationResult);
+    }
+
+    const resetToken = jwt.sign(
+      { 
+        id: user._id, 
+        email: user.email,
+        purpose: 'password_reset'
+      },
+      JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    console.log('✅ Reset token generated');
+
+    await logUserActivity(user, 'otp_verified', {
+      verificationTime: new Date()
+    }, req);
+
+    res.json({ 
+      message: 'OTP verified successfully',
+      success: true,
+      resetToken
+    });
+  } catch (error) {
+    console.error('❌ OTP verification error:', error);
+    
+    res.status(500).json({ 
+      message: 'Server error. Please try again.',
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Reset Password
+router.post('/reset-password', async (req, res) => {
+  const { resetToken, newPassword, confirmPassword } = req.body;
+
+  try {
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ 
+        message: 'Passwords do not match',
+        success: false
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ 
+        message: 'Password must be at least 6 characters long',
+        success: false
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, JWT_SECRET);
+    } catch (error) {
+      return res.status(401).json({ 
+        message: 'Invalid or expired reset token. Please request a new one.',
+        success: false
+      });
+    }
+
+    if (decoded.purpose !== 'password_reset') {
+      return res.status(401).json({ 
+        message: 'Invalid reset token',
+        success: false
+      });
+    }
+
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ 
+        message: 'User not found',
+        success: false
+      });
+    }
+
+    for (const oldPass of user.passwordHistory) {
+      const isSameAsOld = await bcrypt.compare(newPassword, oldPass.hashedPassword);
+      if (isSameAsOld) {
+        return res.status(400).json({ 
+          message: 'Cannot reuse recent passwords. Please choose a different password.',
+          success: false
+        });
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await user.changePassword(hashedPassword);
+
+    try {
+      await sendEmailFast(
+        user.email,
+        otpEmailTemplates.passwordResetSuccess(user.name)
+      );
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+    }
+
+    await logUserActivity(user, 'password_reset_completed', {
+      resetTime: new Date()
+    }, req);
+
+    res.json({ 
+      message: 'Password reset successfully. You can now login with your new password.',
+      success: true
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ 
+      message: 'Server error. Please try again.',
+      success: false
+    });
+  }
+});
+
+// Resend OTP
+router.post('/resend-otp', async (req, res) => {
+  const { email } = req.body;
+
+  console.log('\n🔄 Resending OTP');
+  console.log('Email:', email);
+
+  try {
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      return res.status(200).json({ 
+        message: 'If an account exists with this email, a new code will be sent.',
+        success: true
+      });
+    }
+
+    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
+    const userAgent = req.get('User-Agent') || 'Unknown';
+
+    const otpDoc = await OTP.createOTP(email.toLowerCase(), 'password_reset', ipAddress, userAgent);
+
+    console.log('✅ New OTP created:', otpDoc.otp);
+
+    try {
+      await sendEmailFast(
+        email,
+        otpEmailTemplates.otpEmail(user.name, otpDoc.otp, 10)
+      );
+
+      console.log('✅ Email sent successfully');
+
+      await logUserActivity(user, 'otp_resent', {
+        resendTime: new Date()
+      }, req);
+
+      res.json({ 
+        message: 'New code sent to your email',
+        success: true
+      });
+    } catch (emailError) {
+      console.error('❌ Error resending OTP:', emailError);
+      res.status(500).json({ 
+        message: 'Failed to send code. Please try again.',
+        success: false,
+        error: emailError.message
+      });
+    }
+  } catch (error) {
+    console.error('❌ Resend OTP error:', error);
+    res.status(500).json({ 
+      message: 'Server error. Please try again.',
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Change Password
+router.post('/change-password', async (req, res) => {
+  const { currentPassword, newPassword, token } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      await logUserActivity(user, 'password_change_attempt', {
+        success: false,
+        reason: 'invalid_current_password',
+        attemptTime: new Date()
+      }, req);
+
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    for (const oldPass of user.passwordHistory) {
+      const isSameAsOld = await bcrypt.compare(newPassword, oldPass.hashedPassword);
+      if (isSameAsOld) {
+        return res.status(400).json({ message: 'Cannot reuse recent passwords' });
+      }
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await user.changePassword(hashedNewPassword);
+
+    await logUserActivity(user, 'password_change', {
+      success: true,
+      changeTime: new Date()
+    }, req);
+
+    const newToken = jwt.sign(
+      { 
+        id: user._id, 
+        role: user.role,
+        universityId: user.universityId
+      }, 
+      JWT_SECRET, 
+      { expiresIn: '24h' }
+    );
+
+    res.json({ 
+      success: true, 
+      message: 'Password changed successfully',
+      token: newToken
+    });
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// ==================== LOGIN VERIFICATION ====================
+
+// Get Login Verification Details
 router.get('/login-verification/:token', async (req, res) => {
   const { token } = req.params;
 
@@ -1210,7 +1579,7 @@ router.get('/login-verification/:token', async (req, res) => {
   }
 });
 
-// ==================== VERIFY LOGIN ====================
+// Verify Login
 router.post('/verify-login', async (req, res) => {
   const { token } = req.body;
 
@@ -1235,7 +1604,6 @@ router.post('/verify-login', async (req, res) => {
       });
     }
 
-    // Log activity
     const user = await User.findById(verification.userId);
     if (user) {
       await logUserActivity(user, 'login_verified', {
@@ -1259,7 +1627,7 @@ router.post('/verify-login', async (req, res) => {
   }
 });
 
-// ==================== DENY LOGIN ====================
+// Deny Login
 router.post('/deny-login', async (req, res) => {
   const { token } = req.body;
 
@@ -1284,7 +1652,6 @@ router.post('/deny-login', async (req, res) => {
       });
     }
 
-    // Log security event
     const user = await User.findById(verification.userId);
     if (user) {
       await logUserActivity(user, 'login_denied', {
@@ -1309,520 +1676,8 @@ router.post('/deny-login', async (req, res) => {
   }
 });
 
+// ==================== TOKEN VERIFICATION MIDDLEWARE ====================
 
-router.post('/forgot-password', async (req, res) => {
-  const { email } = req.body;
-
-  console.log('\n🔐 Forgot Password Request');
-  console.log('Email:', email);
-
-  try {
-    // Validate email input
-    if (!email) {
-      console.log('❌ No email provided');
-      return res.status(400).json({ 
-        message: 'Email is required',
-        success: false
-      });
-    }
-
-    // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
-
-    console.log('User found:', user ? 'Yes' : 'No');
-
-    if (!user) {
-      // For security, send success even if user doesn't exist
-      console.log('⚠️ User not found, but sending success response');
-      return res.status(200).json({ 
-        message: 'If an account exists with this email, you will receive a password reset code.',
-        success: true
-      });
-    }
-
-    console.log('User details:', {
-      name: user.name,
-      email: user.email,
-      isActive: user.isActive
-    });
-
-    // Check if user account is active
-    if (!user.isActive) {
-      console.log('❌ User account is not active');
-      return res.status(403).json({ 
-        message: 'Account is deactivated. Please contact administrator.',
-        success: false
-      });
-    }
-
-    // Get IP and User Agent
-    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
-    const userAgent = req.get('User-Agent') || 'Unknown';
-
-    console.log('Creating OTP...');
-    
-    // Create OTP
-    const otpDoc = await OTP.createOTP(email.toLowerCase(), 'password_reset', ipAddress, userAgent);
-    
-    console.log('✅ OTP created:', otpDoc.otp);
-    console.log('OTP expires at:', new Date(otpDoc.createdAt.getTime() + 10 * 60 * 1000));
-
-    // Send OTP via email
-    console.log('📧 Sending email...');
-    
-    try {
-      const emailResult = await sendEmail(
-        email,
-        emailTemplates.otpEmail(user.name, otpDoc.otp, 10)
-      );
-
-      console.log('✅ Email sent successfully!');
-      console.log('Message ID:', emailResult.messageId);
-      console.log('Preview URL:', emailResult.previewUrl);
-
-      // Log activity
-      await logUserActivity(user, 'password_reset_requested', {
-        requestTime: new Date(),
-        ipAddress,
-        otpSent: true
-      }, req);
-
-      res.json({ 
-        message: 'Password reset code sent to your email. Please check your inbox.',
-        success: true,
-        // Include preview URL for development testing
-        previewUrl: emailResult.previewUrl,
-        // For debugging only - remove in production
-        debug: {
-          otp: otpDoc.otp,
-          expiresIn: '10 minutes'
-        }
-      });
-    } catch (emailError) {
-      console.error('❌ Error sending OTP email:');
-      console.error('Error name:', emailError.name);
-      console.error('Error message:', emailError.message);
-      console.error('Error code:', emailError.code);
-      console.error('Error stack:', emailError.stack);
-      
-      res.status(500).json({ 
-        message: 'Failed to send reset code. Please try again later.',
-        success: false,
-        error: emailError.message
-      });
-    }
-  } catch (error) {
-    console.error('❌ Forgot password error:');
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    
-    res.status(500).json({ 
-      message: 'Server error. Please try again later.',
-      success: false,
-      error: error.message
-    });
-  }
-});
-// Verify OTP
-// Replace your verify-otp route with this fixed version:
-
-// Verify OTP
-router.post('/verify-otp', async (req, res) => {
-  const { email, otp } = req.body;
-
-  console.log('\n🔍 Verifying OTP');
-  console.log('Email:', email);
-  console.log('OTP:', otp);
-
-  try {
-    if (!email || !otp) {
-      return res.status(400).json({ 
-        message: 'Email and OTP are required',
-        success: false
-      });
-    }
-
-    // Find user
-    const user = await User.findOne({ email: email.toLowerCase() });
-
-    if (!user) {
-      console.log('❌ User not found');
-      return res.status(404).json({ 
-        message: 'User not found',
-        success: false
-      });
-    }
-
-    console.log('✅ User found');
-
-    // Find valid OTP
-    const otpDoc = await OTP.findValidOTP(email.toLowerCase(), 'password_reset');
-
-    if (!otpDoc) {
-      console.log('❌ No valid OTP found');
-      return res.status(400).json({ 
-        message: 'No valid OTP found. Please request a new one.',
-        success: false
-      });
-    }
-
-    console.log('✅ OTP document found');
-    console.log('Stored OTP:', otpDoc.otp);
-    console.log('Input OTP:', otp);
-    console.log('Attempts:', otpDoc.attempts);
-    console.log('Is Used:', otpDoc.isUsed);
-
-    // ✅ FIXED: Use await for verifyOTP since it's now async
-    const verificationResult = await otpDoc.verifyOTP(otp);
-
-    console.log('Verification result:', verificationResult);
-
-    if (!verificationResult.success) {
-      // Log failed attempt
-      await logUserActivity(user, 'otp_verification_failed', {
-        attemptTime: new Date(),
-        attemptsRemaining: otpDoc.maxAttempts - otpDoc.attempts,
-        reason: verificationResult.message
-      }, req);
-
-      return res.status(400).json(verificationResult);
-    }
-
-    // Generate reset token (valid for 15 minutes)
-    const resetToken = jwt.sign(
-      { 
-        id: user._id, 
-        email: user.email,
-        purpose: 'password_reset'
-      },
-      JWT_SECRET,
-      { expiresIn: '15m' }
-    );
-
-    console.log('✅ Reset token generated');
-
-    // Log successful OTP verification
-    await logUserActivity(user, 'otp_verified', {
-      verificationTime: new Date()
-    }, req);
-
-    res.json({ 
-      message: 'OTP verified successfully',
-      success: true,
-      resetToken
-    });
-  } catch (error) {
-    console.error('❌ OTP verification error:', error);
-    console.error('Error stack:', error.stack);
-    
-    res.status(500).json({ 
-      message: 'Server error. Please try again.',
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-
-router.post('/resend-otp', async (req, res) => {
-  const { email } = req.body;
-
-  console.log('\n🔄 Resending OTP');
-  console.log('Email:', email);
-
-  try {
-    const user = await User.findOne({ email: email.toLowerCase() });
-
-    if (!user) {
-      return res.status(200).json({ 
-        message: 'If an account exists with this email, a new code will be sent.',
-        success: true
-      });
-    }
-
-    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
-    const userAgent = req.get('User-Agent') || 'Unknown';
-
-    // Create new OTP
-    const otpDoc = await OTP.createOTP(email.toLowerCase(), 'password_reset', ipAddress, userAgent);
-
-    console.log('✅ New OTP created:', otpDoc.otp);
-
-    // Send OTP via email
-    try {
-      const emailResult = await sendEmail(
-        email,
-        emailTemplates.otpEmail(user.name, otpDoc.otp, 10)
-      );
-
-      console.log('✅ Email sent successfully');
-
-      await logUserActivity(user, 'otp_resent', {
-        resendTime: new Date()
-      }, req);
-
-      res.json({ 
-        message: 'New code sent to your email',
-        success: true,
-        previewUrl: emailResult.previewUrl,
-        // For debugging - remove in production
-        debug: {
-          otp: otpDoc.otp
-        }
-      });
-    } catch (emailError) {
-      console.error('❌ Error resending OTP:', emailError);
-      res.status(500).json({ 
-        message: 'Failed to send code. Please try again.',
-        success: false,
-        error: emailError.message
-      });
-    }
-  } catch (error) {
-    console.error('❌ Resend OTP error:', error);
-    res.status(500).json({ 
-      message: 'Server error. Please try again.',
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-
-// Reset Password with Token
-router.post('/reset-password', async (req, res) => {
-  const { resetToken, newPassword, confirmPassword } = req.body;
-
-  try {
-    // Validate passwords match
-    if (newPassword !== confirmPassword) {
-      return res.status(400).json({ 
-        message: 'Passwords do not match',
-        success: false
-      });
-    }
-
-    // Validate password strength
-    if (newPassword.length < 6) {
-      return res.status(400).json({ 
-        message: 'Password must be at least 6 characters long',
-        success: false
-      });
-    }
-
-    // Verify reset token
-    let decoded;
-    try {
-      decoded = jwt.verify(resetToken, JWT_SECRET);
-    } catch (error) {
-      return res.status(401).json({ 
-        message: 'Invalid or expired reset token. Please request a new one.',
-        success: false
-      });
-    }
-
-    if (decoded.purpose !== 'password_reset') {
-      return res.status(401).json({ 
-        message: 'Invalid reset token',
-        success: false
-      });
-    }
-
-    // Find user
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(404).json({ 
-        message: 'User not found',
-        success: false
-      });
-    }
-
-    // Check if new password is different from recent passwords
-    for (const oldPass of user.passwordHistory) {
-      const isSameAsOld = await bcrypt.compare(newPassword, oldPass.hashedPassword);
-      if (isSameAsOld) {
-        return res.status(400).json({ 
-          message: 'Cannot reuse recent passwords. Please choose a different password.',
-          success: false
-        });
-      }
-    }
-
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password
-    await user.changePassword(hashedPassword);
-
-    // Send confirmation email
-    try {
-      await sendEmail(
-        user.email,
-        emailTemplates.passwordResetSuccess(user.name)
-      );
-    } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError);
-    }
-
-    // Log password reset
-    await logUserActivity(user, 'password_reset_completed', {
-      resetTime: new Date()
-    }, req);
-
-    res.json({ 
-      message: 'Password reset successfully. You can now login with your new password.',
-      success: true
-    });
-  } catch (error) {
-    console.error('Reset password error:', error);
-    res.status(500).json({ 
-      message: 'Server error. Please try again.',
-      success: false
-    });
-  }
-});
-
-// Resend OTP
-router.post('/resend-otp', async (req, res) => {
-  const { email } = req.body;
-
-  try {
-    const user = await User.findOne({ email: email.toLowerCase() });
-
-    if (!user) {
-      return res.status(200).json({ 
-        message: 'If an account exists with this email, a new code will be sent.',
-        success: true
-      });
-    }
-
-    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
-    const userAgent = req.get('User-Agent') || 'Unknown';
-
-    // Create new OTP
-    const otpDoc = await OTP.createOTP(email.toLowerCase(), 'password_reset', ipAddress, userAgent);
-
-    // Send OTP via email
-    try {
-      const emailResult = await sendEmail(
-        email,
-        emailTemplates.otpEmail(user.name, otpDoc.otp, 10)
-      );
-
-      await logUserActivity(user, 'otp_resent', {
-        resendTime: new Date()
-      }, req);
-
-      res.json({ 
-        message: 'New code sent to your email',
-        success: true,
-        previewUrl: emailResult.previewUrl
-      });
-    } catch (emailError) {
-      console.error('Error resending OTP:', emailError);
-      res.status(500).json({ 
-        message: 'Failed to send code. Please try again.',
-        success: false
-      });
-    }
-  } catch (error) {
-    console.error('Resend OTP error:', error);
-    res.status(500).json({ 
-      message: 'Server error. Please try again.',
-      success: false
-    });
-  }
-});
-
-// Password change endpoint (existing functionality preserved)
-router.post('/change-password', async (req, res) => {
-  const { currentPassword, newPassword, token } = req.body;
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      await logUserActivity(user, 'password_change_attempt', {
-        success: false,
-        reason: 'invalid_current_password',
-        attemptTime: new Date()
-      }, req);
-
-      return res.status(400).json({ message: 'Current password is incorrect' });
-    }
-
-    for (const oldPass of user.passwordHistory) {
-      const isSameAsOld = await bcrypt.compare(newPassword, oldPass.hashedPassword);
-      if (isSameAsOld) {
-        return res.status(400).json({ message: 'Cannot reuse recent passwords' });
-      }
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    await user.changePassword(hashedNewPassword);
-
-    await logUserActivity(user, 'password_change', {
-      success: true,
-      changeTime: new Date(),
-      wasTemporary: user.temporaryPassword
-    }, req);
-
-    const newToken = jwt.sign(
-      { 
-        id: user._id, 
-        role: user.role,
-        universityId: user.universityId
-      }, 
-      JWT_SECRET, 
-      { expiresIn: '24h' }
-    );
-
-    res.json({ 
-      success: true, 
-      message: 'Password changed successfully',
-      token: newToken
-    });
-  } catch (error) {
-    console.error('Password change error:', error);
-    res.status(500).json({ message: 'Server Error' });
-  }
-});
-
-// Logout endpoint
-router.post('/logout', async (req, res) => {
-  try {
-    const token = req.headers['authorization']?.split(' ')[1];
-    
-    if (token) {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      const user = await User.findById(decoded.id);
-      
-      if (user) {
-        await user.endSession();
-        
-        await logUserActivity(user, 'logout', {
-          logoutTime: new Date(),
-          sessionId: user.currentSession?.sessionId
-        }, req);
-      }
-    }
-
-    res.json({ success: true, message: 'Logged out successfully' });
-  } catch (error) {
-    console.error('Logout error:', error);
-    res.json({ success: true, message: 'Logged out successfully' });
-  }
-});
-
-// Enhanced token verification middleware
 const verifyToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
 
@@ -1847,7 +1702,7 @@ const verifyToken = (req, res, next) => {
 
       if (user.isLocked) {
         return res.status(423).json({ 
-          message: 'Account is temporarily locked due to too many failed login attempts. Please try again later.' 
+          message: 'Account is temporarily locked. Please try again later.' 
         });
       }
 
@@ -1868,7 +1723,7 @@ const verifyToken = (req, res, next) => {
       if (['UniAdmin', 'UniTeach', 'Student'].includes(user.role) && user.universityId) {
         if (!user.universityId.isActive) {
           return res.status(403).json({
-            message: 'Your university access has been deactivated. Please contact administrator.'
+            message: 'Your university access has been deactivated.'
           });
         }
       }
@@ -1892,7 +1747,7 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-// /me endpoint
+// Get Current User
 router.get('/me', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId)
@@ -1915,8 +1770,7 @@ router.get('/me', verifyToken, async (req, res) => {
       lastLogin: user.lastLogin,
       isActive: user.isActive,
       isSuspended: user.isSuspended,
-      mustChangePassword: user.mustChangePassword,
-      temporaryPassword: user.temporaryPassword
+      mustChangePassword: user.mustChangePassword
     };
 
     if (user.role === 'Student') {
@@ -1928,9 +1782,7 @@ router.get('/me', verifyToken, async (req, res) => {
           year: studentProfile.year,
           course: studentProfile.course,
           rollNumber: studentProfile.rollNumber,
-          academicStatus: studentProfile.academicStatus,
-          performance: studentProfile.performance,
-          portalAccess: studentProfile.portalAccess
+          academicStatus: studentProfile.academicStatus
         };
       }
     }
@@ -1946,36 +1798,302 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
-// Student portal access check
-router.get('/student/portal-access', verifyToken, async (req, res) => {
+// ==================== ADMIN ROUTES ====================
+
+// Admin: Create User with Email
+router.post('/admin/create-user', verifyToken, async (req, res) => {
   try {
-    if (req.user.role !== 'Student') {
-      return res.status(403).json({ message: 'Access denied. Students only.' });
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Admin access required' 
+      });
     }
 
-    const student = await Student.findOne({ userId: req.user._id });
-    if (!student) {
-      return res.status(404).json({ message: 'Student profile not found' });
+    const { name, username, email, password, role, isVerified } = req.body;
+
+    console.log('\n👤 Admin Creating New User');
+    console.log('Name:', name);
+    console.log('Email:', email);
+    console.log('Role:', role);
+    console.log('Pre-verified:', isVerified);
+
+    if (!name || !username || !email || !password || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
     }
 
-    res.json({ 
-      success: true, 
-      portalAccess: student.portalAccess,
-      isSuspended: student.isSuspended,
-      suspensionDetails: student.suspensionDetails
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      });
+    }
+
+    const validRoles = ['User', 'Mentor', 'Admin', 'UniAdmin', 'UniTeach'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role specified'
+      });
+    }
+
+    const existingUser = await User.findOne({ 
+      $or: [
+        { email: email.toLowerCase() }, 
+        { username }
+      ]
+    });
+    
+    if (existingUser) {
+      if (existingUser.email === email.toLowerCase()) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Email already registered' 
+        });
+      }
+      return res.status(400).json({ 
+        success: false,
+        message: 'Username already taken' 
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      username,
+      name,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      role,
+      isVerified: isVerified || false,
+      isActive: isVerified || false,
+      newsletter: false,
+      subscription: false
+    });
+
+    await newUser.save();
+    console.log('✅ User created:', newUser._id);
+
+    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
+    const userAgent = req.get('User-Agent') || 'Admin Panel';
+
+    let emailSent = false;
+    let emailError = null;
+
+    if (isVerified) {
+      try {
+        await sendEmailFast(
+          email,
+          adminEmailTemplates.adminCreatedWelcome(name, username, email, password, role)
+        );
+        emailSent = true;
+        console.log('✅ Welcome email sent');
+      } catch (error) {
+        console.error('❌ Failed to send welcome email:', error);
+        emailError = error.message;
+      }
+    } else {
+      try {
+        const verification = await EmailVerification.createVerificationToken(
+          newUser._id,
+          email.toLowerCase(),
+          ipAddress,
+          userAgent
+        );
+
+        const verificationLink = `${FRONTEND_URL}/verify-email?token=${verification.token}`;
+
+        await sendEmailFast(
+          email,
+          adminEmailTemplates.adminCreatedVerification(name, username, email, password, role, verificationLink)
+        );
+        emailSent = true;
+        console.log('✅ Verification email sent');
+      } catch (error) {
+        console.error('❌ Failed to send verification email:', error);
+        emailError = error.message;
+      }
+    }
+
+    await logUserActivity(req.user, 'user_created', {
+      createdUserId: newUser._id,
+      createdUserEmail: email,
+      createdUserRole: role,
+      isPreVerified: isVerified,
+      emailSent,
+      creationTime: new Date()
+    }, req);
+
+    res.status(201).json({ 
+      success: true,
+      message: `User created successfully! ${emailSent ? (isVerified ? 'Welcome email sent.' : 'Verification email sent.') : 'Email sending failed.'}`,
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        isVerified: newUser.isVerified
+      },
+      emailSent,
+      emailError
     });
   } catch (error) {
-    console.error('Error fetching portal access:', error);
-    res.status(500).json({ message: 'Server Error' });
+    console.error('❌ Error creating user:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while creating user',
+      error: error.message
+    });
   }
 });
 
+// Admin: Send Test Email
+// Admin: Send Test Email
+router.post('/admin/test-email', verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Admin access required' 
+      });
+    }
 
+    const { testEmail, sampleData } = req.body;
 
+    console.log('\n📧 Sending Test Email');
+    console.log('Test Email:', testEmail);
 
+    const { name, username, email, role, password, isVerified } = sampleData;
+
+    const testEmailTemplate = {
+      subject: `🧪 TEST EMAIL - ${isVerified ? 'Welcome' : 'Verification'} Email Preview`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+            .banner { background: linear-gradient(135deg, #ff6b6b, #ee5a6f); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; margin-bottom: 20px; border-radius: 8px; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            .info-box { background: #e3f2fd; border: 2px solid #2196f3; padding: 20px; margin: 20px 0; border-radius: 8px; }
+            h2 { color: #667eea; }
+            .credentials { background: #f8f9fa; padding: 15px; margin: 15px 0; border-left: 4px solid #667eea; border-radius: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="banner">🧪 THIS IS A TEST EMAIL - FOR PREVIEW PURPOSES ONLY</div>
+          <div class="container">
+            <div class="info-box">
+              <h3 style="margin-top: 0; color: #2196f3;">📋 Test Email Information</h3>
+              <p><strong>Template Type:</strong> ${isVerified ? 'Welcome Email (Pre-Verified)' : 'Verification Email (Unverified)'}</p>
+              <p><strong>Sent to:</strong> ${testEmail}</p>
+              <p><strong>Test Date:</strong> ${new Date().toLocaleString()}</p>
+            </div>
+            
+            <h2>Sample User Details</h2>
+            <div class="credentials">
+              <p><strong>Name:</strong> ${name}</p>
+              <p><strong>Username:</strong> ${username}</p>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Role:</strong> ${role}</p>
+              <p><strong>Password:</strong> ${password}</p>
+              <p><strong>Pre-Verified:</strong> ${isVerified ? 'Yes' : 'No'}</p>
+            </div>
+            
+            <p style="margin-top: 20px; color: #666;">This is how the ${isVerified ? 'welcome' : 'verification'} email will look when sent to actual users.</p>
+            
+            <div style="background: #fff3cd; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #ffc107;">
+              <strong>⚠️ Note:</strong> The actual email will have proper styling and interactive buttons.
+            </div>
+          </div>
+          <div class="banner" style="margin-top: 20px;">🧪 END OF TEST EMAIL</div>
+        </body>
+        </html>
+      `,
+      text: `TEST EMAIL\n\nTemplate: ${isVerified ? 'Welcome' : 'Verification'}\nSent to: ${testEmail}\nDate: ${new Date().toLocaleString()}\n\nSample Data:\nName: ${name}\nUsername: ${username}\nEmail: ${email}\nRole: ${role}\nPassword: ${password}\n\nThis is a test email preview.`
+    };
+
+    // ✅ FIXED: Use sendEmailFast instead of sendEmail
+    await sendEmailFast(testEmail, testEmailTemplate);
+
+    console.log('✅ Test email sent successfully');
+
+    await logUserActivity(req.user, 'test_email_sent', {
+      testEmail,
+      templateType: isVerified ? 'welcome' : 'verification',
+      sentTime: new Date()
+    }, req);
+
+    res.json({ 
+      success: true,
+      message: `Test email sent successfully to ${testEmail}`,
+      templateType: isVerified ? 'welcome' : 'verification'
+    });
+  } catch (error) {
+    console.error('❌ Error sending test email:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to send test email',
+      error: error.message
+    });
+  }
+});
+// Admin: Get All Users
+router.get('/admin/users', verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Admin access required' 
+      });
+    }
+
+    const { page = 1, limit = 20, role, isVerified, search } = req.query;
+
+    const query = {};
+    
+    if (role) query.role = role;
+    if (isVerified !== undefined) query.isVerified = isVerified === 'true';
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const users = await User.find(query)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const count = await User.countDocuments(query);
+
+    res.json({
+      success: true,
+      users,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+      totalUsers: count
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error' 
+    });
+  }
+});
+
+// Admin: Get Unverified Users
 router.get('/admin/unverified-users', verifyToken, async (req, res) => {
   try {
-    // Check if user is admin
     if (req.user.role !== 'Admin') {
       return res.status(403).json({ 
         success: false,
@@ -2007,10 +2125,9 @@ router.get('/admin/unverified-users', verifyToken, async (req, res) => {
   }
 });
 
-// ==================== ADMIN: MANUALLY VERIFY USER ====================
+// Admin: Manually Verify User
 router.post('/admin/verify-user/:userId', verifyToken, async (req, res) => {
   try {
-    // Check if user is admin
     if (req.user.role !== 'Admin') {
       return res.status(403).json({ 
         success: false,
@@ -2028,12 +2145,10 @@ router.post('/admin/verify-user/:userId', verifyToken, async (req, res) => {
       });
     }
 
-    // Verify user
     user.isVerified = true;
     user.isActive = true;
     await user.save();
 
-    // Log activity
     await logUserActivity(user, 'manually_verified', {
       verifiedBy: req.user._id,
       verifiedByName: req.user.name,
@@ -2062,10 +2177,9 @@ router.post('/admin/verify-user/:userId', verifyToken, async (req, res) => {
   }
 });
 
-// ==================== ADMIN: BULK VERIFY USERS ====================
+// Admin: Bulk Verify Users
 router.post('/admin/bulk-verify-users', verifyToken, async (req, res) => {
   try {
-    // Check if user is admin
     if (req.user.role !== 'Admin') {
       return res.status(403).json({ 
         success: false,
@@ -2108,10 +2222,9 @@ router.post('/admin/bulk-verify-users', verifyToken, async (req, res) => {
   }
 });
 
-// ==================== ADMIN: RESEND VERIFICATION EMAIL ====================
+// Admin: Resend Verification Email
 router.post('/admin/resend-verification/:userId', verifyToken, async (req, res) => {
   try {
-    // Check if user is admin
     if (req.user.role !== 'Admin') {
       return res.status(403).json({ 
         success: false,
@@ -2136,13 +2249,11 @@ router.post('/admin/resend-verification/:userId', verifyToken, async (req, res) 
       });
     }
 
-    // Delete old verification tokens
     await EmailVerification.deleteMany({ 
       userId: user._id, 
       isVerified: false 
     });
 
-    // Create new verification token
     const verification = await EmailVerification.createVerificationToken(
       user._id,
       user.email,
@@ -2152,7 +2263,7 @@ router.post('/admin/resend-verification/:userId', verifyToken, async (req, res) 
 
     const verificationLink = `${FRONTEND_URL}/verify-email?token=${verification.token}`;
 
-    // Send email
+    const { verificationEmailTemplate } = require('../config/mailHelper');
     await sendEmailFast(
       user.email,
       verificationEmailTemplate(user.name, verificationLink, user.username)
@@ -2174,10 +2285,9 @@ router.post('/admin/resend-verification/:userId', verifyToken, async (req, res) 
   }
 });
 
-// ==================== ADMIN: AUTO-VERIFY ALL EXISTING USERS ====================
+// Admin: Auto-Verify All Existing Users
 router.post('/admin/auto-verify-all', verifyToken, async (req, res) => {
   try {
-    // Check if user is admin
     if (req.user.role !== 'Admin') {
       return res.status(403).json({ 
         success: false,
@@ -2216,5 +2326,28 @@ router.post('/admin/auto-verify-all', verifyToken, async (req, res) => {
   }
 });
 
+// Student Portal Access Check
+router.get('/student/portal-access', verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'Student') {
+      return res.status(403).json({ message: 'Access denied. Students only.' });
+    }
+
+    const student = await Student.findOne({ userId: req.user._id });
+    if (!student) {
+      return res.status(404).json({ message: 'Student profile not found' });
+    }
+
+    res.json({ 
+      success: true, 
+      portalAccess: student.portalAccess,
+      isSuspended: student.isSuspended,
+      suspensionDetails: student.suspensionDetails
+    });
+  } catch (error) {
+    console.error('Error fetching portal access:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
 
 module.exports = router;
