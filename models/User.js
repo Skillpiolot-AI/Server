@@ -33,6 +33,16 @@ const UserSchema = new mongoose.Schema({
   jobTitle: {
     type: String,
   },
+    googleId: {
+    type: String,
+    sparse: true, // Allows multiple null values but enforces uniqueness for non-null
+    unique: true
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
   companiesJoined: [{
     type: String,
   }],

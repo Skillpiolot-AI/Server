@@ -134,6 +134,7 @@ const universityRoutes = require('./routes/universityRoutes');
 const collegeRoutes = require('./routes/collegeRoutes');
 const userDataRoutes = require('./routes/userDataRoutes');
 const interestRoutes = require('./routes/interestRoutes');
+const bulkMentorRoutes = require('./routes/bulkMentorRoutes');
 
 // Import scheduled jobs
 const tempPasswordReminder = require('./jobs/tempPasswordReminder');
@@ -172,6 +173,7 @@ app.use('/api/questions', require('./routes/questions'));
 app.use('/api/assessments', require('./routes/assessments'));
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/user-data', userDataRoutes);
+app.use('/api', bulkMentorRoutes);
 
 // Job info endpoint
 app.get("/api/job-info/:jobTitle", (req, res) => {
