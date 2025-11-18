@@ -599,27 +599,39 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 // Get location from IP
 const getLocationFromIP = async (ipAddress) => {
   try {
-    const response = await axios.get(`https://ipapi.co/${ipAddress}/json/`, {
-      timeout: 5000
-    });
-    
+    const access_key = "0feba35c19bde92e41da33cbc28912aa"; // replace with your key
+
+    const response = await axios.get(
+      `https://api.ipapi.com/${ipAddress}?access_key=${access_key}`
+    );
+
+    const data = response.data;
+
     return {
-      country: response.data.country_name || 'Unknown',
-      region: response.data.region || 'Unknown',
-      city: response.data.city || 'Unknown',
-      latitude: response.data.latitude,
-      longitude: response.data.longitude,
-      timezone: response.data.timezone
+      country: data.country_name || "Unknown",
+      countryCode: data.country_code || "Unknown",
+      region: data.region_name || "Unknown",
+      city: data.city || "Unknown",
+      latitude: data.latitude,
+      longitude: data.longitude,
+      timezone: data.timezone,
+      callingCode: data.location?.calling_code || "Unknown",
+      isEU: data.location?.is_eu || false,
+      ip: data.ip
     };
+
   } catch (error) {
-    console.error('Error fetching location:', error.message);
+    console.error("IP location fetch error:", error.message);
+
     return {
-      country: 'Unknown',
-      region: 'Unknown',
-      city: 'Unknown'
+      country: "Unknown",
+      region: "Unknown",
+      city: "Unknown",
+      ip: ipAddress
     };
   }
 };
+
 
 // Parse user agent
 const parseUserAgent = (userAgent) => {
@@ -2628,6 +2640,434 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
 // });
 
 
+// router.post('/google', async (req, res) => {
+//   const { credential } = req.body;
+
+//   console.log('\n🔐 Google OAuth Request');
+
+//   try {
+//     if (!credential) {
+//       return res.status(400).json({ 
+//         success: false,
+//         message: 'Google credential is required' 
+//       });
+//     }
+
+//     // Verify Google token
+//     const verificationResult = await verifyGoogleToken(credential);
+
+//     if (!verificationResult.success) {
+//       console.error('❌ Google token verification failed:', verificationResult.error);
+//       return res.status(401).json({ 
+//         success: false,
+//         message: 'Invalid Google token',
+//         error: verificationResult.error
+//       });
+//     }
+
+//     const googleData = verificationResult.data;
+//     console.log('✅ Google token verified for:', googleData.email);
+
+//     // Check if user exists by email or Google ID
+//     let user = await User.findOne({
+//       $or: [
+//         { email: googleData.email.toLowerCase() },
+//         { googleId: googleData.googleId }
+//       ]
+//     }).populate('universityId', 'name url location isActive');
+
+//     const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
+//     const userAgent = req.get('User-Agent') || 'Unknown';
+//     const location = await getLocationFromIP(ipAddress);
+//     const deviceInfo = parseUserAgent(userAgent);
+
+//     // NEW USER - Sign up with Google
+//     if (!user) {
+//       console.log('📝 Creating new user with Google OAuth');
+
+//       // Generate unique username from email
+//       let username = googleData.email.split('@')[0];
+      
+//       // Ensure username is unique
+//       let usernameExists = await User.findOne({ username });
+//       let counter = 1;
+//       while (usernameExists) {
+//         username = `${googleData.email.split('@')[0]}${counter}`;
+//         usernameExists = await User.findOne({ username });
+//         counter++;
+//       }
+
+//       // Create new user
+//       user = new User({
+//         username,
+//         name: googleData.name,
+//         email: googleData.email.toLowerCase(),
+//         googleId: googleData.googleId,
+//         imageUrl: googleData.picture,
+//         password: await bcrypt.hash(uuidv4(), 10), // Random password (won't be used)
+//         role: 'User',
+//         isVerified: false, // ✅ REQUIRE EMAIL VERIFICATION FOR GOOGLE USERS TOO
+//         isActive: false,    // ✅ NOT ACTIVE UNTIL VERIFIED
+//         newsletter: false,
+//         subscription: false,
+//         authProvider: 'google'
+//       });
+
+//       await user.save();
+//       console.log('✅ New user created:', user._id);
+
+//       // Create email verification token
+//       const verification = await EmailVerification.createVerificationToken(
+//         user._id,
+//         user.email,
+//         ipAddress,
+//         userAgent
+//       );
+
+//       const verificationLink = `${FRONTEND_URL}/verify-email?token=${verification.token}`;
+
+//       // Send verification email for Google signup
+//       try {
+//         const { verificationEmailTemplate } = require('../config/mailHelper');
+//         await sendEmailFast(
+//           user.email,
+//           verificationEmailTemplate(user.name, verificationLink, user.username)
+//         );
+        
+//         console.log('✅ Verification email sent to Google user');
+//       } catch (emailError) {
+//         console.error('❌ Failed to send verification email:', emailError);
+        
+//         // Rollback user creation if email fails
+//         await User.findByIdAndDelete(user._id);
+//         await EmailVerification.findByIdAndDelete(verification._id);
+        
+//         return res.status(500).json({
+//           success: false,
+//           message: 'Failed to send verification email. Please try again.',
+//           error: emailError.message
+//         });
+//       }
+
+//       // Log signup activity
+//       await logUserActivity(user, 'signup', {
+//         signupMethod: 'google_oauth',
+//         signupTime: new Date(),
+//         location,
+//         deviceInfo,
+//         googleVerified: googleData.emailVerified,
+//         requiresEmailVerification: true
+//       }, req);
+
+//       // Return response indicating verification needed
+//       return res.status(201).json({
+//         success: true,
+//         message: 'Account created! Please check your email to verify your account.',
+//         requiresVerification: true,
+//         user: {
+//           id: user._id,
+//           username: user.username,
+//           name: user.name,
+//           email: user.email,
+//           role: user.role,
+//           imageUrl: user.imageUrl,
+//           isVerified: false,
+//           authProvider: 'google'
+//         }
+//       });
+//     } 
+    
+//     // EXISTING USER - Login with Google
+//     else {
+//       console.log('👤 Existing user login with Google');
+
+//       // Update Google ID if not set
+//       if (!user.googleId) {
+//         user.googleId = googleData.googleId;
+//         user.authProvider = 'google';
+        
+//         // Update profile picture if available
+//         if (googleData.picture && !user.imageUrl) {
+//           user.imageUrl = googleData.picture;
+//         }
+        
+//         await user.save();
+//       }
+
+//       // Check if email is verified
+//       if (!user.isVerified) {
+//         console.log('⚠️ User exists but email not verified');
+        
+//         return res.status(403).json({
+//           success: false,
+//           message: 'Please verify your email before logging in. Check your inbox for the verification link.',
+//           errorCode: 'EMAIL_NOT_VERIFIED',
+//           email: user.email,
+//           requiresVerification: true
+//         });
+//       }
+
+//       // Check account status
+//       if (user.isLocked) {
+//         await logUserActivity(user, 'login_attempt', {
+//           success: false,
+//           reason: 'account_locked',
+//           method: 'google_oauth',
+//           attemptTime: new Date()
+//         }, req);
+        
+//         return res.status(423).json({ 
+//           success: false,
+//           message: 'Account is temporarily locked. Please contact support.',
+//           errorCode: 'ACCOUNT_LOCKED'
+//         });
+//       }
+
+//       if (user.isSuspensionActive) {
+//         const message = user.suspensionDetails?.until ? 
+//           `Account suspended until ${new Date(user.suspensionDetails.until).toLocaleDateString()}` :
+//           'Account is suspended';
+        
+//         return res.status(403).json({ 
+//           success: false,
+//           message, 
+//           errorCode: 'ACCOUNT_SUSPENDED' 
+//         });
+//       }
+
+//       if (!user.isActive) {
+//         return res.status(403).json({ 
+//           success: false,
+//           message: 'Account is deactivated. Contact administrator.',
+//           errorCode: 'ACCOUNT_INACTIVE'
+//         });
+//       }
+
+//       // Reset login attempts if any
+//       if (user.loginAttempts > 0) {
+//         await user.resetLoginAttempts();
+//       }
+
+//       // Check for suspicious location
+//       const isSuspicious = await isLocationSuspicious(user, ipAddress, location);
+
+//       if (isSuspicious) {
+//         console.log('⚠️ Suspicious location detected');
+
+//         const loginVerification = await LoginVerification.createLoginVerification(
+//           user._id,
+//           user.email,
+//           ipAddress,
+//           userAgent,
+//           location,
+//           deviceInfo
+//         );
+
+//         const verificationLink = `${FRONTEND_URL}/verify-login?token=${loginVerification.token}`;
+
+//         try {
+//           const { suspiciousLocationTemplate } = require('../config/mailHelper');
+//           await sendEmailFast(
+//             user.email,
+//             suspiciousLocationTemplate(user.name, location, verificationLink, deviceInfo)
+//           );
+
+//           console.log('✅ Suspicious login email sent');
+
+//           await logUserActivity(user, 'suspicious_login_detected', {
+//             location,
+//             deviceInfo,
+//             method: 'google_oauth',
+//             emailSent: true,
+//             verificationRequired: true
+//           }, req);
+
+//           return res.status(403).json({
+//             success: false,
+//             message: 'Unusual login detected. Please check your email to verify this login.',
+//             errorCode: 'LOCATION_VERIFICATION_REQUIRED',
+//             requiresVerification: true
+//           });
+//         } catch (emailError) {
+//           console.error('❌ Failed to send suspicious login email:', emailError);
+//         }
+//       }
+
+//       // Update profile picture if changed
+//       if (googleData.picture && user.imageUrl !== googleData.picture) {
+//         user.imageUrl = googleData.picture;
+//         await user.save();
+//       }
+
+//       // Log successful login
+//       await logUserActivity(user, 'login', {
+//         success: true,
+//         method: 'google_oauth',
+//         location,
+//         deviceInfo,
+//         loginTime: new Date()
+//       }, req);
+//     }
+
+//     // Create JWT token for verified users
+//     const token = jwt.sign(
+//       { 
+//         id: user._id, 
+//         role: user.role,
+//         universityId: user.universityId?._id 
+//       }, 
+//       JWT_SECRET, 
+//       { expiresIn: '24h' }
+//     );
+
+//     // Start user session
+//     const sessionId = uuidv4();
+//     await user.startSession(sessionId, ipAddress, userAgent);
+
+//     // Add to login history
+//     user.loginHistory.push({
+//       timestamp: new Date(),
+//       ipAddress,
+//       userAgent,
+//       success: true,
+//       location
+//     });
+
+//     if (user.loginHistory.length > 20) {
+//       user.loginHistory = user.loginHistory.slice(-20);
+//     }
+
+//     await user.save();
+
+//     console.log('✅ Google OAuth login successful');
+
+//     // Return response
+//     res.json({ 
+//       success: true,
+//       token, 
+//       role: user.role,
+//       user: {
+//         id: user._id,
+//         username: user.username,
+//         name: user.name,
+//         email: user.email,
+//         role: user.role,
+//         imageUrl: user.imageUrl,
+//         universityId: user.universityId?._id,
+//         universityName: user.universityId?.name,
+//         lastLogin: user.lastLogin,
+//         authProvider: 'google'
+//       },
+//       message: 'Login successful!'
+//     });
+
+//   } catch (error) {
+//     console.error('❌ Google OAuth error:', error);
+//     res.status(500).json({ 
+//       success: false,
+//       message: 'Server Error', 
+//       error: error.message 
+//     });
+//   }
+// });
+
+
+/**
+ * Link Google account to existing user
+ * POST /api/auth/link-google
+ * Headers: Authorization: Bearer <token>
+ * Body: { credential: string (Google ID token) }
+ */
+// router.post('/link-google', verifyToken, async (req, res) => {
+//   const { credential } = req.body;
+
+//   console.log('\n🔗 Link Google Account Request');
+
+//   try {
+//     if (!credential) {
+//       return res.status(400).json({ 
+//         success: false,
+//         message: 'Google credential is required' 
+//       });
+//     }
+
+//     // Verify Google token
+//     const verificationResult = await verifyGoogleToken(credential);
+
+//     if (!verificationResult.success) {
+//       return res.status(401).json({ 
+//         success: false,
+//         message: 'Invalid Google token',
+//         error: verificationResult.error
+//       });
+//     }
+
+//     const googleData = verificationResult.data;
+
+//     // Check if Google account is already linked to another user
+//     const existingGoogleUser = await User.findOne({ 
+//       googleId: googleData.googleId,
+//       _id: { $ne: req.user._id }
+//     });
+
+//     if (existingGoogleUser) {
+//       return res.status(400).json({ 
+//         success: false,
+//         message: 'This Google account is already linked to another user' 
+//       });
+//     }
+
+//     // Check if email matches
+//     if (googleData.email.toLowerCase() !== req.user.email.toLowerCase()) {
+//       return res.status(400).json({ 
+//         success: false,
+//         message: 'Google account email does not match your account email' 
+//       });
+//     }
+
+//     // Link Google account
+//     req.user.googleId = googleData.googleId;
+//     req.user.authProvider = 'google';
+    
+//     if (googleData.picture && !req.user.imageUrl) {
+//       req.user.imageUrl = googleData.picture;
+//     }
+
+//     if (googleData.emailVerified && !req.user.isVerified) {
+//       req.user.isVerified = true;
+//       req.user.isActive = true;
+//     }
+
+//     await req.user.save();
+
+//     await logUserActivity(req.user, 'google_account_linked', {
+//       linkedTime: new Date()
+//     }, req);
+
+//     console.log('✅ Google account linked successfully');
+
+//     res.json({ 
+//       success: true,
+//       message: 'Google account linked successfully',
+//       user: {
+//         id: req.user._id,
+//         email: req.user.email,
+//         googleId: req.user.googleId,
+//         imageUrl: req.user.imageUrl,
+//         isVerified: req.user.isVerified
+//       }
+//     });
+
+//   } catch (error) {
+//     console.error('❌ Link Google account error:', error);
+//     res.status(500).json({ 
+//       success: false,
+//       message: 'Server Error', 
+//       error: error.message 
+//     });
+//   }
+// });
+
 router.post('/google', async (req, res) => {
   const { credential } = req.body;
 
@@ -2669,116 +3109,14 @@ router.post('/google', async (req, res) => {
     const location = await getLocationFromIP(ipAddress);
     const deviceInfo = parseUserAgent(userAgent);
 
-    // NEW USER - Sign up with Google
-    if (!user) {
-      console.log('📝 Creating new user with Google OAuth');
-
-      // Generate unique username from email
-      let username = googleData.email.split('@')[0];
-      
-      // Ensure username is unique
-      let usernameExists = await User.findOne({ username });
-      let counter = 1;
-      while (usernameExists) {
-        username = `${googleData.email.split('@')[0]}${counter}`;
-        usernameExists = await User.findOne({ username });
-        counter++;
-      }
-
-      // Create new user
-      user = new User({
-        username,
-        name: googleData.name,
-        email: googleData.email.toLowerCase(),
-        googleId: googleData.googleId,
-        imageUrl: googleData.picture,
-        password: await bcrypt.hash(uuidv4(), 10), // Random password (won't be used)
-        role: 'User',
-        isVerified: false, // ✅ REQUIRE EMAIL VERIFICATION FOR GOOGLE USERS TOO
-        isActive: false,    // ✅ NOT ACTIVE UNTIL VERIFIED
-        newsletter: false,
-        subscription: false,
-        authProvider: 'google'
-      });
-
-      await user.save();
-      console.log('✅ New user created:', user._id);
-
-      // Create email verification token
-      const verification = await EmailVerification.createVerificationToken(
-        user._id,
-        user.email,
-        ipAddress,
-        userAgent
-      );
-
-      const verificationLink = `${FRONTEND_URL}/verify-email?token=${verification.token}`;
-
-      // Send verification email for Google signup
-      try {
-        const { verificationEmailTemplate } = require('../config/mailHelper');
-        await sendEmailFast(
-          user.email,
-          verificationEmailTemplate(user.name, verificationLink, user.username)
-        );
-        
-        console.log('✅ Verification email sent to Google user');
-      } catch (emailError) {
-        console.error('❌ Failed to send verification email:', emailError);
-        
-        // Rollback user creation if email fails
-        await User.findByIdAndDelete(user._id);
-        await EmailVerification.findByIdAndDelete(verification._id);
-        
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to send verification email. Please try again.',
-          error: emailError.message
-        });
-      }
-
-      // Log signup activity
-      await logUserActivity(user, 'signup', {
-        signupMethod: 'google_oauth',
-        signupTime: new Date(),
-        location,
-        deviceInfo,
-        googleVerified: googleData.emailVerified,
-        requiresEmailVerification: true
-      }, req);
-
-      // Return response indicating verification needed
-      return res.status(201).json({
-        success: true,
-        message: 'Account created! Please check your email to verify your account.',
-        requiresVerification: true,
-        user: {
-          id: user._id,
-          username: user.username,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          imageUrl: user.imageUrl,
-          isVerified: false,
-          authProvider: 'google'
-        }
-      });
-    } 
-    
     // EXISTING USER - Login with Google
-    else {
+    if (user) {
       console.log('👤 Existing user login with Google');
 
       // Update Google ID if not set
       if (!user.googleId) {
         user.googleId = googleData.googleId;
         user.authProvider = 'google';
-        
-        // Update profile picture if available
-        if (googleData.picture && !user.imageUrl) {
-          user.imageUrl = googleData.picture;
-        }
-        
         await user.save();
       }
 
@@ -2897,7 +3235,45 @@ router.post('/google', async (req, res) => {
       }, req);
     }
 
-    // Create JWT token for verified users
+    // NEW USER - Return Google data for profile completion
+    if (!user) {
+      console.log('📝 New Google user - needs profile completion');
+
+      // Generate suggested usernames
+      const baseUsername = googleData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      const suggestedUsernames = [];
+      
+      // Check if base username is available
+      let usernameAvailable = !(await User.findOne({ username: baseUsername }));
+      if (usernameAvailable) {
+        suggestedUsernames.push(baseUsername);
+      }
+
+      // Generate 3 alternative usernames
+      for (let i = 1; suggestedUsernames.length < 3; i++) {
+        const altUsername = `${baseUsername}${Math.floor(Math.random() * 1000)}`;
+        const exists = await User.findOne({ username: altUsername });
+        if (!exists && !suggestedUsernames.includes(altUsername)) {
+          suggestedUsernames.push(altUsername);
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        requiresProfileCompletion: true,
+        googleData: {
+          googleId: googleData.googleId,
+          email: googleData.email,
+          name: googleData.name,
+          picture: googleData.picture,
+          emailVerified: googleData.emailVerified
+        },
+        suggestedUsernames,
+        message: 'Please complete your profile to continue'
+      });
+    }
+
+    // Complete login for existing user
     const token = jwt.sign(
       { 
         id: user._id, 
@@ -2908,11 +3284,9 @@ router.post('/google', async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    // Start user session
     const sessionId = uuidv4();
     await user.startSession(sessionId, ipAddress, userAgent);
 
-    // Add to login history
     user.loginHistory.push({
       timestamp: new Date(),
       ipAddress,
@@ -2929,7 +3303,6 @@ router.post('/google', async (req, res) => {
 
     console.log('✅ Google OAuth login successful');
 
-    // Return response
     res.json({ 
       success: true,
       token, 
@@ -2959,103 +3332,189 @@ router.post('/google', async (req, res) => {
   }
 });
 
+// NEW ENDPOINT: Complete Google profile
+router.post('/google/complete-profile', async (req, res) => {
+  const { googleData, username, newsletter = false, subscription = false } = req.body;
 
-/**
- * Link Google account to existing user
- * POST /api/auth/link-google
- * Headers: Authorization: Bearer <token>
- * Body: { credential: string (Google ID token) }
- */
-// router.post('/link-google', verifyToken, async (req, res) => {
-//   const { credential } = req.body;
+  console.log('\n📝 Google Profile Completion Request');
+  console.log('Email:', googleData?.email);
+  console.log('Username:', username);
 
-//   console.log('\n🔗 Link Google Account Request');
+  try {
+    // Validate input
+    if (!googleData || !googleData.googleId || !googleData.email || !username) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: googleData and username are required'
+      });
+    }
 
-//   try {
-//     if (!credential) {
-//       return res.status(400).json({ 
-//         success: false,
-//         message: 'Google credential is required' 
-//       });
-//     }
+    // Validate username
+    if (username.length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username must be at least 3 characters long'
+      });
+    }
 
-//     // Verify Google token
-//     const verificationResult = await verifyGoogleToken(credential);
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username can only contain letters, numbers, and underscores'
+      });
+    }
 
-//     if (!verificationResult.success) {
-//       return res.status(401).json({ 
-//         success: false,
-//         message: 'Invalid Google token',
-//         error: verificationResult.error
-//       });
-//     }
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [
+        { email: googleData.email.toLowerCase() },
+        { username: username },
+        { googleId: googleData.googleId }
+      ]
+    });
 
-//     const googleData = verificationResult.data;
+    if (existingUser) {
+      if (existingUser.username === username) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username already taken. Please choose another.',
+          field: 'username'
+        });
+      }
+      
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email already exists. Please login instead.'
+      });
+    }
 
-//     // Check if Google account is already linked to another user
-//     const existingGoogleUser = await User.findOne({ 
-//       googleId: googleData.googleId,
-//       _id: { $ne: req.user._id }
-//     });
+    // Create new user with Google data
+    const newUser = new User({
+      username: username,
+      name: googleData.name,
+      email: googleData.email.toLowerCase(),
+      googleId: googleData.googleId,
+      imageUrl: googleData.picture,
+      password: await bcrypt.hash(uuidv4(), 10), // Random password (won't be used)
+      role: 'User',
+      isVerified: true, // ✅ Google emails are pre-verified
+      isActive: true,   // ✅ Activate immediately
+      newsletter: newsletter,
+      subscription: subscription,
+      authProvider: 'google'
+    });
 
-//     if (existingGoogleUser) {
-//       return res.status(400).json({ 
-//         success: false,
-//         message: 'This Google account is already linked to another user' 
-//       });
-//     }
+    await newUser.save();
+    console.log('✅ New Google user created:', newUser._id);
 
-//     // Check if email matches
-//     if (googleData.email.toLowerCase() !== req.user.email.toLowerCase()) {
-//       return res.status(400).json({ 
-//         success: false,
-//         message: 'Google account email does not match your account email' 
-//       });
-//     }
-
-//     // Link Google account
-//     req.user.googleId = googleData.googleId;
-//     req.user.authProvider = 'google';
+    // Log signup activity
+    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
+    const userAgent = req.get('User-Agent') || 'Unknown';
     
-//     if (googleData.picture && !req.user.imageUrl) {
-//       req.user.imageUrl = googleData.picture;
-//     }
+    await logUserActivity(newUser, 'signup', {
+      signupMethod: 'google_oauth',
+      signupTime: new Date(),
+      googleVerified: googleData.emailVerified
+    }, req);
 
-//     if (googleData.emailVerified && !req.user.isVerified) {
-//       req.user.isVerified = true;
-//       req.user.isActive = true;
-//     }
+    // Send welcome email
+    try {
+      const { googleWelcomeTemplate } = require('../config/emailTemplates');
+      await sendEmailFast(
+        newUser.email,
+        googleWelcomeTemplate(newUser.name, username)
+      );
+      console.log('✅ Welcome email sent');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send welcome email:', emailError);
+    }
 
-//     await req.user.save();
+    // Create JWT token
+    const token = jwt.sign(
+      { 
+        id: newUser._id, 
+        role: newUser.role
+      }, 
+      JWT_SECRET, 
+      { expiresIn: '24h' }
+    );
 
-//     await logUserActivity(req.user, 'google_account_linked', {
-//       linkedTime: new Date()
-//     }, req);
+    // Start session
+    const sessionId = uuidv4();
+    await newUser.startSession(sessionId, ipAddress, userAgent);
 
-//     console.log('✅ Google account linked successfully');
+    console.log('✅ Google signup completed successfully');
 
-//     res.json({ 
-//       success: true,
-//       message: 'Google account linked successfully',
-//       user: {
-//         id: req.user._id,
-//         email: req.user.email,
-//         googleId: req.user.googleId,
-//         imageUrl: req.user.imageUrl,
-//         isVerified: req.user.isVerified
-//       }
-//     });
+    res.status(201).json({
+      success: true,
+      token,
+      role: newUser.role,
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        imageUrl: newUser.imageUrl,
+        isVerified: true,
+        authProvider: 'google'
+      },
+      message: 'Account created successfully! Welcome aboard!'
+    });
 
-//   } catch (error) {
-//     console.error('❌ Link Google account error:', error);
-//     res.status(500).json({ 
-//       success: false,
-//       message: 'Server Error', 
-//       error: error.message 
-//     });
-//   }
-// });
+  } catch (error) {
+    console.error('❌ Google profile completion error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during profile completion',
+      error: error.message
+    });
+  }
+});
 
+// NEW ENDPOINT: Check username availability
+router.post('/check-username', async (req, res) => {
+  try {
+    const { username } = req.body;
+
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username is required'
+      });
+    }
+
+    if (username.length < 3) {
+      return res.json({
+        success: true,
+        available: false,
+        message: 'Username must be at least 3 characters'
+      });
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return res.json({
+        success: true,
+        available: false,
+        message: 'Username can only contain letters, numbers, and underscores'
+      });
+    }
+
+    const existingUser = await User.findOne({ username });
+
+    res.json({
+      success: true,
+      available: !existingUser,
+      message: existingUser ? 'Username is already taken' : 'Username is available'
+    });
+  } catch (error) {
+    console.error('Error checking username:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
 
 router.post('/link-google', verifyToken, async (req, res) => {
   const { credential } = req.body;
