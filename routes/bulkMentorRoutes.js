@@ -30,16 +30,16 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
 
     for (const mentorData of mentors) {
       try {
-        const { 
-          name, 
-          email, 
-          username, 
-          password, 
-          phoneNumber, 
-          jobTitle, 
-          companiesJoined, 
-          experience, 
-          imageUrl 
+        const {
+          name,
+          email,
+          username,
+          password,
+          phoneNumber,
+          jobTitle,
+          companiesJoined,
+          experience,
+          imageUrl
         } = mentorData;
 
         // Validate required fields
@@ -152,7 +152,7 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
           };
 
           await sendEmailFast(email, welcomeEmail);
-          
+
           results.created.push({
             id: mentor._id,
             name,
@@ -175,7 +175,7 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
         console.log(`✅ Created: ${username} (${email})`);
 
       } catch (error) {
-        console.error(`Error creating mentor:`, error.message);
+        console.error('Error creating mentor:', error.message);
         results.failed.push({
           email: mentorData.email,
           username: mentorData.username,
@@ -188,7 +188,7 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: `Bulk mentor creation completed`,
+      message: 'Bulk mentor creation completed',
       summary: {
         total: mentors.length,
         created: results.created.length,
@@ -214,7 +214,7 @@ router.get('/mentors', auth, adminOnly, async (req, res) => {
     const { verified, active, page = 1, limit = 20 } = req.query;
 
     const query = { role: 'Mentor' };
-    
+
     if (verified !== undefined) query.isVerified = verified === 'true';
     if (active !== undefined) query.isActive = active === 'true';
 
@@ -304,15 +304,15 @@ router.post('/bulk-verify-mentors', auth, adminOnly, async (req, res) => {
     }
 
     const result = await User.updateMany(
-      { 
+      {
         _id: { $in: mentorIds },
         role: 'Mentor'
       },
-      { 
-        $set: { 
+      {
+        $set: {
           isVerified: true,
-          isActive: true 
-        } 
+          isActive: true
+        }
       }
     );
 
@@ -344,11 +344,11 @@ router.post('/auto-verify-all-mentors', auth, adminOnly, async (req, res) => {
           { isVerified: false }
         ]
       },
-      { 
-        $set: { 
+      {
+        $set: {
           isVerified: true,
-          isActive: true 
-        } 
+          isActive: true
+        }
       }
     );
 

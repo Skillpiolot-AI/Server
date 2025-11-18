@@ -25,11 +25,11 @@ const sendEmailSafely = async (email, template, logMessage) => {
 // ==================== GET ALL USERS ====================
 exports.getAllUsers = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      role, 
-      isVerified, 
+    const {
+      page = 1,
+      limit = 10,
+      role,
+      isVerified,
       isActive,
       isSuspended,
       search,
@@ -38,12 +38,12 @@ exports.getAllUsers = async (req, res) => {
     } = req.query;
 
     const query = {};
-    
+
     if (role) query.role = role;
     if (isVerified !== undefined) query.isVerified = isVerified === 'true';
     if (isActive !== undefined) query.isActive = isActive === 'true';
     if (isSuspended !== undefined) query.isSuspended = isSuspended === 'true';
-    
+
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -94,7 +94,7 @@ exports.getAllUsers = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching users:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Server error while fetching users',
       error: error.message
@@ -137,7 +137,7 @@ exports.getUserById = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching user:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Server error while fetching user',
       error: error.message
@@ -153,7 +153,7 @@ exports.updateUser = async (req, res) => {
 
     // Get original user data before update
     const originalUser = await User.findById(userId);
-    
+
     if (!originalUser) {
       return res.status(404).json({
         success: false,
@@ -188,7 +188,7 @@ exports.updateUser = async (req, res) => {
         });
       }
 
-      const existingUser = await User.findOne({ 
+      const existingUser = await User.findOne({
         email: updateData.email.toLowerCase(),
         _id: { $ne: userId }
       });
@@ -205,7 +205,7 @@ exports.updateUser = async (req, res) => {
 
     // Validate username if being updated
     if (updateData.username) {
-      const existingUser = await User.findOne({ 
+      const existingUser = await User.findOne({
         username: updateData.username,
         _id: { $ne: userId }
       });
@@ -244,7 +244,7 @@ exports.updateUser = async (req, res) => {
     }
 
     // ==================== SEND EMAIL NOTIFICATIONS ====================
-    
+
     // 1. Role Changed Email
     if (changes.roleChanged) {
       await sendEmailSafely(
@@ -261,9 +261,9 @@ exports.updateUser = async (req, res) => {
     // 2. Account Unverified - Send Verification Email
     if (changes.wasUnverified) {
       // Delete old verification tokens
-      await EmailVerification.deleteMany({ 
-        userId: updatedUser._id, 
-        isVerified: false 
+      await EmailVerification.deleteMany({
+        userId: updatedUser._id,
+        isVerified: false
       });
 
       // Create new verification token
@@ -337,7 +337,7 @@ exports.updateUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating user:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Server error while updating user',
       error: error.message
@@ -418,7 +418,7 @@ exports.deleteUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting user:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Server error while deleting user',
       error: error.message
@@ -448,7 +448,7 @@ exports.bulkDeleteUsers = async (req, res) => {
     const usersToDelete = await User.find({ _id: { $in: userIds } });
 
     // Send deletion emails to all users
-    const emailPromises = usersToDelete.map(user => 
+    const emailPromises = usersToDelete.map(user =>
       sendEmailSafely(
         user.email,
         emailTemplates.accountDeletedEmail(user.name, reason),
@@ -491,7 +491,7 @@ exports.bulkDeleteUsers = async (req, res) => {
     });
   } catch (error) {
     console.error('Error bulk deleting users:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Server error while deleting users',
       error: error.message
@@ -567,7 +567,7 @@ exports.toggleUserStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Error toggling user status:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Server error while updating user status',
       error: error.message
@@ -688,7 +688,7 @@ exports.resetUserPassword = async (req, res) => {
     });
   } catch (error) {
     console.error('Error resetting password:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Server error while resetting password',
       error: error.message
@@ -746,7 +746,7 @@ exports.getUserStatistics = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching statistics:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Server error while fetching statistics',
       error: error.message

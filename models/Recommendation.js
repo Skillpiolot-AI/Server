@@ -63,7 +63,7 @@ const recommendationSchema = new mongoose.Schema({
         type: String,
         required: true
       }
-    }],},
+    }]},
   salaryTrends: [{
     year: {
       type: Number,

@@ -4,33 +4,33 @@
  */
 
 const FRONTEND_URL = process.env.FRONTEND_URL ;
-const LOGO = "✈️ SKILL-PILOT";
-const TAGLINE = "Navigate Your Career Journey";
-const SUPPORT_EMAIL = "support@skillpilot.com";
-const COMPANY_NAME = "Skill-Pilot Career Guidance";
+const LOGO = '✈️ SKILL-PILOT';
+const TAGLINE = 'Navigate Your Career Journey';
+const SUPPORT_EMAIL = 'support@skillpilot.com';
+const COMPANY_NAME = 'Skill-Pilot Career Guidance';
 
 // ============================================================================
 // COLOR SYSTEM & DESIGN TOKENS
 // ============================================================================
 
 const colors = {
-  primary: "#667eea",
-  primaryDark: "#1e3c72",
-  primaryLight: "#764ba2",
-  accent: "#f093fb",
-  accentRed: "#f5576c",
-  success: "#10b981",
-  successDark: "#059669",
-  warning: "#f59e0b",
-  warningLight: "#fef3c7",
-  error: "#dc2626",
-  errorLight: "#fef2f2",
-  text: "#1a1a1a",
-  textMuted: "#64748b",
-  textDark: "#1e3c72",
-  white: "#ffffff",
-  lightBg: "#f8f9ff",
-  borderLight: "#e0e7ff",
+  primary: '#667eea',
+  primaryDark: '#1e3c72',
+  primaryLight: '#764ba2',
+  accent: '#f093fb',
+  accentRed: '#f5576c',
+  success: '#10b981',
+  successDark: '#059669',
+  warning: '#f59e0b',
+  warningLight: '#fef3c7',
+  error: '#dc2626',
+  errorLight: '#fef2f2',
+  text: '#1a1a1a',
+  textMuted: '#64748b',
+  textDark: '#1e3c72',
+  white: '#ffffff',
+  lightBg: '#f8f9ff',
+  borderLight: '#e0e7ff',
 };
 
 const gradients = {
@@ -754,7 +754,7 @@ module.exports = {
   // Admin templates
   adminCreatedWelcome,
   adminCreatedVerification,
-  
+
   // User management templates
   accountDeletedEmail,
   accountUnverifiedEmail,
@@ -763,7 +763,7 @@ module.exports = {
   accountReactivatedEmail,
   tempPasswordReminderEmail,
   googleWelcomeTemplate,
-  
+
   // Utility exports
   colors,
   gradients,

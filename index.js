@@ -14,10 +14,10 @@
 // const workshopRoutes = require('./routes/workshopRoutes');
 // const resourceRoutes = require('./routes/resourceRoutes');
 // const communityRoutes = require('./routes/communityRoutes');
-// const profileRoutes = require('./routes/profileRoutes'); 
+// const profileRoutes = require('./routes/profileRoutes');
 // const analyticsRoutes = require("./routes/analyticsRoutes");
-// const updateRoutes = require('./routes/updateRoutes'); 
-// const universityRoutes = require('./routes/universityRoutes'); 
+// const updateRoutes = require('./routes/updateRoutes');
+// const universityRoutes = require('./routes/universityRoutes');
 // const collegeRoutes = require('./routes/collegeRoutes');
 
 // const path = require('path');
@@ -25,7 +25,7 @@
 
 // require("dotenv").config();
 
-// const cors = require('cors'); 
+// const cors = require('cors');
 // const interestRoutes = require('./routes/interestRoutes');
 
 // const app = express();
@@ -33,7 +33,7 @@
 
 // connectDB();
 
-// app.use(cors()); 
+// app.use(cors());
 // app.use(express.json({ limit: '10mb' }));
 
 
@@ -54,7 +54,7 @@
 // app.use('/api/job', skillsRoutes);
 // app.use('/api/workshops', workshopRoutes);
 // app.use('/api', resourceRoutes);
-// app.use('/api/profile', profileRoutes); 
+// app.use('/api/profile', profileRoutes);
 // app.use('/api', communityRoutes);
 // app.use("/api/analytics", analyticsRoutes);
 // app.use('/api/updates', updateRoutes); // New updates routes
@@ -95,8 +95,8 @@
 
 // // Health check endpoint
 // app.get('/health', (req, res) => {
-//   res.status(200).json({ 
-//     status: 'healthy', 
+//   res.status(200).json({
+//     status: 'healthy',
 //     timestamp: new Date().toISOString(),
 //     uptime: process.uptime()
 //   })
@@ -108,15 +108,15 @@
 // index.js - Enhanced with scheduled jobs
 const express = require('express');
 const connectDB = require('./db');
-const cors = require('cors'); 
+const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-require("dotenv").config();
+require('dotenv').config();
 
 // Import routes
 const careerRoutes = require('./routes/careerRoutes');
-const authRoutes = require("./routes/authRoutes");
-const Title = require("./routes/Jobtitle");
+const authRoutes = require('./routes/authRoutes');
+const Title = require('./routes/Jobtitle');
 const applicationRoutes = require('./routes/applicationRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const mentorRoutes = require('./routes/mentorRoutes');
@@ -127,10 +127,10 @@ const recommendationRoutes = require('./routes/Recommendation');
 const workshopRoutes = require('./routes/workshopRoutes');
 const resourceRoutes = require('./routes/resourceRoutes');
 const communityRoutes = require('./routes/communityRoutes');
-const profileRoutes = require('./routes/profileRoutes'); 
-const analyticsRoutes = require("./routes/analyticsRoutes");
-const updateRoutes = require('./routes/updateRoutes'); 
-const universityRoutes = require('./routes/universityRoutes'); 
+const profileRoutes = require('./routes/profileRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const updateRoutes = require('./routes/updateRoutes');
+const universityRoutes = require('./routes/universityRoutes');
 const collegeRoutes = require('./routes/collegeRoutes');
 const userDataRoutes = require('./routes/userDataRoutes');
 const interestRoutes = require('./routes/interestRoutes');
@@ -146,7 +146,7 @@ const PORT = process.env.PORT || 3001;
 connectDB();
 
 // Middleware
-app.use(cors()); 
+app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -164,9 +164,9 @@ app.use('/api/job', strengthRoutes);
 app.use('/api/job', skillsRoutes);
 app.use('/api/workshops', workshopRoutes);
 app.use('/api', resourceRoutes);
-app.use('/api/profile', profileRoutes); 
+app.use('/api/profile', profileRoutes);
 app.use('/api', communityRoutes);
-app.use("/api/analytics", analyticsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 app.use('/api/updates', updateRoutes);
 app.use('/api/university', universityRoutes);
 app.use('/api/questions', require('./routes/questions'));
@@ -176,14 +176,14 @@ app.use('/api/user-data', userDataRoutes);
 app.use('/api', bulkMentorRoutes);
 
 // Job info endpoint
-app.get("/api/job-info/:jobTitle", (req, res) => {
+app.get('/api/job-info/:jobTitle', (req, res) => {
   const { jobTitle } = req.params;
   const dataPath = path.join(__dirname, 'data.json');
 
   fs.readFile(dataPath, 'utf8', (err, data) => {
     if (err) {
-      console.error("Error reading data file:", err);
-      return res.status(500).json({ error: "Failed to read job data" });
+      console.error('Error reading data file:', err);
+      return res.status(500).json({ error: 'Failed to read job data' });
     }
 
     try {
@@ -193,19 +193,19 @@ app.get("/api/job-info/:jobTitle", (req, res) => {
       if (job) {
         res.json(job);
       } else {
-        res.status(404).json({ error: "Job not found" });
+        res.status(404).json({ error: 'Job not found' });
       }
     } catch (parseError) {
-      console.error("Error parsing data file:", parseError);
-      res.status(500).json({ error: "Failed to parse job data" });
+      console.error('Error parsing data file:', parseError);
+      res.status(500).json({ error: 'Failed to parse job data' });
     }
   });
 });
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
+  res.status(200).json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -219,10 +219,10 @@ app.post('/api/admin/trigger-password-reminders', async (req, res) => {
     // In production, add authentication middleware here
     // const token = req.headers.authorization;
     // Verify admin token...
-    
+
     console.log('🔧 Manual trigger requested for password reminders');
     const result = await tempPasswordReminder.runNow();
-    
+
     res.json({
       success: true,
       message: 'Temporary password reminders sent',
@@ -261,10 +261,10 @@ app.listen(PORT, () => {
   console.log(`\n🚀 Server running on port ${PORT}`);
   console.log(`📅 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL }`);
-  
+
   // Initialize scheduled jobs
   console.log('\n⏰ Initializing scheduled jobs...');
   tempPasswordReminder.scheduleReminders();
-  
+
   console.log('\n✅ Server initialization complete!\n');
 });

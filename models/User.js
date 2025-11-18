@@ -56,7 +56,7 @@
 //     required: true,
 //     enum: ['Admin', 'User', 'Mentor', 'UniAdmin', 'UniTeach', 'Student'], // Added Student role
 //   },
-  
+
 //   // University-specific fields
 //   universityId: {
 //     type: mongoose.Schema.Types.ObjectId,
@@ -70,7 +70,7 @@
 //     trim: true,
 //     sparse: true // Allows multiple null values but enforces uniqueness for non-null values
 //   },
-  
+
 //   // Student-specific fields
 //   studentProfile: {
 //     type: mongoose.Schema.Types.ObjectId,
@@ -79,7 +79,7 @@
 //       return this.role === 'Student';
 //     }
 //   },
-  
+
 //   appointments: [{
 //     userId: {
 //       type: mongoose.Schema.Types.ObjectId,
@@ -98,7 +98,7 @@
 //     type: Boolean,
 //     default: false,
 //   },
-  
+
 //   // University admin permissions
 //   universityPermissions: [{
 //     permission: {
@@ -110,7 +110,7 @@
 //       default: false
 //     }
 //   }],
-  
+
 //   // Account status
 //   isActive: {
 //     type: Boolean,
@@ -120,7 +120,7 @@
 //     type: Boolean,
 //     default: false
 //   },
-  
+
 //   // Enhanced suspension system
 //   isSuspended: {
 //     type: Boolean,
@@ -155,7 +155,7 @@
 //       default: 'minor'
 //     }
 //   },
-  
+
 //   // Login tracking
 //   lastLogin: {
 //     type: Date
@@ -185,7 +185,7 @@
 //       city: String
 //     }
 //   }],
-  
+
 //   // Security settings
 //   securitySettings: {
 //     twoFactorEnabled: {
@@ -205,7 +205,7 @@
 //       default: true
 //     }
 //   },
-  
+
 //   // Password management
 //   passwordHistory: [{
 //     hashedPassword: String,
@@ -223,7 +223,7 @@
 //     type: Boolean,
 //     default: false
 //   },
-  
+
 //   createdAt: {
 //     type: Date,
 //     default: Date.now,
@@ -281,17 +281,17 @@
 // // Pre-save middleware to update the updatedAt field and handle suspensions
 // UserSchema.pre('save', function(next) {
 //   this.updatedAt = Date.now();
-  
+
 //   // Auto-unsuspend if suspension has expired and auto-unsuspend is enabled
-//   if (this.isSuspended && 
-//       this.suspensionDetails && 
-//       this.suspensionDetails.until && 
-//       this.suspensionDetails.autoUnsuspend && 
+//   if (this.isSuspended &&
+//       this.suspensionDetails &&
+//       this.suspensionDetails.until &&
+//       this.suspensionDetails.autoUnsuspend &&
 //       new Date() > this.suspensionDetails.until) {
 //     this.isSuspended = false;
 //     this.suspensionDetails = {};
 //   }
-  
+
 //   next();
 // });
 
@@ -304,14 +304,14 @@
 //       $set: { loginAttempts: 1 }
 //     });
 //   }
-  
+
 //   const updates = { $inc: { loginAttempts: 1 } };
-  
+
 //   // Lock account after 5 attempts for 2 hours
 //   if (this.loginAttempts + 1 >= 5 && !this.isLocked) {
 //     updates.$set = { lockUntil: Date.now() + (2 * 60 * 60 * 1000) }; // 2 hours
 //   }
-  
+
 //   return this.updateOne(updates);
 // };
 
@@ -326,7 +326,7 @@
 // UserSchema.methods.suspendUser = function(days, reason, suspendedBy, suspendedByName, severity = 'minor') {
 //   const suspensionEndDate = new Date();
 //   suspensionEndDate.setDate(suspensionEndDate.getDate() + days);
-  
+
 //   this.isSuspended = true;
 //   this.suspensionDetails = {
 //     reason: reason,
@@ -337,7 +337,7 @@
 //     autoUnsuspend: true,
 //     severity: severity
 //   };
-  
+
 //   return this.save();
 // };
 
@@ -356,9 +356,9 @@
 //     ipAddress: ipAddress,
 //     userAgent: userAgent
 //   };
-  
+
 //   this.lastLogin = new Date();
-  
+
 //   // Add to login history
 //   this.loginHistory.push({
 //     timestamp: new Date(),
@@ -366,12 +366,12 @@
 //     userAgent: userAgent,
 //     success: true
 //   });
-  
+
 //   // Keep only last 20 login records
 //   if (this.loginHistory.length > 20) {
 //     this.loginHistory = this.loginHistory.slice(-20);
 //   }
-  
+
 //   return this.save();
 // };
 
@@ -395,18 +395,18 @@
 //       hashedPassword: this.password,
 //       changedAt: new Date()
 //     });
-    
+
 //     // Keep only last 5 passwords
 //     if (this.passwordHistory.length > 5) {
 //       this.passwordHistory = this.passwordHistory.slice(-5);
 //     }
 //   }
-  
+
 //   this.password = newHashedPassword;
 //   this.passwordLastChanged = new Date();
 //   this.mustChangePassword = false;
 //   this.temporaryPassword = false;
-  
+
 //   return this.save();
 // };
 
@@ -421,7 +421,7 @@
 // UserSchema.methods.hasUniversityPermission = function(permission) {
 //   if (!['UniAdmin', 'Admin'].includes(this.role)) return false;
 //   if (this.role === 'Admin') return true; // Admin has all permissions
-  
+
 //   const perm = this.universityPermissions.find(p => p.permission === permission);
 //   return perm ? perm.granted : false;
 // };
@@ -471,10 +471,10 @@
 
 // // Static method to find students by university
 // UserSchema.statics.findStudentsByUniversity = function(universityId) {
-//   return this.find({ 
-//     universityId, 
-//     role: 'Student', 
-//     isActive: true 
+//   return this.find({
+//     universityId,
+//     role: 'Student',
+//     isActive: true
 //   }).populate('studentProfile');
 // };
 
@@ -482,16 +482,16 @@
 // UserSchema.statics.getActiveSessionsCount = function(universityId = null) {
 //   const cutoffTime = new Date();
 //   cutoffTime.setMinutes(cutoffTime.getMinutes() - 30); // Consider active if activity in last 30 minutes
-  
+
 //   const query = {
 //     'currentSession.lastActivity': { $gte: cutoffTime },
 //     'currentSession.sessionId': { $exists: true }
 //   };
-  
+
 //   if (universityId) {
 //     query.universityId = universityId;
 //   }
-  
+
 //   return this.countDocuments(query);
 // };
 
@@ -616,7 +616,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     enum: ['Admin', 'User', 'Mentor', 'UniAdmin', 'UniTeach', 'Student'],
   },
-  
+
   // University-specific fields
   universityId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -630,7 +630,7 @@ const UserSchema = new mongoose.Schema({
     trim: true,
     sparse: true
   },
-  
+
   // Student-specific fields
   studentProfile: {
     type: mongoose.Schema.Types.ObjectId,
@@ -639,7 +639,7 @@ const UserSchema = new mongoose.Schema({
       return this.role === 'Student';
     }
   },
-  
+
   appointments: [{
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -658,7 +658,7 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  
+
   // University admin permissions
   universityPermissions: [{
     permission: {
@@ -670,7 +670,7 @@ const UserSchema = new mongoose.Schema({
       default: false
     }
   }],
-  
+
   // Account status
   isActive: {
     type: Boolean,
@@ -680,7 +680,7 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false // Email verification required for all users
   },
-  
+
   // Enhanced suspension system
   isSuspended: {
     type: Boolean,
@@ -715,7 +715,7 @@ const UserSchema = new mongoose.Schema({
       default: 'minor'
     }
   },
-  
+
   // Login tracking
   lastLogin: {
     type: Date
@@ -747,7 +747,7 @@ const UserSchema = new mongoose.Schema({
       longitude: Number
     }
   }],
-  
+
   // Security settings
   securitySettings: {
     twoFactorEnabled: {
@@ -767,7 +767,7 @@ const UserSchema = new mongoose.Schema({
       default: true
     }
   },
-  
+
   // Password management
   passwordHistory: [{
     hashedPassword: String,
@@ -785,7 +785,7 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -840,9 +840,9 @@ UserSchema.virtual('isSuspensionActive').get(function() {
 
 // Virtual for checking if user can login
 UserSchema.virtual('canLogin').get(function() {
-  return this.isActive && 
-         this.isVerified && 
-         !this.isLocked && 
+  return this.isActive &&
+         this.isVerified &&
+         !this.isLocked &&
          !this.isSuspensionActive;
 });
 
@@ -854,17 +854,17 @@ UserSchema.virtual('isGoogleAccount').get(function() {
 // Pre-save middleware
 UserSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
-  
+
   // Auto-unsuspend if suspension has expired
-  if (this.isSuspended && 
-      this.suspensionDetails && 
-      this.suspensionDetails.until && 
-      this.suspensionDetails.autoUnsuspend && 
+  if (this.isSuspended &&
+      this.suspensionDetails &&
+      this.suspensionDetails.until &&
+      this.suspensionDetails.autoUnsuspend &&
       new Date() > this.suspensionDetails.until) {
     this.isSuspended = false;
     this.suspensionDetails = {};
   }
-  
+
   next();
 });
 
@@ -876,14 +876,14 @@ UserSchema.methods.incLoginAttempts = function() {
       $set: { loginAttempts: 1 }
     });
   }
-  
+
   const updates = { $inc: { loginAttempts: 1 } };
-  
+
   // Lock account after 5 attempts for 2 hours
   if (this.loginAttempts + 1 >= 5 && !this.isLocked) {
     updates.$set = { lockUntil: Date.now() + (2 * 60 * 60 * 1000) };
   }
-  
+
   return this.updateOne(updates);
 };
 
@@ -898,7 +898,7 @@ UserSchema.methods.resetLoginAttempts = function() {
 UserSchema.methods.suspendUser = function(days, reason, suspendedBy, suspendedByName, severity = 'minor') {
   const suspensionEndDate = new Date();
   suspensionEndDate.setDate(suspensionEndDate.getDate() + days);
-  
+
   this.isSuspended = true;
   this.suspensionDetails = {
     reason: reason,
@@ -909,7 +909,7 @@ UserSchema.methods.suspendUser = function(days, reason, suspendedBy, suspendedBy
     autoUnsuspend: true,
     severity: severity
   };
-  
+
   return this.save();
 };
 
@@ -928,9 +928,9 @@ UserSchema.methods.startSession = function(sessionId, ipAddress, userAgent) {
     ipAddress: ipAddress,
     userAgent: userAgent
   };
-  
+
   this.lastLogin = new Date();
-  
+
   return this.save();
 };
 
@@ -954,18 +954,18 @@ UserSchema.methods.changePassword = function(newHashedPassword) {
       hashedPassword: this.password,
       changedAt: new Date()
     });
-    
+
     // Keep only last 5 passwords
     if (this.passwordHistory.length > 5) {
       this.passwordHistory = this.passwordHistory.slice(-5);
     }
   }
-  
+
   this.password = newHashedPassword;
   this.passwordLastChanged = new Date();
   this.mustChangePassword = false;
   this.temporaryPassword = false;
-  
+
   return this.save();
 };
 
@@ -980,7 +980,7 @@ UserSchema.methods.setTemporaryPassword = function(tempHashedPassword) {
 UserSchema.methods.hasUniversityPermission = function(permission) {
   if (!['UniAdmin', 'Admin'].includes(this.role)) return false;
   if (this.role === 'Admin') return true;
-  
+
   const perm = this.universityPermissions.find(p => p.permission === permission);
   return perm ? perm.granted : false;
 };
@@ -1030,10 +1030,10 @@ UserSchema.statics.findUniversityUsers = function(universityId, role = null) {
 
 // Static method to find students by university
 UserSchema.statics.findStudentsByUniversity = function(universityId) {
-  return this.find({ 
-    universityId, 
-    role: 'Student', 
-    isActive: true 
+  return this.find({
+    universityId,
+    role: 'Student',
+    isActive: true
   }).populate('studentProfile');
 };
 
@@ -1044,7 +1044,7 @@ UserSchema.statics.findByAuthProvider = function(provider) {
 
 // ✅ Static method to find Google users
 UserSchema.statics.findGoogleUsers = function() {
-  return this.find({ 
+  return this.find({
     authProvider: 'google',
     googleId: { $exists: true, $ne: null }
   });
@@ -1054,16 +1054,16 @@ UserSchema.statics.findGoogleUsers = function() {
 UserSchema.statics.getActiveSessionsCount = function(universityId = null) {
   const cutoffTime = new Date();
   cutoffTime.setMinutes(cutoffTime.getMinutes() - 30);
-  
+
   const query = {
     'currentSession.lastActivity': { $gte: cutoffTime },
     'currentSession.sessionId': { $exists: true }
   };
-  
+
   if (universityId) {
     query.universityId = universityId;
   }
-  
+
   return this.countDocuments(query);
 };
 
@@ -1093,17 +1093,17 @@ UserSchema.statics.cleanExpiredSuspensions = function() {
 
 // ✅ Static method to find unverified users
 UserSchema.statics.findUnverifiedUsers = function(daysOld = null) {
-  const query = { 
+  const query = {
     isVerified: false,
     isActive: false
   };
-  
+
   if (daysOld) {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
     query.createdAt = { $lte: cutoffDate };
   }
-  
+
   return this.find(query);
 };
 

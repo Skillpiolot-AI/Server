@@ -183,12 +183,12 @@ const mentorAppointmentBookedEmail = (mentorName, userName, userEmail, appointme
               </div>
               <div class="info-row">
                 <span class="info-label">Requested Date</span>
-                <span class="info-value">${new Date(appointmentDate).toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}</span>
+                <span class="info-value">${new Date(appointmentDate).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })}</span>
               </div>
             </div>
             
@@ -247,12 +247,12 @@ const userMeetingScheduledEmail = (userName, mentorName, scheduledDate, schedule
               </div>
               <div class="info-row">
                 <span class="info-label">Date</span>
-                <span class="info-value">${new Date(scheduledDate).toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}</span>
+                <span class="info-value">${new Date(scheduledDate).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">Time</span>
@@ -321,14 +321,14 @@ const meetingReminderEmail = (userName, mentorName, scheduledDateTime, meetLink,
               </div>
               <div class="info-row">
                 <span class="info-label">Date & Time</span>
-                <span class="info-value">${new Date(scheduledDateTime).toLocaleString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}</span>
+                <span class="info-value">${new Date(scheduledDateTime).toLocaleString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })}</span>
               </div>
             </div>
             

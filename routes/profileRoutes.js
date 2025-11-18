@@ -20,7 +20,7 @@ router.get('/', verifyToken, async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
   try {
     let profile = await Profile.findOne({ user: req.user._id });
-    
+
     if (profile) {
       profile = await Profile.findOneAndUpdate(
         { user: req.user._id },
@@ -34,7 +34,7 @@ router.post('/', verifyToken, async (req, res) => {
       });
       await profile.save();
     }
-    
+
     res.json(profile);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

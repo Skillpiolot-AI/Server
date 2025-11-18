@@ -24,7 +24,7 @@ describe('User Model Tests', () => {
 
     it('should not create user without required fields', async () => {
       const user = new User({});
-      
+
       await expect(user.save()).rejects.toThrow();
     });
 

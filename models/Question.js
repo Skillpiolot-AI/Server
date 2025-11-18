@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const questionSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
-  domain: { 
-    type: String, 
+  domain: {
+    type: String,
     required: true,
     enum: ['R', 'I', 'A', 'S', 'E', 'C']
   },

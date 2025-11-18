@@ -6,10 +6,10 @@ const emailjs = require('@emailjs/nodejs');
 const MentorAppointment = require('../models/Mentor');
 const mongoose = require('mongoose');
 const { sendEmailFast } = require('../config/mailHelper');
-const { 
-  mentorAppointmentBookedEmail, 
+const {
+  mentorAppointmentBookedEmail,
   userMeetingScheduledEmail,
-  meetingReminderEmail 
+  meetingReminderEmail
 } = require('../config/mentorEmailTemplates');
 
 
@@ -61,13 +61,13 @@ exports.updateMentor = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    
+
     const updatedMentor = await User.findByIdAndUpdate(id, updateData, { new: true }).select('-password');
-    
+
     if (!updatedMentor) {
       return res.status(404).json({ message: 'Mentor not found' });
     }
-    
+
     res.json(updatedMentor);
   } catch (error) {
     console.error('Error updating mentor:', error);
@@ -77,13 +77,13 @@ exports.updateMentor = async (req, res) => {
 exports.deleteMentor = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const deletedMentor = await User.findByIdAndDelete(id);
-    
+
     if (!deletedMentor) {
       return res.status(404).json({ message: 'Mentor not found' });
     }
-    
+
     res.json({ message: 'Mentor deleted successfully' });
   } catch (error) {
     console.error('Error deleting mentor:', error);
@@ -93,37 +93,37 @@ exports.deleteMentor = async (req, res) => {
 
 
 exports.getMentors = async (req, res) => {
-    try {
-      const { jobTitle, experience } = req.query;
-      let query = { role: 'Mentor' };
-  
-      if (jobTitle) {
-        query.jobTitle = jobTitle;
-      }
-  
-      if (experience) {
-        query.experience = { $gte: parseInt(experience) };
-      }
-  
-      const mentors = await User.find(query).select('name jobTitle experience');
-      res.json(mentors);
-    } catch (error) {
-      console.error('Error fetching mentors:', error);
-      res.status(500).json({ message: 'Server Error' });
+  try {
+    const { jobTitle, experience } = req.query;
+    let query = { role: 'Mentor' };
+
+    if (jobTitle) {
+      query.jobTitle = jobTitle;
     }
-  };
-  
+
+    if (experience) {
+      query.experience = { $gte: parseInt(experience) };
+    }
+
+    const mentors = await User.find(query).select('name jobTitle experience');
+    res.json(mentors);
+  } catch (error) {
+    console.error('Error fetching mentors:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 // In mentorController.js - Replace the bookAppointment function
 
 // exports.bookAppointment = async (req, res) => {
 //   try {
 //     const { mentorId, userId, date } = req.body;
-    
+
 //     console.log('Received booking request:', { mentorId, userId, date });
 
 //     // Validate that IDs are provided
 //     if (!mentorId || !userId) {
-//       return res.status(400).json({ 
+//       return res.status(400).json({
 //         message: 'Mentor ID and User ID are required',
 //         received: { mentorId, userId }
 //       });
@@ -132,7 +132,7 @@ exports.getMentors = async (req, res) => {
 //     // Validate ObjectId format
 //     if (!mongoose.Types.ObjectId.isValid(mentorId)) {
 //       console.log('Invalid mentorId format:', mentorId);
-//       return res.status(400).json({ 
+//       return res.status(400).json({
 //         message: 'Invalid mentor ID format',
 //         mentorId: mentorId
 //       });
@@ -140,7 +140,7 @@ exports.getMentors = async (req, res) => {
 
 //     if (!mongoose.Types.ObjectId.isValid(userId)) {
 //       console.log('Invalid userId format:', userId);
-//       return res.status(400).json({ 
+//       return res.status(400).json({
 //         message: 'Invalid user ID format',
 //         userId: userId
 //       });
@@ -175,15 +175,15 @@ exports.getMentors = async (req, res) => {
 
 //     console.log('Appointment created successfully:', newAppointment._id);
 
-//     res.status(201).json({ 
+//     res.status(201).json({
 //       message: 'Appointment booked successfully',
 //       appointmentId: newAppointment._id
 //     });
 //   } catch (error) {
 //     console.error('Error booking appointment:', error);
-//     res.status(500).json({ 
+//     res.status(500).json({
 //       message: 'Server Error',
-//       error: error.message 
+//       error: error.message
 //     });
 //   }
 // };
@@ -191,25 +191,25 @@ exports.getMentors = async (req, res) => {
 exports.bookAppointment = async (req, res) => {
   try {
     const { mentorId, userId, date } = req.body;
-    
+
     console.log('Received booking request:', { mentorId, userId, date });
 
     if (!mentorId || !userId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Mentor ID and User ID are required',
         received: { mentorId, userId }
       });
     }
 
     if (!mongoose.Types.ObjectId.isValid(mentorId)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Invalid mentor ID format',
         mentorId: mentorId
       });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Invalid user ID format',
         userId: userId
       });
@@ -245,7 +245,7 @@ exports.bookAppointment = async (req, res) => {
         user.email,
         newAppointment.requestedDate
       );
-      
+
       await sendEmailFast(mentor.email, emailTemplate);
       console.log('✅ Appointment notification email sent to mentor:', mentor.email);
     } catch (emailError) {
@@ -253,15 +253,15 @@ exports.bookAppointment = async (req, res) => {
       // Don't fail the appointment booking if email fails
     }
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: 'Appointment booked successfully. Mentor has been notified.',
       appointmentId: newAppointment._id
     });
   } catch (error) {
     console.error('Error booking appointment:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Server Error',
-      error: error.message 
+      error: error.message
     });
   }
 };
@@ -319,7 +319,7 @@ exports.scheduleMeeting = async (req, res) => {
     }
 
     const scheduledDateTime = new Date(`${date}T${time}`);
-    
+
     appointment.scheduledDate = scheduledDateTime;
     appointment.meetLink = meetLink;
     appointment.status = 'scheduled';
@@ -335,7 +335,7 @@ exports.scheduleMeeting = async (req, res) => {
         time,
         meetLink
       );
-      
+
       await sendEmailFast(appointment.userId.email, emailTemplate);
       console.log('✅ Meeting scheduled email sent to user:', appointment.userId.email);
     } catch (emailError) {
@@ -345,7 +345,7 @@ exports.scheduleMeeting = async (req, res) => {
     // ✅ SCHEDULE REMINDER EMAILS (24h, 12h, 1h before)
     scheduleReminderEmails(appointment, scheduledDateTime);
 
-    res.json({ 
+    res.json({
       message: 'Meeting scheduled successfully. User has been notified with reminders set.',
       scheduledDate: scheduledDateTime,
       meetLink: meetLink
@@ -359,7 +359,7 @@ exports.scheduleMeeting = async (req, res) => {
 // Function to schedule reminder emails
 const scheduleReminderEmails = (appointment, scheduledDateTime) => {
   const now = new Date();
-  
+
   // Calculate reminder times
   const reminder24h = new Date(scheduledDateTime.getTime() - (24 * 60 * 60 * 1000));
   const reminder12h = new Date(scheduledDateTime.getTime() - (12 * 60 * 60 * 1000));
@@ -413,7 +413,7 @@ const sendReminderEmail = async (appointment, hoursRemaining) => {
       freshAppointment.meetLink,
       hoursRemaining
     );
-    
+
     await sendEmailFast(freshAppointment.userId.email, emailTemplate);
     console.log(`✅ ${hoursRemaining}h reminder sent to:`, freshAppointment.userId.email);
   } catch (error) {
@@ -441,24 +441,24 @@ exports.getUserAppointments = async (req, res) => {
 exports.completeSession = async (req, res) => {
   try {
     const { appointmentId } = req.params;
-    
+
     if (!req.user) {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
     const appointment = await MentorAppointment.findById(appointmentId);
-    
+
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
-    
+
     if (appointment.mentorId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to complete this session' });
     }
-    
+
     appointment.status = 'completed';
     await appointment.save();
-    
+
     res.json({ message: 'Session marked as completed successfully' });
   } catch (error) {
     console.error('Error completing session:', error);
@@ -470,17 +470,17 @@ exports.completeSession = async (req, res) => {
 exports.submitRating = async (req, res) => {
   try {
     const { appointmentId, communicationSkills, clarityOfGuidance, learningOutcomes, frequencyAndQualityOfMeetings, remarks } = req.body;
-    
+
     const appointment = await MentorAppointment.findById(appointmentId);
-    
+
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
-    
+
     if (appointment.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to rate this session' });
     }
-    
+
     appointment.rating = {
       communicationSkills,
       clarityOfGuidance,
@@ -488,9 +488,9 @@ exports.submitRating = async (req, res) => {
       frequencyAndQualityOfMeetings,
       remarks
     };
-    
+
     await appointment.save();
-    
+
     res.json({ message: 'Rating submitted successfully' });
   } catch (error) {
     console.error('Error submitting rating:', error);
@@ -502,19 +502,19 @@ exports.submitRating = async (req, res) => {
 exports.getMentorFeedback = async (req, res) => {
   try {
     const { mentorId } = req.params;
-    
-    console.log('Received mentorId:', mentorId); 
+
+    console.log('Received mentorId:', mentorId);
 
     if (!mentorId) {
       return res.status(400).json({ message: 'mentorId is required' });
     }
 
-    const feedback = await MentorAppointment.find({ 
-      mentorId, 
+    const feedback = await MentorAppointment.find({
+      mentorId,
       status: 'completed',
       rating: { $exists: true }
     }).populate('userId', 'name');
-    
+
     res.json(feedback);
   } catch (error) {
     console.error('Error fetching mentor feedback:', error);
@@ -530,7 +530,7 @@ exports.getAllFeedback = async (req, res) => {
       status: 'completed',
       rating: { $exists: true }
     }).populate('userId', 'name').populate('mentorId', 'name');
-    
+
     res.json(feedback);
   } catch (error) {
     console.error('Error fetching feedback:', error);

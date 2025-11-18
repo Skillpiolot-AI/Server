@@ -79,9 +79,9 @@ OTPSchema.methods.verifyOTP = async function(inputOTP) {
     // Increment attempts for failed verification
     this.attempts += 1;
     await this.save();
-    return { 
-      success: false, 
-      message: `Invalid OTP. ${this.maxAttempts - this.attempts} attempts remaining` 
+    return {
+      success: false,
+      message: `Invalid OTP. ${this.maxAttempts - this.attempts} attempts remaining`
     };
   }
 };
@@ -99,10 +99,10 @@ OTPSchema.statics.generateOTP = function(length = 6) {
 // Static method to create new OTP
 OTPSchema.statics.createOTP = async function(email, purpose = 'password_reset', ipAddress, userAgent) {
   // Delete any existing unused OTPs for this email and purpose
-  await this.deleteMany({ 
-    email, 
-    purpose, 
-    isUsed: false 
+  await this.deleteMany({
+    email,
+    purpose,
+    isUsed: false
   });
 
   // Generate new OTP

@@ -46,10 +46,10 @@ const CLUSTER_HOLLAND_MAPPING = {
 // Calculate match score between user's Holland code and career
 const calculateMatchScore = (userHollandCode, careerHollandCodes) => {
   if (!careerHollandCodes || careerHollandCodes.length === 0) return 0;
-  
+
   const userCodes = userHollandCode.split('');
   let score = 0;
-  
+
   userCodes.forEach((code, index) => {
     if (careerHollandCodes.includes(code)) {
       // Weight: first code = 50%, second = 30%, third = 20%
@@ -57,7 +57,7 @@ const calculateMatchScore = (userHollandCode, careerHollandCodes) => {
       score += weight * 100;
     }
   });
-  
+
   return Math.round(score);
 };
 
@@ -95,7 +95,7 @@ exports.getCareerRecommendations = async (req, res) => {
 exports.getAllClusters = async (req, res) => {
   try {
     const clusters = await Career.distinct('career_cluster_name');
-    
+
     const clusterStats = await Promise.all(
       clusters.map(async (cluster) => {
         const count = await Career.countDocuments({ career_cluster_name: cluster });

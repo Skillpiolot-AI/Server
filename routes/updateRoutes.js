@@ -67,18 +67,18 @@ router.get('/admin', verifyToken, async (req, res) => {
 
     // Build search query
     let query = {};
-    
+
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } }
       ];
     }
-    
+
     if (priority) {
       query.priority = priority;
     }
-    
+
     if (updateType) {
       query.updateType = updateType;
     }

@@ -37,9 +37,9 @@ const checkPortalAccess = (requiredAccess) => {
 
       const student = await Student.findOne({ userId: req.user._id });
       if (!student) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Student profile not found' 
+        return res.status(404).json({
+          success: false,
+          message: 'Student profile not found'
         });
       }
 
@@ -51,7 +51,7 @@ const checkPortalAccess = (requiredAccess) => {
           suspensionDetails: student.suspensionDetails
         }, req);
 
-        const suspensionMessage = student.suspensionDetails?.until ? 
+        const suspensionMessage = student.suspensionDetails?.until ?
           `Access denied. You are suspended until ${new Date(student.suspensionDetails.until).toLocaleDateString()}. Reason: ${student.suspensionDetails.reason || 'No reason provided'}` :
           `Access denied. Your account is suspended. Reason: ${student.suspensionDetails?.reason || 'No reason provided'}`;
 
@@ -109,9 +109,9 @@ const checkPortalAccess = (requiredAccess) => {
 
     } catch (error) {
       console.error('Error checking portal access:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Error checking portal access' 
+      res.status(500).json({
+        success: false,
+        message: 'Error checking portal access'
       });
     }
   };
@@ -125,7 +125,7 @@ const trackStudentActivity = async (req, res, next) => {
       if (student) {
         // Record the page visit
         req.studentVisitStart = Date.now();
-        
+
         // Log page access
         await logPortalActivity(student, req.user._id, 'portal_navigation', {
           pageAccessed: req.path,
@@ -137,7 +137,7 @@ const trackStudentActivity = async (req, res, next) => {
         res.on('finish', async () => {
           try {
             const timeSpent = Math.round((Date.now() - req.studentVisitStart) / 1000); // in seconds
-            
+
             await logPortalActivity(student, req.user._id, 'portal_navigation', {
               pageLeft: req.path,
               timeSpent: timeSpent,
@@ -163,7 +163,7 @@ const detectSuspiciousActivity = async (req, res, next) => {
       if (student) {
         // Check for suspicious activity in the last 24 hours
         const suspiciousActivity = await StudentActivity.detectSuspiciousActivity(student._id, 24);
-        
+
         if (suspiciousActivity.length > 0) {
           // Log suspicious activity detection
           await logPortalActivity(student, req.user._id, 'suspicious_activity_detected', {
@@ -226,7 +226,7 @@ const manageStudentSessions = async (req, res, next) => {
         // Check if current session is still valid
         if (req.user.currentSession && req.user.currentSession.lastActivity) {
           const timeSinceLastActivity = currentTime - new Date(req.user.currentSession.lastActivity);
-          
+
           if (timeSinceLastActivity > sessionTimeout) {
             // Session expired - log automatic logout
             await logPortalActivity(student, req.user._id, 'session_expired', {
@@ -257,19 +257,19 @@ const manageStudentSessions = async (req, res, next) => {
 const portalAccessControls = {
   // Library access control
   library: checkPortalAccess('canAccessLibrary'),
-  
+
   // Laboratory access control
   labs: checkPortalAccess('canAccessLabs'),
-  
+
   // Course materials access control
   courses: checkPortalAccess('canAccessCourses'),
-  
+
   // Assignment submission control
   assignments: checkPortalAccess('canSubmitAssignments'),
-  
+
   // Grade viewing control
   grades: checkPortalAccess('canViewGrades'),
-  
+
   // General portal access (for students not suspended)
   general: checkPortalAccess(null)
 };
@@ -304,11 +304,11 @@ const emergencyAccess = (allowedActions = []) => {
     if (req.user && req.user.role === 'Student') {
       try {
         const student = await Student.findOne({ userId: req.user._id });
-        
+
         if (student && student.isSuspended) {
           // Check if current action is allowed during suspension
           const currentAction = req.path.split('/').pop();
-          
+
           if (!allowedActions.includes(currentAction)) {
             await logPortalActivity(student, req.user._id, 'emergency_access_denied', {
               attemptedAction: currentAction,
@@ -354,7 +354,7 @@ const rateLimitStudentActions = (maxActions = 100, windowMs = 15 * 60 * 1000) =>
       }
 
       const currentAttempts = attempts.get(key) || [];
-      
+
       if (currentAttempts.length >= maxActions) {
         const student = await Student.findOne({ userId: req.user._id });
         if (student) {

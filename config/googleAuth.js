@@ -1,7 +1,7 @@
 const { OAuth2Client } = require('google-auth-library');
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID 
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
@@ -16,9 +16,9 @@ async function verifyGoogleToken(token) {
       idToken: token,
       audience: GOOGLE_CLIENT_ID,
     });
-    
+
     const payload = ticket.getPayload();
-    
+
     return {
       success: true,
       data: {

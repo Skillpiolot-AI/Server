@@ -23,7 +23,7 @@ const UserActivitySchema = new mongoose.Schema({
         'quiz_taken',
         'career_recommendation_viewed',
         'profile_updated',
-        'profile_access', 
+        'profile_access',
         'video_watched',
         'workshop_registered',
         'mentor_appointment',

@@ -64,11 +64,11 @@ VerificationTokenSchema.statics.generateToken = function() {
 // Static method to create email verification token
 VerificationTokenSchema.statics.createEmailVerification = async function(userId, email) {
   // Delete any existing unused tokens for this user and email
-  await this.deleteMany({ 
-    userId, 
+  await this.deleteMany({
+    userId,
     email,
     type: 'email_verification',
-    isUsed: false 
+    isUsed: false
   });
 
   const token = this.generateToken();
@@ -85,15 +85,15 @@ VerificationTokenSchema.statics.createEmailVerification = async function(userId,
 
 // Static method to create location verification token
 VerificationTokenSchema.statics.createLocationVerification = async function(
-  userId, 
-  email, 
+  userId,
+  email,
   loginDetails
 ) {
   // Delete any existing unused location tokens for this user
-  await this.deleteMany({ 
-    userId, 
+  await this.deleteMany({
+    userId,
     type: 'location_verification',
-    isUsed: false 
+    isUsed: false
   });
 
   const token = this.generateToken();
@@ -116,17 +116,17 @@ VerificationTokenSchema.statics.createLocationVerification = async function(
 VerificationTokenSchema.methods.verifyAndUse = async function() {
   // Check if token is already used
   if (this.isUsed) {
-    return { 
-      success: false, 
-      message: 'This verification link has already been used' 
+    return {
+      success: false,
+      message: 'This verification link has already been used'
     };
   }
 
   // Check if token has expired
   if (new Date() > this.expiresAt) {
-    return { 
-      success: false, 
-      message: 'This verification link has expired. Please request a new one' 
+    return {
+      success: false,
+      message: 'This verification link has expired. Please request a new one'
     };
   }
 
@@ -135,9 +135,9 @@ VerificationTokenSchema.methods.verifyAndUse = async function() {
   this.usedAt = new Date();
   await this.save();
 
-  return { 
-    success: true, 
-    message: 'Token verified successfully' 
+  return {
+    success: true,
+    message: 'Token verified successfully'
   };
 };
 
@@ -161,7 +161,7 @@ VerificationTokenSchema.statics.cleanupExpired = async function() {
   const result = await this.deleteMany({
     expiresAt: { $lt: new Date() }
   });
-  
+
   console.log(`Cleaned up ${result.deletedCount} expired verification tokens`);
   return result;
 };

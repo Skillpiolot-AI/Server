@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
 const assessmentSchema = new mongoose.Schema({
-  userId: { 
-    type: String, 
+  userId: {
+    type: String,
     required: true,
-    index: true 
+    index: true
   },
   answers: {
     type: Map,

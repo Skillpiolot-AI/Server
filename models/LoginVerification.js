@@ -75,16 +75,16 @@ LoginVerificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 // Static method to create login verification
 LoginVerificationSchema.statics.createLoginVerification = async function(
-  userId, 
-  email, 
-  ipAddress, 
-  userAgent, 
+  userId,
+  email,
+  ipAddress,
+  userAgent,
   location,
   deviceInfo
 ) {
   const crypto = require('crypto');
   const token = crypto.randomBytes(32).toString('hex');
-  
+
   return this.create({
     userId,
     email,
@@ -101,22 +101,22 @@ LoginVerificationSchema.methods.verifyLogin = async function() {
   if (this.isVerified) {
     return { success: false, message: 'Login already verified' };
   }
-  
+
   if (this.isDenied) {
     return { success: false, message: 'Login was denied' };
   }
-  
+
   if (this.expiresAt < new Date()) {
     this.status = 'expired';
     await this.save();
     return { success: false, message: 'Verification link has expired' };
   }
-  
+
   this.isVerified = true;
   this.verifiedAt = new Date();
   this.status = 'verified';
   await this.save();
-  
+
   return { success: true, message: 'Login verified successfully' };
 };
 
@@ -125,12 +125,12 @@ LoginVerificationSchema.methods.denyLogin = async function() {
   if (this.isVerified) {
     return { success: false, message: 'Login was already verified' };
   }
-  
+
   this.isDenied = true;
   this.deniedAt = new Date();
   this.status = 'denied';
   await this.save();
-  
+
   return { success: true, message: 'Login denied successfully' };
 };
 

@@ -10,13 +10,13 @@ beforeAll(async () => {
     // Start in-memory MongoDB
     mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
-    
+
     // Connect to the in-memory database
     await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    
+
     console.log('✅ Test database connected');
   } catch (error) {
     console.error('❌ Test setup failed:', error);
@@ -29,12 +29,12 @@ afterAll(async () => {
   try {
     // Disconnect from database
     await mongoose.disconnect();
-    
+
     // Stop in-memory MongoDB
     if (mongoServer) {
       await mongoServer.stop();
     }
-    
+
     console.log('✅ Test database disconnected');
   } catch (error) {
     console.error('❌ Test teardown failed:', error);
@@ -44,7 +44,7 @@ afterAll(async () => {
 // Clear all collections before each test
 beforeEach(async () => {
   const collections = mongoose.connection.collections;
-  
+
   for (const key in collections) {
     await collections[key].deleteMany();
   }

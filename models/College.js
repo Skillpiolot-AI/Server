@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 
 const CtpCtaSchema = new mongoose.Schema({
@@ -56,5 +56,5 @@ const CollegeSchema = new mongoose.Schema({
   otherFields: mongoose.Schema.Types.Mixed // fallback for any unknown fields
 }, { strict: false }); // allow additional fields automatically
 
-const College = mongoose.model("College", CollegeSchema);
+const College = mongoose.model('College', CollegeSchema);
 module.exports = { College };
