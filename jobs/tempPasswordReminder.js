@@ -13,12 +13,12 @@ const { tempPasswordReminderEmail } = require('../config/emailTemplates');
 const sendTempPasswordReminders = async () => {
   try {
     console.log('\n📅 Running temporary password reminder job...');
-    
+
     const now = new Date();
     const twoDaysAgo = new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000));
     const fourDaysAgo = new Date(now.getTime() - (4 * 24 * 60 * 60 * 1000));
     const sixDaysAgo = new Date(now.getTime() - (6 * 24 * 60 * 60 * 1000));
-    
+
     // Find users with temporary passwords who haven't changed them
     const usersWithTempPassword = await User.find({
       temporaryPassword: true,
@@ -41,18 +41,18 @@ const sendTempPasswordReminders = async () => {
         // Calculate days since password was set
         const passwordDate = user.passwordLastChanged || user.createdAt;
         const daysSince = Math.floor((now - passwordDate) / (1000 * 60 * 60 * 24));
-        
+
         // Only send on day 2, 4, 6, etc.
         if (daysSince % 2 === 0 && daysSince >= 2) {
           console.log(`Sending reminder to ${user.email} (${daysSince} days)`);
-          
+
           await sendEmailFast(
             user.email,
             tempPasswordReminderEmail(user.name, daysSince)
           );
-          
+
           emailsSent++;
-          
+
           // Add small delay to avoid rate limiting
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
@@ -63,14 +63,14 @@ const sendTempPasswordReminders = async () => {
     }
 
     console.log(`✅ Temporary password reminders complete: ${emailsSent} sent, ${emailsFailed} failed`);
-    
+
     return {
       success: true,
       totalUsers: usersWithTempPassword.length,
       emailsSent,
       emailsFailed
     };
-    
+
   } catch (error) {
     console.error('❌ Error in temporary password reminder job:', error);
     return {
@@ -91,7 +91,7 @@ const scheduleReminders = () => {
     console.log('\n⏰ Scheduled job triggered: Temporary password reminders');
     await sendTempPasswordReminders();
   }, {
-    timezone: "Asia/Kolkata" // Adjust to your timezone
+    timezone: 'Asia/Kolkata' // Adjust to your timezone
   });
 
   console.log('✅ Temporary password reminder scheduler initialized (runs daily at 9:00 AM)');

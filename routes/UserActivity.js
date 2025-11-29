@@ -15,7 +15,7 @@ const UserActivitySchema = new mongoose.Schema({
     required: true,
     enum: [
       'login',
-      'logout', 
+      'logout',
       'page_visit',
       'quiz_taken',
       'career_recommendation_viewed',

@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOi
 exports.auth = async (req, res, next) => {
   try {
     const authHeader = req.header('Authorization');
-    
+
     if (!authHeader) {
       return res.status(401).json({
         success: false,
@@ -25,14 +25,14 @@ exports.auth = async (req, res, next) => {
     }
 
     console.log('Verifying token with secret:', JWT_SECRET ? 'Secret exists' : 'No secret');
-    
+
     const decoded = jwt.verify(token, JWT_SECRET);
     console.log('Token decoded successfully:', decoded);
-    
+
     const user = await User.findById(decoded.id)
       .select('-password')
       .populate('universityId', 'name url location');
-    
+
     if (!user) {
       console.log('User not found for ID:', decoded.id);
       return res.status(401).json({
@@ -62,14 +62,14 @@ exports.auth = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Authentication error:', error);
-    
+
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         success: false,
         message: 'Invalid token format.'
       });
     }
-    
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
@@ -102,7 +102,7 @@ exports.verifyToken = async (req, res, next) => {
     console.log('Verifying token...');
     const decoded = jwt.verify(token, JWT_SECRET);
     console.log('Token decoded:', decoded);
-    
+
     const user = await User.findById(decoded.id)
       .select('-password')
       .populate('universityId', 'name url location');
@@ -114,15 +114,15 @@ exports.verifyToken = async (req, res, next) => {
 
     // Check if account is locked
     if (user.isLocked) {
-      return res.status(423).json({ 
-        message: 'Account is temporarily locked due to too many failed login attempts. Please try again later.' 
+      return res.status(423).json({
+        message: 'Account is temporarily locked due to too many failed login attempts. Please try again later.'
       });
     }
 
     // Check if account is active
     if (!user.isActive) {
-      return res.status(403).json({ 
-        message: 'Account has been deactivated. Please contact administrator.' 
+      return res.status(403).json({
+        message: 'Account has been deactivated. Please contact administrator.'
       });
     }
 
@@ -131,11 +131,11 @@ exports.verifyToken = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Token verification error:', error);
-    
+
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({ message: 'Invalid token format' });
     }
-    
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ message: 'Token has expired' });
     }
@@ -194,7 +194,7 @@ exports.requireUniversityAccess = (req, res, next) => {
   }
 
   const allowedRoles = ['Admin', 'UniAdmin', 'UniTeach'];
-  
+
   if (!allowedRoles.includes(req.user.role)) {
     return res.status(403).json({
       success: false,

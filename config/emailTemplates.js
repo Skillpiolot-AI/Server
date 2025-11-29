@@ -4,33 +4,33 @@
  */
 
 const FRONTEND_URL = process.env.FRONTEND_URL ;
-const LOGO = "✈️ SKILL-PILOT";
-const TAGLINE = "Navigate Your Career Journey";
-const SUPPORT_EMAIL = "support@skillpilot.com";
-const COMPANY_NAME = "Skill-Pilot Career Guidance";
+const LOGO = '✈️ SKILL-PILOT';
+const TAGLINE = 'Navigate Your Career Journey';
+const SUPPORT_EMAIL = 'support@skillpilot.com';
+const COMPANY_NAME = 'Skill-Pilot Career Guidance';
 
 // ============================================================================
 // COLOR SYSTEM & DESIGN TOKENS
 // ============================================================================
 
 const colors = {
-  primary: "#667eea",
-  primaryDark: "#1e3c72",
-  primaryLight: "#764ba2",
-  accent: "#f093fb",
-  accentRed: "#f5576c",
-  success: "#10b981",
-  successDark: "#059669",
-  warning: "#f59e0b",
-  warningLight: "#fef3c7",
-  error: "#dc2626",
-  errorLight: "#fef2f2",
-  text: "#1a1a1a",
-  textMuted: "#64748b",
-  textDark: "#1e3c72",
-  white: "#ffffff",
-  lightBg: "#f8f9ff",
-  borderLight: "#e0e7ff",
+  primary: '#667eea',
+  primaryDark: '#1e3c72',
+  primaryLight: '#764ba2',
+  accent: '#f093fb',
+  accentRed: '#f5576c',
+  success: '#10b981',
+  successDark: '#059669',
+  warning: '#f59e0b',
+  warningLight: '#fef3c7',
+  error: '#dc2626',
+  errorLight: '#fef2f2',
+  text: '#1a1a1a',
+  textMuted: '#64748b',
+  textDark: '#1e3c72',
+  white: '#ffffff',
+  lightBg: '#f8f9ff',
+  borderLight: '#e0e7ff',
 };
 
 const gradients = {
@@ -627,6 +627,125 @@ const tempPasswordReminderEmail = (name, daysRemaining) => {
   return createEmailTemplate(`⚠️ Reminder: Change Your Temporary Password - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
+const googleWelcomeTemplate = (name, username) => ({
+  subject: '🎉 Welcome to Spark Career Guidance!',
+  html: `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo { width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; }
+        h1 { color: #667eea; margin: 0; font-size: 28px; }
+        .welcome-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; margin: 30px 0; }
+        .google-badge { background: #fff; color: #4285f4; padding: 10px 20px; border-radius: 25px; display: inline-block; margin-top: 15px; font-weight: bold; }
+        .info-box { background: #f8f9fa; padding: 20px; border-left: 4px solid #667eea; margin: 20px 0; border-radius: 5px; }
+        .credentials { background: #e3f2fd; padding: 15px; margin: 15px 0; border-radius: 5px; }
+        .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+        .features { list-style: none; padding: 0; }
+        .features li { padding: 10px 0; border-bottom: 1px solid #eee; }
+        .features li:before { content: "✓"; color: #667eea; font-weight: bold; margin-right: 10px; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">S</div>
+          <h1>Welcome to Spark!</h1>
+        </div>
+
+        <div class="welcome-box">
+          <h2 style="margin: 0 0 10px 0;">🎉 Account Created Successfully!</h2>
+          <p style="margin: 0; font-size: 18px;">Hi ${name}!</p>
+          <div class="google-badge">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width: 18px; vertical-align: middle; margin-right: 8px;" alt="Google">
+            Signed up with Google
+          </div>
+        </div>
+
+        <p>Thank you for joining Spark Career Guidance Portal! Your account has been created successfully using Google Sign-In.</p>
+
+        <div class="credentials">
+          <strong>📝 Your Account Details:</strong><br>
+          <strong>Username:</strong> ${username}<br>
+          <strong>Email:</strong> Linked to your Google account<br>
+          <strong>Account Status:</strong> ✅ Verified & Active
+        </div>
+
+        <div class="info-box">
+          <strong>🔐 Secure Login Options:</strong><br>
+          You can now sign in using:
+          <ul style="margin: 10px 0;">
+            <li>Google Sign-In (Recommended)</li>
+            <li>Username and password (set a password in your profile settings)</li>
+          </ul>
+        </div>
+
+        <h3 style="color: #667eea;">🚀 What's Next?</h3>
+        <ul class="features">
+          <li>Complete your profile to get personalized recommendations</li>
+          <li>Take career assessment tests</li>
+          <li>Connect with mentors in your field</li>
+          <li>Explore career paths and opportunities</li>
+          <li>Access exclusive resources and workshops</li>
+        </ul>
+
+        <div style="text-align: center;">
+          <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" class="button">
+            Start Your Journey →
+          </a>
+        </div>
+
+        <div class="info-box" style="background: #fff3cd; border-left-color: #ffc107;">
+          <strong>💡 Pro Tip:</strong> Enable two-factor authentication in your account settings for enhanced security!
+        </div>
+
+        <div class="footer">
+          <p>Need help? Contact us at support@sparkcareer.com</p>
+          <p>© 2025 Spark Career Guidance. All rights reserved.</p>
+          <p style="margin-top: 15px;">
+            <a href="#" style="color: #667eea; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
+            <a href="#" style="color: #667eea; text-decoration: none; margin: 0 10px;">Terms of Service</a>
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
+  text: `
+Welcome to Spark Career Guidance!
+
+Hi ${name}!
+
+Thank you for joining Spark Career Guidance Portal using Google Sign-In!
+
+Your Account Details:
+- Username: ${username}
+- Email: Linked to your Google account
+- Account Status: Verified & Active
+
+You can now sign in using:
+- Google Sign-In (Recommended)
+- Username and password (set a password in your profile settings)
+
+What's Next?
+- Complete your profile to get personalized recommendations
+- Take career assessment tests
+- Connect with mentors in your field
+- Explore career paths and opportunities
+- Access exclusive resources and workshops
+
+Get Started: ${process.env.FRONTEND_URL || 'http://localhost:5173'}
+
+Need help? Contact us at support@sparkcareer.com
+
+© 2025 Spark Career Guidance. All rights reserved.
+  `
+});
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -635,7 +754,7 @@ module.exports = {
   // Admin templates
   adminCreatedWelcome,
   adminCreatedVerification,
-  
+
   // User management templates
   accountDeletedEmail,
   accountUnverifiedEmail,
@@ -643,7 +762,8 @@ module.exports = {
   accountDeactivatedEmail,
   accountReactivatedEmail,
   tempPasswordReminderEmail,
-  
+  googleWelcomeTemplate,
+
   // Utility exports
   colors,
   gradients,

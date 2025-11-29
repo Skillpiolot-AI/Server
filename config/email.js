@@ -51,19 +51,19 @@
 //           <div class="content">
 //             <p>Hello ${name},</p>
 //             <p>We received a request to reset your password for your Spark Career Guidance account.</p>
-            
+
 //             <div class="otp-box">
 //               <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Your OTP Code:</p>
 //               <div class="otp-code">${otp}</div>
 //               <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">Valid for ${expiryMinutes} minutes</p>
 //             </div>
-            
+
 //             <p>Enter this code on the password reset page to continue. If you didn't request this, please ignore this email.</p>
-            
+
 //             <div class="warning">
 //               <strong>⚠️ Security Notice:</strong> Never share this OTP with anyone. Our team will never ask for your OTP.
 //             </div>
-            
+
 //             <p style="margin-top: 30px;">Best regards,<br>Spark Career Guidance Team</p>
 //           </div>
 //           <div class="footer">
@@ -142,7 +142,7 @@
 //             <p>Hello ${name},</p>
 //             <p>Welcome to Spark Career Guidance Portal! We're excited to have you on board.</p>
 //             <p>Your username: <strong>${username}</strong></p>
-            
+
 //             <div class="features">
 //               <h3>What you can do:</h3>
 //               <div class="feature-item">Access personalized career assessments</div>
@@ -150,7 +150,7 @@
 //               <div class="feature-item">Explore exclusive job listings</div>
 //               <div class="feature-item">Access continuous learning resources</div>
 //             </div>
-            
+
 //             <p>Get started by logging in and completing your profile!</p>
 //             <p style="margin-top: 30px;">Best regards,<br>Spark Career Guidance Team</p>
 //           </div>

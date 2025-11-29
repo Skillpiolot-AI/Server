@@ -21,7 +21,7 @@ router.get('/overview', verifyToken, requireAdmin, async (req, res) => {
     const lastYear = new Date(now - 365 * 24 * 60 * 60 * 1000);
 
     const totalUsers = await User.countDocuments();
-    
+
     // New users by time period
     const newUsers24h = await User.countDocuments({ createdAt: { $gte: last24h } });
     const newUsersWeek = await User.countDocuments({ createdAt: { $gte: lastWeek } });
@@ -33,17 +33,17 @@ router.get('/overview', verifyToken, requireAdmin, async (req, res) => {
       activityType: 'login',
       timestamp: { $gte: last24h }
     });
-    
+
     const activeUsersWeek = await UserActivity.distinct('userId', {
       activityType: 'login',
       timestamp: { $gte: lastWeek }
     });
-    
+
     const activeUsersMonth = await UserActivity.distinct('userId', {
       activityType: 'login',
       timestamp: { $gte: lastMonth }
     });
-    
+
     const activeUsersYear = await UserActivity.distinct('userId', {
       activityType: 'login',
       timestamp: { $gte: lastYear }
@@ -79,20 +79,20 @@ router.get('/users', verifyToken, requireAdmin, async (req, res) => {
 
     let timeFilter = {};
     const now = new Date();
-    
+
     switch(timeframe) {
-      case '24h':
-        timeFilter = { createdAt: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
-        break;
-      case 'week':
-        timeFilter = { createdAt: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
-        break;
-      case 'month':
-        timeFilter = { createdAt: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
-        break;
-      case 'year':
-        timeFilter = { createdAt: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
-        break;
+    case '24h':
+      timeFilter = { createdAt: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
+      break;
+    case 'week':
+      timeFilter = { createdAt: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
+      break;
+    case 'month':
+      timeFilter = { createdAt: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
+      break;
+    case 'year':
+      timeFilter = { createdAt: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
+      break;
     }
 
     const users = await User.find(timeFilter)
@@ -137,28 +137,28 @@ router.get('/users', verifyToken, requireAdmin, async (req, res) => {
 
 // Add these routes to your analyticsRoutes.js
 
-// Get activity statistics 
+// Get activity statistics
 router.get('/activity-stats', verifyToken, requireAdmin, async (req, res) => {
   try {
     const { timeframe = 'week' } = req.query;
     const now = new Date();
     let timeFilter = {};
-    
+
     switch(timeframe) {
-      case '24h':
-        timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
-        break;
-      case 'week':
-        timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
-        break;
-      case 'month':
-        timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
-        break;
-      case 'year':
-        timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
-        break;
-      default:
-        timeFilter = {};
+    case '24h':
+      timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
+      break;
+    case 'week':
+      timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
+      break;
+    case 'month':
+      timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
+      break;
+    case 'year':
+      timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
+      break;
+    default:
+      timeFilter = {};
     }
 
     const activityStats = await UserActivity.aggregate([
@@ -194,22 +194,22 @@ router.get('/login-patterns', verifyToken, requireAdmin, async (req, res) => {
     const { timeframe = 'week' } = req.query;
     const now = new Date();
     let timeFilter = {};
-    
+
     switch(timeframe) {
-      case '24h':
-        timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
-        break;
-      case 'week':
-        timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
-        break;
-      case 'month':
-        timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
-        break;
-      case 'year':
-        timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
-        break;
-      default:
-        timeFilter = {};
+    case '24h':
+      timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
+      break;
+    case 'week':
+      timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
+      break;
+    case 'month':
+      timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
+      break;
+    case 'year':
+      timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
+      break;
+    default:
+      timeFilter = {};
     }
 
     const loginPatterns = await UserActivity.aggregate([
@@ -261,36 +261,36 @@ router.get('/users/:userId/activity', verifyToken, requireAdmin, async (req, res
   try {
     const { userId } = req.params;
     const { timeframe = 'week', page = 1, limit = 50 } = req.query;
-    
+
     const skip = (page - 1) * limit;
     const now = new Date();
     let timeFilter = {};
-    
+
     switch(timeframe) {
-      case '24h':
-        timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
-        break;
-      case 'week':
-        timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
-        break;
-      case 'month':
-        timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
-        break;
-      case 'year':
-        timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
-        break;
-      default:
-        timeFilter = {};
+    case '24h':
+      timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
+      break;
+    case 'week':
+      timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
+      break;
+    case 'month':
+      timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
+      break;
+    case 'year':
+      timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
+      break;
+    default:
+      timeFilter = {};
     }
 
     const activities = await UserActivity.find({
       userId,
       ...timeFilter
     })
-    .sort({ timestamp: -1 })
-    .skip(skip)
-    .limit(parseInt(limit))
-    .populate('userId', 'name username email');
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('userId', 'name username email');
 
     const totalActivities = await UserActivity.countDocuments({
       userId,

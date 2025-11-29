@@ -54,7 +54,7 @@ EmailVerificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 EmailVerificationSchema.statics.createVerificationToken = function(userId, email, ipAddress, userAgent) {
   const crypto = require('crypto');
   const token = crypto.randomBytes(32).toString('hex');
-  
+
   return this.create({
     userId,
     email,
@@ -69,15 +69,15 @@ EmailVerificationSchema.methods.verify = async function() {
   if (this.isVerified) {
     return { success: false, message: 'Email already verified' };
   }
-  
+
   if (this.expiresAt < new Date()) {
     return { success: false, message: 'Verification link has expired' };
   }
-  
+
   this.isVerified = true;
   this.verifiedAt = new Date();
   await this.save();
-  
+
   return { success: true, message: 'Email verified successfully' };
 };
 

@@ -9,7 +9,7 @@ const StudentSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  
+
   // Academic information
   department: {
     type: String,
@@ -32,21 +32,21 @@ const StudentSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  
+
   // University association
   universityId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'University',
     required: true
   },
-  
+
   // Academic status
   academicStatus: {
     type: String,
     enum: ['active', 'graduated', 'dropped', 'transferred', 'on_leave'],
     default: 'active'
   },
-  
+
   // Suspension details
   isSuspended: {
     type: Boolean,
@@ -76,7 +76,7 @@ const StudentSchema = new mongoose.Schema({
       default: true
     }
   },
-  
+
   // Portal access settings
   portalAccess: {
     canAccessLibrary: {
@@ -106,7 +106,7 @@ const StudentSchema = new mongoose.Schema({
       restrictedBy: String
     }]
   },
-  
+
   // Academic performance tracking
   performance: {
     currentGPA: {
@@ -128,7 +128,7 @@ const StudentSchema = new mongoose.Schema({
       max: 100
     }
   },
-  
+
   // Contact and emergency information
   contactInfo: {
     alternateEmail: {
@@ -157,7 +157,7 @@ const StudentSchema = new mongoose.Schema({
       country: String
     }
   },
-  
+
   // Enrollment information
   enrollment: {
     admissionDate: {
@@ -172,7 +172,7 @@ const StudentSchema = new mongoose.Schema({
       default: 'full_time'
     }
   },
-  
+
   // Notes and remarks from administrators
   adminNotes: [{
     note: {
@@ -202,7 +202,7 @@ const StudentSchema = new mongoose.Schema({
       default: false
     }
   }],
-  
+
   // Creation and modification tracking
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -252,13 +252,13 @@ StudentSchema.virtual('fullName', {
 // Pre-save middleware to update timestamps
 StudentSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
-  
+
   // Auto-remove expired suspensions
   if (this.isSuspended && this.isSuspensionExpired) {
     this.isSuspended = false;
     this.suspensionDetails = {};
   }
-  
+
   next();
 });
 
@@ -266,7 +266,7 @@ StudentSchema.pre('save', function(next) {
 StudentSchema.methods.suspendStudent = function(days, reason, suspendedBy, suspendedByName) {
   const suspensionEndDate = new Date();
   suspensionEndDate.setDate(suspensionEndDate.getDate() + days);
-  
+
   this.isSuspended = true;
   this.suspensionDetails = {
     reason: reason,
@@ -276,7 +276,7 @@ StudentSchema.methods.suspendStudent = function(days, reason, suspendedBy, suspe
     until: suspensionEndDate,
     isActive: true
   };
-  
+
   return this.save();
 };
 

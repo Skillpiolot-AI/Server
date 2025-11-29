@@ -19,13 +19,13 @@ const StudentActivitySchema = new mongoose.Schema({
     ref: 'University',
     required: true
   },
-  
+
   // Session information
   sessionId: {
     type: String,
     required: true
   },
-  
+
   // Activity details
   activityType: {
     type: String,
@@ -58,7 +58,7 @@ const StudentActivitySchema = new mongoose.Schema({
       'emergency_contact_update'
     ]
   },
-  
+
   // Detailed activity information
   details: {
     // For login/logout
@@ -73,7 +73,7 @@ const StudentActivitySchema = new mongoose.Schema({
       type: String,
       enum: ['manual', 'timeout', 'forced', 'system']
     },
-    
+
     // For academic activities
     courseId: {
       type: String
@@ -90,7 +90,7 @@ const StudentActivitySchema = new mongoose.Schema({
     gradeViewed: {
       type: String
     },
-    
+
     // For portal navigation
     pageAccessed: {
       type: String
@@ -98,7 +98,7 @@ const StudentActivitySchema = new mongoose.Schema({
     timeSpent: {
       type: Number // in seconds
     },
-    
+
     // For file operations
     fileName: {
       type: String
@@ -109,7 +109,7 @@ const StudentActivitySchema = new mongoose.Schema({
     fileType: {
       type: String
     },
-    
+
     // For quiz/exam attempts
     quizId: {
       type: String
@@ -126,13 +126,13 @@ const StudentActivitySchema = new mongoose.Schema({
     timeSpentOnQuiz: {
       type: Number // in minutes
     },
-    
+
     // Additional context
     additionalData: {
       type: mongoose.Schema.Types.Mixed
     }
   },
-  
+
   // Technical information
   ipAddress: {
     type: String,
@@ -157,7 +157,7 @@ const StudentActivitySchema = new mongoose.Schema({
       type: String
     }
   },
-  
+
   // Location and network information
   location: {
     country: {
@@ -173,14 +173,14 @@ const StudentActivitySchema = new mongoose.Schema({
       type: String
     }
   },
-  
+
   // Activity status and flags
   status: {
     type: String,
     enum: ['success', 'failed', 'partial', 'blocked'],
     default: 'success'
   },
-  
+
   // Security flags
   securityFlags: {
     suspiciousActivity: {
@@ -200,7 +200,7 @@ const StudentActivitySchema = new mongoose.Schema({
       default: false
     }
   },
-  
+
   // Timestamps
   timestamp: {
     type: Date,
@@ -213,7 +213,7 @@ const StudentActivitySchema = new mongoose.Schema({
   sessionEndTime: {
     type: Date
   },
-  
+
   // Academic year/semester context
   academicYear: {
     type: String
@@ -221,13 +221,13 @@ const StudentActivitySchema = new mongoose.Schema({
   semester: {
     type: String
   },
-  
+
   // Notes and remarks
   notes: {
     type: String,
     trim: true
   },
-  
+
   // For tracking consecutive activities
   previousActivityId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -271,13 +271,13 @@ StudentActivitySchema.pre('save', function(next) {
       this.deviceInfo.deviceType = 'desktop';
     }
   }
-  
+
   // Set academic context if not provided
   if (!this.academicYear) {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1; // 0-indexed
-    
+
     // Academic year typically starts in July/August
     if (month >= 7) {
       this.academicYear = `${year}-${year + 1}`;
@@ -285,7 +285,7 @@ StudentActivitySchema.pre('save', function(next) {
       this.academicYear = `${year - 1}-${year}`;
     }
   }
-  
+
   if (!this.semester && this.academicYear) {
     const month = new Date().getMonth() + 1;
     if (month >= 7 && month <= 12) {
@@ -296,7 +296,7 @@ StudentActivitySchema.pre('save', function(next) {
       this.semester = 'Summer';
     }
   }
-  
+
   next();
 });
 
@@ -304,7 +304,7 @@ StudentActivitySchema.pre('save', function(next) {
 StudentActivitySchema.statics.getStudentLoginHistory = function(studentId, days = 30) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
-  
+
   return this.find({
     studentId: studentId,
     activityType: { $in: ['login', 'logout'] },
@@ -316,14 +316,14 @@ StudentActivitySchema.statics.getUniversityActivityStats = function(universityId
   const matchConditions = {
     universityId: mongoose.Types.ObjectId(universityId)
   };
-  
+
   if (startDate && endDate) {
     matchConditions.timestamp = {
       $gte: new Date(startDate),
       $lte: new Date(endDate)
     };
   }
-  
+
   return this.aggregate([
     { $match: matchConditions },
     {
@@ -356,7 +356,7 @@ StudentActivitySchema.statics.getUniversityActivityStats = function(universityId
 StudentActivitySchema.statics.detectSuspiciousActivity = function(studentId, hours = 24) {
   const startTime = new Date();
   startTime.setHours(startTime.getHours() - hours);
-  
+
   return this.aggregate([
     {
       $match: {
@@ -407,7 +407,7 @@ StudentActivitySchema.statics.detectSuspiciousActivity = function(studentId, hou
 StudentActivitySchema.statics.getActiveStudentsCount = function(universityId, minutes = 30) {
   const cutoffTime = new Date();
   cutoffTime.setMinutes(cutoffTime.getMinutes() - minutes);
-  
+
   return this.distinct('studentId', {
     universityId: mongoose.Types.ObjectId(universityId),
     timestamp: { $gte: cutoffTime }
@@ -417,7 +417,7 @@ StudentActivitySchema.statics.getActiveStudentsCount = function(universityId, mi
 StudentActivitySchema.statics.getPopularActivities = function(universityId, days = 7) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
-  
+
   return this.aggregate([
     {
       $match: {

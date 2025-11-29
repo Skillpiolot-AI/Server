@@ -108,7 +108,7 @@ exports.getFilteredColleges = async (req, res) => {
 
     // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    
+
     // Execute query with pagination
     const colleges = await College.find(query)
       .limit(parseInt(limit))
@@ -144,13 +144,13 @@ exports.getFilterOptions = async (req, res) => {
   try {
     // Get unique ownership types
     const ownershipTypes = await College.distinct('ownership');
-    
+
     // Get unique listing types
     const listingTypes = await College.distinct('listingType');
-    
+
     // Get unique locations
     const locations = await College.distinct('displayLocationString');
-    
+
     // Get all unique exams
     const examsData = await College.aggregate([
       { $unwind: '$exams' },
@@ -207,7 +207,7 @@ exports.getFilterOptions = async (req, res) => {
 exports.getCollegeById = async (req, res) => {
   try {
     const college = await College.findById(req.params.id);
-    
+
     if (!college) {
       return res.status(404).json({
         success: false,
