@@ -194,6 +194,7 @@ const collegeRoutes = require('./routes/collegeRoutes');
 const userDataRoutes = require('./routes/userDataRoutes');
 const interestRoutes = require('./routes/interestRoutes');
 const bulkMentorRoutes = require('./routes/bulkMentorRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 // Import scheduled jobs
 const tempPasswordReminder = require('./jobs/tempPasswordReminder');
@@ -220,7 +221,7 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
-app.use(cors(corsOptions));
+app.use(cors());
 
 // 4. Increase JSON payload limit with streaming
 app.use(express.json({ 
@@ -280,7 +281,11 @@ app.use('/api/questions', require('./routes/questions'));
 app.use('/api/assessments', require('./routes/assessments'));
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/user-data', userDataRoutes);
-app.use('/api', bulkMentorRoutes);
+app.use('/api', bulkMentorRoutes);// Add this with your other route imports
+
+
+// Add this with your other routes
+app.use('/api/chatbot', chatbotRoutes);
 
 // ==================== CACHED JOB INFO ENDPOINT ====================
 let jobDataCache = null;
