@@ -15,7 +15,7 @@ const calculateScores = answers => {
   const percentages = {};
 
   Object.keys(domainScores).forEach(domain => {
-    percentages[domain] = Math.round((domainScores[domain] / total) * 100);
+    percentages[domain] = total > 0 ? Math.round((domainScores[domain] / total) * 100) : 0;
   });
 
   const sorted = Object.entries(percentages)
@@ -39,45 +39,59 @@ const calculateMatchScore = (userHollandCode, careerHollandCodes) => {
   let score = 0;
   let matchedPositions = 0;
 
-  // First pass: Check for matches and position bonuses
   userCodes.forEach((code, userIndex) => {
     const careerIndex = careerHollandCodes.indexOf(code);
 
     if (careerIndex !== -1) {
-      // Base points for matching (weighted by user's priority)
-      if (userIndex === 0)
-        score += 50; // User's primary trait
-      else if (userIndex === 1)
-        score += 30; // User's secondary trait
-      else if (userIndex === 2) score += 20; // User's tertiary trait
+      if (userIndex === 0) score += 50;
+      else if (userIndex === 1) score += 30;
+      else if (userIndex === 2) score += 20;
 
-      // Bonus points if positions match exactly
       if (careerIndex === userIndex) {
         score += 15;
         matchedPositions++;
-      }
-      // Smaller bonus if within one position
-      else if (Math.abs(careerIndex - userIndex) === 1) {
+      } else if (Math.abs(careerIndex - userIndex) === 1) {
         score += 5;
       }
     }
   });
 
-  // Additional bonus for multiple exact position matches
-  if (matchedPositions === 3)
-    score += 10; // Perfect match bonus
+  if (matchedPositions === 3) score += 10;
   else if (matchedPositions === 2) score += 5;
 
-  // Penalty if no matches at all
   if (score === 0) return 0;
 
-  // Cap at 100 and ensure minimum variance
   return Math.min(Math.round(score), 100);
+};
+
+// Calculate improvement from previous assessment
+const calculateImprovement = (currentResults, previousResults) => {
+  if (!previousResults) {
+    return { hasImproved: null, percentageChange: 0, dominantTraitChange: null };
+  }
+
+  const currentTop = currentResults.topThreeDomains[0];
+  const previousTop = previousResults.topThreeDomains[0];
+
+  const currentTopScore = currentResults.percentages[currentTop] || 0;
+  const previousTopScore = previousResults.percentages[previousTop] || 0;
+
+  const percentageChange = currentTopScore - previousTopScore;
+  const dominantTraitChange = currentTop !== previousTop ? `${previousTop} → ${currentTop}` : null;
+
+  return {
+    hasImproved: percentageChange > 0,
+    percentageChange,
+    dominantTraitChange,
+  };
 };
 
 exports.createAssessment = async (req, res) => {
   try {
     const { userId, answers } = req.body;
+
+    // Get authenticated user if available (from token)
+    const authenticatedUserId = req.user?._id || null;
 
     if (!answers || Object.keys(answers).length === 0) {
       return res.status(400).json({ error: 'Answers are required' });
@@ -102,13 +116,12 @@ exports.createAssessment = async (req, res) => {
           future_growth: career.future_growth,
           minimum_expense: career.minimum_expense,
           icon: career.icon,
-          holland_codes: career.holland_codes, // Include this for frontend recalculation if needed
+          holland_codes: career.holland_codes,
           matchScore,
         };
       })
       .filter(career => career.matchScore > 0)
       .sort((a, b) => {
-        // Sort by match score, then by name for consistency
         if (b.matchScore === a.matchScore) {
           return a.name.localeCompare(b.name);
         }
@@ -118,11 +131,28 @@ exports.createAssessment = async (req, res) => {
 
     results.recommendedCareers = careersWithScores;
 
+    // Find previous assessment for improvement tracking
+    let previousAssessment = null;
+    let improvement = { hasImproved: null, percentageChange: 0, dominantTraitChange: null };
+
+    if (authenticatedUserId) {
+      previousAssessment = await Assessment.findOne({ user: authenticatedUserId })
+        .sort({ completedAt: -1 })
+        .select('results');
+
+      if (previousAssessment) {
+        improvement = calculateImprovement(results, previousAssessment.results);
+      }
+    }
+
     const assessment = new Assessment({
-      userId,
+      user: authenticatedUserId,
+      userId: userId || `user-${Date.now()}`,
       answers,
       results,
-      shareableLink: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/results/${Date.now()}`,
+      previousAssessmentId: previousAssessment?._id,
+      improvement,
+      shareableLink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/results/${Date.now()}`,
     });
 
     await assessment.save();
@@ -169,6 +199,69 @@ exports.getUserAssessments = async (req, res) => {
       data: assessments,
     });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get authenticated user's assessment history with trends
+exports.getMyAssessmentHistory = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const assessments = await Assessment.find({ user: userId })
+      .sort({ completedAt: -1 })
+      .select('-answers')
+      .limit(10);
+
+    if (assessments.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          assessments: [],
+          latestResult: null,
+          trends: null,
+          totalAssessments: 0,
+        },
+      });
+    }
+
+    const latest = assessments[0];
+    const previous = assessments[1] || null;
+
+    // Calculate trends
+    let trends = null;
+    if (previous) {
+      const latestPercentages = latest.results.percentages;
+      const previousPercentages = previous.results.percentages;
+
+      trends = {
+        dominantTraitChange: latest.improvement?.dominantTraitChange || null,
+        hasImproved: latest.improvement?.hasImproved,
+        percentageChange: latest.improvement?.percentageChange || 0,
+        domainChanges: {},
+      };
+
+      // Calculate change for each domain
+      Object.keys(latestPercentages).forEach(domain => {
+        trends.domainChanges[domain] = {
+          current: latestPercentages[domain],
+          previous: previousPercentages[domain] || 0,
+          change: latestPercentages[domain] - (previousPercentages[domain] || 0),
+        };
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        assessments,
+        latestResult: latest,
+        trends,
+        totalAssessments: await Assessment.countDocuments({ user: userId }),
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching assessment history:', error);
     res.status(500).json({ error: error.message });
   }
 };
