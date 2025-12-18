@@ -21,4 +21,3 @@ router.get('/:id', careerController.getCareer);
 router.get('/', careerController.getAllCareers);
 
 module.exports = router;
-

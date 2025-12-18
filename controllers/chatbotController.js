@@ -1,8 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Use environment variable or fallback (get a new key from https://makersuite.google.com/app/apikey)
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyAf0qO4iqNNRlzRdY3zPxzRQRTxQvk6PTs';
-
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 // Initialize the Gemini client
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
@@ -63,9 +62,10 @@ exports.chat = async (req, res) => {
     const latestMessage = messages[messages.length - 1]?.text || '';
 
     // Build conversation context
-    const conversationHistory = messages.slice(0, -1).map(msg =>
-      `${msg.sender === 'user' ? 'User' : 'Assistant'}: ${msg.text}`
-    ).join('\n');
+    const conversationHistory = messages
+      .slice(0, -1)
+      .map(msg => `${msg.sender === 'user' ? 'User' : 'Assistant'}: ${msg.text}`)
+      .join('\n');
 
     const fullPrompt = `${SYSTEM_PROMPT}
 
@@ -98,13 +98,15 @@ Please respond helpfully and concisely:`;
     if (error.message?.includes('quota') || error.message?.includes('429')) {
       return res.status(429).json({
         success: false,
-        message: "I'm experiencing high demand right now. Please try again in a moment, or explore our other features like Career Matches and Mentors!",
+        message:
+          "I'm experiencing high demand right now. Please try again in a moment, or explore our other features like Career Matches and Mentors!",
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "I'm having trouble connecting right now. Please try again or use the quick action buttons!",
+      message:
+        "I'm having trouble connecting right now. Please try again or use the quick action buttons!",
       error: error.message,
     });
   }
@@ -135,7 +137,7 @@ exports.getSuggestions = async (req, res) => {
         'Best resume for freshers',
       ],
       interview: [
-        "Tell me about yourself",
+        'Tell me about yourself',
         'Strengths and weaknesses',
         'Why should we hire you?',
         'Behavioral interview tips',

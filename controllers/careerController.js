@@ -236,7 +236,7 @@ exports.getRecommendations = async (req, res) => {
     if (!hollandCode) {
       return res.status(400).json({
         success: false,
-        message: 'Holland code is required'
+        message: 'Holland code is required',
       });
     }
 
@@ -279,7 +279,7 @@ exports.getRecommendations = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching recommendations',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -295,8 +295,7 @@ exports.getAllClusters = async (req, res) => {
     console.error('Error fetching clusters:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching clusters'
+      message: 'Error fetching clusters',
     });
   }
 };
-
