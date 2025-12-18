@@ -10,6 +10,10 @@ router.get('/job-titles', careerController.getAllJobTitles);
 router.get('/suggestion', careerController.getCareerSuggestion);
 router.get('/check-job-title', careerController.checkJobTitleExists);
 
+// Recommendations based on Holland code - MUST be before /:id
+router.get('/recommendations', careerController.getRecommendations);
+router.get('/clusters', careerController.getAllClusters);
+
 router.post('/', careerController.createCareer);
 router.put('/:id', careerController.updateCareer);
 router.delete('/:id', careerController.deleteCareer);
@@ -17,3 +21,4 @@ router.get('/:id', careerController.getCareer);
 router.get('/', careerController.getAllCareers);
 
 module.exports = router;
+

@@ -193,3 +193,110 @@ exports.checkJobTitleExists = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while checking the job title' });
   }
 };
+
+// Career recommendations based on Holland Code (uses CareerResult model)
+const CareerResult = require('../models/Career');
+
+const calculateMatchScore = (userHollandCode, careerHollandCodes) => {
+  if (!careerHollandCodes || careerHollandCodes.length === 0) return 0;
+
+  const userCodes = userHollandCode.split('');
+  let score = 0;
+  let matchedPositions = 0;
+
+  userCodes.forEach((code, userIndex) => {
+    const careerIndex = careerHollandCodes.indexOf(code);
+
+    if (careerIndex !== -1) {
+      if (userIndex === 0) score += 50;
+      else if (userIndex === 1) score += 30;
+      else if (userIndex === 2) score += 20;
+
+      if (careerIndex === userIndex) {
+        score += 15;
+        matchedPositions++;
+      } else if (Math.abs(careerIndex - userIndex) === 1) {
+        score += 5;
+      }
+    }
+  });
+
+  if (matchedPositions === 3) score += 10;
+  else if (matchedPositions === 2) score += 5;
+
+  if (score === 0) return 0;
+
+  return Math.min(Math.round(score), 100);
+};
+
+exports.getRecommendations = async (req, res) => {
+  try {
+    const { hollandCode, limit = 15 } = req.query;
+
+    if (!hollandCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Holland code is required'
+      });
+    }
+
+    const allCareers = await CareerResult.find().select(
+      'id name career_cluster_name career_type salary_range future_growth holland_codes minimum_expense icon'
+    );
+
+    const careersWithScores = allCareers
+      .map(career => {
+        const matchScore = calculateMatchScore(hollandCode, career.holland_codes);
+        return {
+          careerId: career.id,
+          name: career.name,
+          cluster: career.career_cluster_name,
+          career_type: career.career_type,
+          salary_range: career.salary_range,
+          future_growth: career.future_growth,
+          minimum_expense: career.minimum_expense,
+          icon: career.icon,
+          holland_codes: career.holland_codes,
+          matchScore,
+        };
+      })
+      .filter(career => career.matchScore > 0)
+      .sort((a, b) => {
+        if (b.matchScore === a.matchScore) {
+          return a.name.localeCompare(b.name);
+        }
+        return b.matchScore - a.matchScore;
+      })
+      .slice(0, parseInt(limit));
+
+    res.json({
+      success: true,
+      count: careersWithScores.length,
+      data: careersWithScores,
+    });
+  } catch (error) {
+    console.error('Error fetching recommendations:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching recommendations',
+      error: error.message
+    });
+  }
+};
+
+exports.getAllClusters = async (req, res) => {
+  try {
+    const clusters = await CareerResult.distinct('career_cluster_name');
+    res.json({
+      success: true,
+      data: clusters,
+    });
+  } catch (error) {
+    console.error('Error fetching clusters:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching clusters'
+    });
+  }
+};
+
