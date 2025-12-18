@@ -13,19 +13,25 @@ const careerSchema = new mongoose.Schema({
   jobOutlook: String,
   challenges: [String],
   rewards: [String],
-  topColleges: [{
-    name: String,
-    fees: String,
-    duration: String
-  }],
-  hiringTrends: [{
-    year: Number,
-    hires: Number
-  }],
-  salaryTrends: [{
-    year: Number,
-    salary: Number
-  }]
+  topColleges: [
+    {
+      name: String,
+      fees: String,
+      duration: String,
+    },
+  ],
+  hiringTrends: [
+    {
+      year: Number,
+      hires: Number,
+    },
+  ],
+  salaryTrends: [
+    {
+      year: Number,
+      salary: Number,
+    },
+  ],
 });
 
 module.exports = mongoose.model('Career', careerSchema);

@@ -7,46 +7,46 @@ const VerificationTokenSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   email: {
     type: String,
     required: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
   token: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   type: {
     type: String,
     enum: ['email_verification', 'location_verification'],
-    required: true
+    required: true,
   },
   // For location verification
   loginDetails: {
     ipAddress: String,
     userAgent: String,
     location: String,
-    timestamp: Date
+    timestamp: Date,
   },
   isUsed: {
     type: Boolean,
-    default: false
+    default: false,
   },
   usedAt: {
-    type: Date
+    type: Date,
   },
   expiresAt: {
     type: Date,
-    required: true
+    required: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Index for faster queries
@@ -57,18 +57,18 @@ VerificationTokenSchema.index({ expiresAt: 1 });
 VerificationTokenSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 }); // Auto-delete after 24 hours
 
 // Static method to generate verification token
-VerificationTokenSchema.statics.generateToken = function() {
+VerificationTokenSchema.statics.generateToken = function () {
   return crypto.randomBytes(32).toString('hex');
 };
 
 // Static method to create email verification token
-VerificationTokenSchema.statics.createEmailVerification = async function(userId, email) {
+VerificationTokenSchema.statics.createEmailVerification = async function (userId, email) {
   // Delete any existing unused tokens for this user and email
   await this.deleteMany({
     userId,
     email,
     type: 'email_verification',
-    isUsed: false
+    isUsed: false,
   });
 
   const token = this.generateToken();
@@ -79,12 +79,12 @@ VerificationTokenSchema.statics.createEmailVerification = async function(userId,
     email,
     token,
     type: 'email_verification',
-    expiresAt
+    expiresAt,
   });
 };
 
 // Static method to create location verification token
-VerificationTokenSchema.statics.createLocationVerification = async function(
+VerificationTokenSchema.statics.createLocationVerification = async function (
   userId,
   email,
   loginDetails
@@ -93,7 +93,7 @@ VerificationTokenSchema.statics.createLocationVerification = async function(
   await this.deleteMany({
     userId,
     type: 'location_verification',
-    isUsed: false
+    isUsed: false,
   });
 
   const token = this.generateToken();
@@ -106,19 +106,19 @@ VerificationTokenSchema.statics.createLocationVerification = async function(
     type: 'location_verification',
     loginDetails: {
       ...loginDetails,
-      timestamp: new Date()
+      timestamp: new Date(),
     },
-    expiresAt
+    expiresAt,
   });
 };
 
 // Method to verify and use token
-VerificationTokenSchema.methods.verifyAndUse = async function() {
+VerificationTokenSchema.methods.verifyAndUse = async function () {
   // Check if token is already used
   if (this.isUsed) {
     return {
       success: false,
-      message: 'This verification link has already been used'
+      message: 'This verification link has already been used',
     };
   }
 
@@ -126,7 +126,7 @@ VerificationTokenSchema.methods.verifyAndUse = async function() {
   if (new Date() > this.expiresAt) {
     return {
       success: false,
-      message: 'This verification link has expired. Please request a new one'
+      message: 'This verification link has expired. Please request a new one',
     };
   }
 
@@ -137,16 +137,16 @@ VerificationTokenSchema.methods.verifyAndUse = async function() {
 
   return {
     success: true,
-    message: 'Token verified successfully'
+    message: 'Token verified successfully',
   };
 };
 
 // Static method to find valid token
-VerificationTokenSchema.statics.findValidToken = async function(token, type = null) {
+VerificationTokenSchema.statics.findValidToken = async function (token, type = null) {
   const query = {
     token,
     isUsed: false,
-    expiresAt: { $gt: new Date() }
+    expiresAt: { $gt: new Date() },
   };
 
   if (type) {
@@ -157,9 +157,9 @@ VerificationTokenSchema.statics.findValidToken = async function(token, type = nu
 };
 
 // Static method to clean up expired tokens
-VerificationTokenSchema.statics.cleanupExpired = async function() {
+VerificationTokenSchema.statics.cleanupExpired = async function () {
   const result = await this.deleteMany({
-    expiresAt: { $lt: new Date() }
+    expiresAt: { $lt: new Date() },
   });
 
   console.log(`Cleaned up ${result.deletedCount} expired verification tokens`);

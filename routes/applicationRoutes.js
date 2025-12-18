@@ -34,7 +34,11 @@ router.post('/send-phone-otp', verifyToken, applicationController.sendPhoneOTP);
 router.post('/verify-phone-otp', verifyToken, applicationController.verifyPhoneOTP);
 
 // Get verification status (authenticated)
-router.get('/verification-status/:mentorId', verifyToken, applicationController.getVerificationStatus);
+router.get(
+  '/verification-status/:mentorId',
+  verifyToken,
+  applicationController.getVerificationStatus
+);
 
 // ==========================================
 // ADMIN ROUTES - Admin authentication required
@@ -59,7 +63,11 @@ router.put('/admin/applications/:id/approve', adminAuth, applicationController.a
 router.put('/admin/applications/:id/reject', adminAuth, applicationController.rejectApplication);
 
 // Request more information from applicant
-router.put('/admin/applications/:id/request-info', adminAuth, applicationController.requestMoreInfo);
+router.put(
+  '/admin/applications/:id/request-info',
+  adminAuth,
+  applicationController.requestMoreInfo
+);
 
 // ==========================================
 // LEGACY ROUTES - For backward compatibility

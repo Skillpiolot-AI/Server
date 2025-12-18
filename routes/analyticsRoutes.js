@@ -31,22 +31,22 @@ router.get('/overview', verifyToken, requireAdmin, async (req, res) => {
     // Active users (logged in within time period)
     const activeUsers24h = await UserActivity.distinct('userId', {
       activityType: 'login',
-      timestamp: { $gte: last24h }
+      timestamp: { $gte: last24h },
     });
 
     const activeUsersWeek = await UserActivity.distinct('userId', {
       activityType: 'login',
-      timestamp: { $gte: lastWeek }
+      timestamp: { $gte: lastWeek },
     });
 
     const activeUsersMonth = await UserActivity.distinct('userId', {
       activityType: 'login',
-      timestamp: { $gte: lastMonth }
+      timestamp: { $gte: lastMonth },
     });
 
     const activeUsersYear = await UserActivity.distinct('userId', {
       activityType: 'login',
-      timestamp: { $gte: lastYear }
+      timestamp: { $gte: lastYear },
     });
 
     res.json({
@@ -56,15 +56,15 @@ router.get('/overview', verifyToken, requireAdmin, async (req, res) => {
           last24h: newUsers24h,
           lastWeek: newUsersWeek,
           lastMonth: newUsersMonth,
-          lastYear: newUsersYear
+          lastYear: newUsersYear,
         },
         activeUsers: {
           last24h: activeUsers24h.length,
           lastWeek: activeUsersWeek.length,
           lastMonth: activeUsersMonth.length,
-          lastYear: activeUsersYear.length
-        }
-      }
+          lastYear: activeUsersYear.length,
+        },
+      },
     });
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
@@ -80,19 +80,19 @@ router.get('/users', verifyToken, requireAdmin, async (req, res) => {
     let timeFilter = {};
     const now = new Date();
 
-    switch(timeframe) {
-    case '24h':
-      timeFilter = { createdAt: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
-      break;
-    case 'week':
-      timeFilter = { createdAt: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
-      break;
-    case 'month':
-      timeFilter = { createdAt: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
-      break;
-    case 'year':
-      timeFilter = { createdAt: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
-      break;
+    switch (timeframe) {
+      case '24h':
+        timeFilter = { createdAt: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
+        break;
+      case 'week':
+        timeFilter = { createdAt: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
+        break;
+      case 'month':
+        timeFilter = { createdAt: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
+        break;
+      case 'year':
+        timeFilter = { createdAt: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
+        break;
     }
 
     const users = await User.find(timeFilter)
@@ -101,22 +101,24 @@ router.get('/users', verifyToken, requireAdmin, async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
-    const usersWithActivity = await Promise.all(users.map(async (user) => {
-      const lastLogin = await UserActivity.findOne({
-        userId: user._id,
-        activityType: 'login'
-      }).sort({ timestamp: -1 });
+    const usersWithActivity = await Promise.all(
+      users.map(async user => {
+        const lastLogin = await UserActivity.findOne({
+          userId: user._id,
+          activityType: 'login',
+        }).sort({ timestamp: -1 });
 
-      const activityCount = await UserActivity.countDocuments({ userId: user._id });
-      const sessionCount = await UserActivity.distinct('sessionId', { userId: user._id });
+        const activityCount = await UserActivity.countDocuments({ userId: user._id });
+        const sessionCount = await UserActivity.distinct('sessionId', { userId: user._id });
 
-      return {
-        ...user.toObject(),
-        lastLogin: lastLogin ? lastLogin.timestamp : null,
-        totalActivities: activityCount,
-        totalSessions: sessionCount.length
-      };
-    }));
+        return {
+          ...user.toObject(),
+          lastLogin: lastLogin ? lastLogin.timestamp : null,
+          totalActivities: activityCount,
+          totalSessions: sessionCount.length,
+        };
+      })
+    );
 
     const totalUsers = await User.countDocuments(timeFilter);
 
@@ -126,14 +128,13 @@ router.get('/users', verifyToken, requireAdmin, async (req, res) => {
         currentPage: parseInt(page),
         totalPages: Math.ceil(totalUsers / limit),
         totalUsers,
-        limit: parseInt(limit)
-      }
+        limit: parseInt(limit),
+      },
     });
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
 });
-
 
 // Add these routes to your analyticsRoutes.js
 
@@ -144,21 +145,21 @@ router.get('/activity-stats', verifyToken, requireAdmin, async (req, res) => {
     const now = new Date();
     let timeFilter = {};
 
-    switch(timeframe) {
-    case '24h':
-      timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
-      break;
-    case 'week':
-      timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
-      break;
-    case 'month':
-      timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
-      break;
-    case 'year':
-      timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
-      break;
-    default:
-      timeFilter = {};
+    switch (timeframe) {
+      case '24h':
+        timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
+        break;
+      case 'week':
+        timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
+        break;
+      case 'month':
+        timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
+        break;
+      case 'year':
+        timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
+        break;
+      default:
+        timeFilter = {};
     }
 
     const activityStats = await UserActivity.aggregate([
@@ -167,18 +168,18 @@ router.get('/activity-stats', verifyToken, requireAdmin, async (req, res) => {
         $group: {
           _id: '$activityType',
           count: { $sum: 1 },
-          uniqueUsers: { $addToSet: '$userId' }
-        }
+          uniqueUsers: { $addToSet: '$userId' },
+        },
       },
       {
         $project: {
           activityType: '$_id',
           count: 1,
           uniqueUsers: { $size: '$uniqueUsers' },
-          _id: 0
-        }
+          _id: 0,
+        },
       },
-      { $sort: { count: -1 } }
+      { $sort: { count: -1 } },
     ]);
 
     res.json({ activityStats });
@@ -195,29 +196,29 @@ router.get('/login-patterns', verifyToken, requireAdmin, async (req, res) => {
     const now = new Date();
     let timeFilter = {};
 
-    switch(timeframe) {
-    case '24h':
-      timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
-      break;
-    case 'week':
-      timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
-      break;
-    case 'month':
-      timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
-      break;
-    case 'year':
-      timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
-      break;
-    default:
-      timeFilter = {};
+    switch (timeframe) {
+      case '24h':
+        timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
+        break;
+      case 'week':
+        timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
+        break;
+      case 'month':
+        timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
+        break;
+      case 'year':
+        timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
+        break;
+      default:
+        timeFilter = {};
     }
 
     const loginPatterns = await UserActivity.aggregate([
       {
         $match: {
           activityType: 'login',
-          ...timeFilter
-        }
+          ...timeFilter,
+        },
       },
       {
         $group: {
@@ -225,11 +226,11 @@ router.get('/login-patterns', verifyToken, requireAdmin, async (req, res) => {
             year: { $year: '$timestamp' },
             month: { $month: '$timestamp' },
             day: { $dayOfMonth: '$timestamp' },
-            hour: { $hour: '$timestamp' }
+            hour: { $hour: '$timestamp' },
           },
           count: { $sum: 1 },
-          uniqueUsers: { $addToSet: '$userId' }
-        }
+          uniqueUsers: { $addToSet: '$userId' },
+        },
       },
       {
         $project: {
@@ -238,15 +239,15 @@ router.get('/login-patterns', verifyToken, requireAdmin, async (req, res) => {
               year: '$_id.year',
               month: '$_id.month',
               day: '$_id.day',
-              hour: '$_id.hour'
-            }
+              hour: '$_id.hour',
+            },
           },
           count: 1,
           uniqueUsers: { $size: '$uniqueUsers' },
-          _id: 0
-        }
+          _id: 0,
+        },
       },
-      { $sort: { date: 1 } }
+      { $sort: { date: 1 } },
     ]);
 
     res.json({ loginPatterns });
@@ -266,26 +267,26 @@ router.get('/users/:userId/activity', verifyToken, requireAdmin, async (req, res
     const now = new Date();
     let timeFilter = {};
 
-    switch(timeframe) {
-    case '24h':
-      timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
-      break;
-    case 'week':
-      timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
-      break;
-    case 'month':
-      timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
-      break;
-    case 'year':
-      timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
-      break;
-    default:
-      timeFilter = {};
+    switch (timeframe) {
+      case '24h':
+        timeFilter = { timestamp: { $gte: new Date(now - 24 * 60 * 60 * 1000) } };
+        break;
+      case 'week':
+        timeFilter = { timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } };
+        break;
+      case 'month':
+        timeFilter = { timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } };
+        break;
+      case 'year':
+        timeFilter = { timestamp: { $gte: new Date(now - 365 * 24 * 60 * 60 * 1000) } };
+        break;
+      default:
+        timeFilter = {};
     }
 
     const activities = await UserActivity.find({
       userId,
-      ...timeFilter
+      ...timeFilter,
     })
       .sort({ timestamp: -1 })
       .skip(skip)
@@ -294,7 +295,7 @@ router.get('/users/:userId/activity', verifyToken, requireAdmin, async (req, res
 
     const totalActivities = await UserActivity.countDocuments({
       userId,
-      ...timeFilter
+      ...timeFilter,
     });
 
     res.json({
@@ -303,15 +304,13 @@ router.get('/users/:userId/activity', verifyToken, requireAdmin, async (req, res
         currentPage: parseInt(page),
         totalPages: Math.ceil(totalActivities / limit),
         totalActivities,
-        limit: parseInt(limit)
-      }
+        limit: parseInt(limit),
+      },
     });
   } catch (error) {
     console.error('User activity error:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 });
-
-
 
 module.exports = router;

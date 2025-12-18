@@ -1,12 +1,12 @@
 const Assessment = require('../models/Assessment');
 const Career = require('../models/Career');
 
-const calculateScores = (answers) => {
+const calculateScores = answers => {
   const domainScores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
 
   Object.entries(answers).forEach(([questionId, value]) => {
     const domain = questionId.charAt(0);
-    if (domainScores.hasOwnProperty(domain)) {
+    if (Object.hasOwn(domainScores, domain)) {
       domainScores[domain] += value;
     }
   });
@@ -28,7 +28,7 @@ const calculateScores = (answers) => {
     domainScores,
     percentages,
     hollandCode,
-    topThreeDomains: sorted.slice(0, 3)
+    topThreeDomains: sorted.slice(0, 3),
   };
 };
 
@@ -45,8 +45,10 @@ const calculateMatchScore = (userHollandCode, careerHollandCodes) => {
 
     if (careerIndex !== -1) {
       // Base points for matching (weighted by user's priority)
-      if (userIndex === 0) score += 50;      // User's primary trait
-      else if (userIndex === 1) score += 30; // User's secondary trait
+      if (userIndex === 0)
+        score += 50; // User's primary trait
+      else if (userIndex === 1)
+        score += 30; // User's secondary trait
       else if (userIndex === 2) score += 20; // User's tertiary trait
 
       // Bonus points if positions match exactly
@@ -62,7 +64,8 @@ const calculateMatchScore = (userHollandCode, careerHollandCodes) => {
   });
 
   // Additional bonus for multiple exact position matches
-  if (matchedPositions === 3) score += 10; // Perfect match bonus
+  if (matchedPositions === 3)
+    score += 10; // Perfect match bonus
   else if (matchedPositions === 2) score += 5;
 
   // Penalty if no matches at all
@@ -83,8 +86,9 @@ exports.createAssessment = async (req, res) => {
     const results = calculateScores(answers);
 
     // Get career recommendations
-    const allCareers = await Career.find()
-      .select('id name career_cluster_name career_type salary_range future_growth holland_codes minimum_expense icon');
+    const allCareers = await Career.find().select(
+      'id name career_cluster_name career_type salary_range future_growth holland_codes minimum_expense icon'
+    );
 
     const careersWithScores = allCareers
       .map(career => {
@@ -99,7 +103,7 @@ exports.createAssessment = async (req, res) => {
           minimum_expense: career.minimum_expense,
           icon: career.icon,
           holland_codes: career.holland_codes, // Include this for frontend recalculation if needed
-          matchScore
+          matchScore,
         };
       })
       .filter(career => career.matchScore > 0)
@@ -118,7 +122,7 @@ exports.createAssessment = async (req, res) => {
       userId,
       answers,
       results,
-      shareableLink: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/results/${Date.now()}`
+      shareableLink: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/results/${Date.now()}`,
     });
 
     await assessment.save();
@@ -126,7 +130,7 @@ exports.createAssessment = async (req, res) => {
     res.status(201).json({
       success: true,
       data: assessment,
-      message: 'Assessment completed successfully'
+      message: 'Assessment completed successfully',
     });
   } catch (error) {
     console.error('Error creating assessment:', error);
@@ -144,7 +148,7 @@ exports.getAssessment = async (req, res) => {
 
     res.json({
       success: true,
-      data: assessment
+      data: assessment,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -154,7 +158,7 @@ exports.getAssessment = async (req, res) => {
 exports.getUserAssessments = async (req, res) => {
   try {
     const assessments = await Assessment.find({
-      userId: req.params.userId
+      userId: req.params.userId,
     })
       .sort({ completedAt: -1 })
       .select('-answers');
@@ -162,7 +166,7 @@ exports.getUserAssessments = async (req, res) => {
     res.json({
       success: true,
       count: assessments.length,
-      data: assessments
+      data: assessments,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -16,20 +16,20 @@ const colors = {
   red: '\x1b[31m',
   green: '\x1b[32m',
   yellow: '\x1b[33m',
-  blue: '\x1b[34m'
+  blue: '\x1b[34m',
 };
 
 const log = {
-  info: (msg) => console.log(`${colors.blue}ℹ ${msg}${colors.reset}`),
-  success: (msg) => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
-  error: (msg) => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
-  warning: (msg) => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`)
+  info: msg => console.log(`${colors.blue}ℹ ${msg}${colors.reset}`),
+  success: msg => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
+  error: msg => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
+  warning: msg => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
 };
 
 // Create readline interface for user confirmation
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 function askQuestion(query) {
@@ -47,10 +47,10 @@ async function cleanupMentors() {
   try {
     // Step 1: Login as Admin
     log.info('Logging in as Admin...');
-    
+
     const loginResponse = await axios.post(`${API_URL}/auth/login`, {
       username: ADMIN_EMAIL,
-      password: ADMIN_PASSWORD
+      password: ADMIN_PASSWORD,
     });
 
     if (!loginResponse.data.token) {
@@ -64,15 +64,12 @@ async function cleanupMentors() {
 
     // Step 2: Get all mentors
     log.info('Fetching all mentors...');
-    
-    const mentorsResponse = await axios.get(
-      `${API_URL}/mentors?limit=100`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
+
+    const mentorsResponse = await axios.get(`${API_URL}/mentors?limit=100`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!mentorsResponse.data.success) {
       log.error('Failed to fetch mentors');
@@ -98,8 +95,10 @@ async function cleanupMentors() {
     console.log('\n' + '='.repeat(60) + '\n');
 
     // Ask for confirmation
-    const answer1 = await askQuestion(`${colors.red}Are you sure you want to delete ${mentors.length} mentors? (yes/no): ${colors.reset}`);
-    
+    const answer1 = await askQuestion(
+      `${colors.red}Are you sure you want to delete ${mentors.length} mentors? (yes/no): ${colors.reset}`
+    );
+
     if (answer1.toLowerCase() !== 'yes') {
       log.info('Cleanup cancelled.');
       rl.close();
@@ -107,7 +106,7 @@ async function cleanupMentors() {
     }
 
     const answer2 = await askQuestion(`${colors.red}Type 'DELETE' to confirm: ${colors.reset}`);
-    
+
     if (answer2 !== 'DELETE') {
       log.info('Cleanup cancelled.');
       rl.close();
@@ -124,15 +123,12 @@ async function cleanupMentors() {
     for (const mentor of mentors) {
       try {
         // Note: You need to create this endpoint in your backend
-        await axios.delete(
-          `${API_URL}/admin/user/${mentor._id}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        );
-        
+        await axios.delete(`${API_URL}/admin/user/${mentor._id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         console.log(`${colors.green}✓${colors.reset} Deleted: ${mentor.name} (${mentor.username})`);
         deleted++;
       } catch (error) {
@@ -146,11 +142,10 @@ async function cleanupMentors() {
     console.log(`\n  Deleted: ${deleted}`);
     console.log(`  Failed: ${failed}\n`);
     console.log('='.repeat(60) + '\n');
-
   } catch (error) {
     console.error('\n' + '='.repeat(60));
     log.error('Error occurred:');
-    
+
     if (error.response) {
       console.log('Status:', error.response.status);
       console.log('Message:', error.response.data.message || error.response.data);
@@ -159,7 +154,7 @@ async function cleanupMentors() {
     } else {
       console.log('Error:', error.message);
     }
-    
+
     console.log('='.repeat(60) + '\n');
   } finally {
     rl.close();

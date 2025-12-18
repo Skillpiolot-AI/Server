@@ -34,7 +34,7 @@ const logStudentActivity = async (studentId, userId, universityId, activityType,
       activityType,
       details,
       ipAddress: req.ip || req.connection.remoteAddress || '127.0.0.1',
-      userAgent: req.get('User-Agent') || 'Unknown'
+      userAgent: req.get('User-Agent') || 'Unknown',
     });
   } catch (error) {
     console.error('Error logging student activity:', error);
@@ -46,15 +46,34 @@ const logStudentActivity = async (studentId, userId, universityId, activityType,
 // Create University (Admin Only)
 router.post('/create-university', verifyToken, async (req, res) => {
   try {
-    const { name, url, location, accessMethod, registrationNumbers, emails, passwordMethod, defaultPassword } = req.body;
+    const {
+      name,
+      url,
+      location,
+      accessMethod,
+      registrationNumbers,
+      emails,
+      passwordMethod,
+      defaultPassword,
+    } = req.body;
 
     const user = await User.findById(req.user._id);
     if (user.role !== 'Admin') {
       return res.status(403).json({ message: 'Access denied. Admin only.' });
     }
 
-    const regNumbers = registrationNumbers ? registrationNumbers.split(',').map(num => num.trim()).filter(num => num) : [];
-    const emailList = emails ? emails.split(',').map(email => email.trim()).filter(email => email) : [];
+    const regNumbers = registrationNumbers
+      ? registrationNumbers
+          .split(',')
+          .map(num => num.trim())
+          .filter(num => num)
+      : [];
+    const emailList = emails
+      ? emails
+          .split(',')
+          .map(email => email.trim())
+          .filter(email => email)
+      : [];
 
     let finalPassword = defaultPassword;
     if (passwordMethod === 'auto') {
@@ -70,7 +89,7 @@ router.post('/create-university', verifyToken, async (req, res) => {
       emails: emailList,
       passwordMethod,
       defaultPassword: finalPassword,
-      createdBy: req.user._id
+      createdBy: req.user._id,
     });
 
     await university.save();
@@ -80,10 +99,7 @@ router.post('/create-university', verifyToken, async (req, res) => {
     for (let identifier of identifiers) {
       try {
         const existingUser = await User.findOne({
-          $or: [
-            { username: identifier },
-            { email: identifier }
-          ]
+          $or: [{ username: identifier }, { email: identifier }],
         });
 
         if (existingUser) {
@@ -96,18 +112,21 @@ router.post('/create-university', verifyToken, async (req, res) => {
         const newUser = new User({
           username: identifier,
           name: `UniAdmin - ${university.name}`,
-          email: accessMethod === 'gmail' ? identifier : `${identifier}@${university.name.toLowerCase().replace(/\s+/g, '')}.edu`,
+          email:
+            accessMethod === 'gmail'
+              ? identifier
+              : `${identifier}@${university.name.toLowerCase().replace(/\s+/g, '')}.edu`,
           password: hashedPassword,
           role: 'UniAdmin',
           universityId: university._id,
-          registrationNumber: accessMethod === 'registration' ? identifier : undefined
+          registrationNumber: accessMethod === 'registration' ? identifier : undefined,
         });
 
         await newUser.save();
         createdUsers.push({
           identifier,
           password: finalPassword,
-          userId: newUser._id
+          userId: newUser._id,
         });
       } catch (userError) {
         console.error(`Error creating user for ${identifier}:`, userError);
@@ -124,7 +143,7 @@ router.post('/create-university', verifyToken, async (req, res) => {
         { header: 'Identifier', key: 'identifier', width: 25 },
         { header: 'Password', key: 'password', width: 15 },
         { header: 'Role', key: 'role', width: 15 },
-        { header: 'Created Date', key: 'createdDate', width: 20 }
+        { header: 'Created Date', key: 'createdDate', width: 20 },
       ];
 
       createdUsers.forEach(user => {
@@ -133,7 +152,7 @@ router.post('/create-university', verifyToken, async (req, res) => {
           identifier: user.identifier,
           password: user.password,
           role: 'UniAdmin',
-          createdDate: new Date().toLocaleDateString()
+          createdDate: new Date().toLocaleDateString(),
         });
       });
 
@@ -145,9 +164,8 @@ router.post('/create-university', verifyToken, async (req, res) => {
       message: 'University created successfully',
       university,
       createdUsers: createdUsers.length,
-      excelFile: excelBuffer ? excelBuffer.toString('base64') : null
+      excelFile: excelBuffer ? excelBuffer.toString('base64') : null,
     });
-
   } catch (error) {
     console.error('Error creating university:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -157,7 +175,14 @@ router.post('/create-university', verifyToken, async (req, res) => {
 // Create Teacher Access (UniAdmin Only) - Enhanced
 router.post('/create-teacher-access', verifyToken, async (req, res) => {
   try {
-    const { universityId, accessMethod, registrationNumbers, emails, passwordMethod, defaultPassword } = req.body;
+    const {
+      universityId,
+      accessMethod,
+      registrationNumbers,
+      emails,
+      passwordMethod,
+      defaultPassword,
+    } = req.body;
 
     const user = await User.findById(req.user._id);
     if (user.role !== 'UniAdmin') {
@@ -169,8 +194,18 @@ router.post('/create-teacher-access', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'University not found' });
     }
 
-    const regNumbers = registrationNumbers ? registrationNumbers.split(',').map(num => num.trim()).filter(num => num) : [];
-    const emailList = emails ? emails.split(',').map(email => email.trim()).filter(email => email) : [];
+    const regNumbers = registrationNumbers
+      ? registrationNumbers
+          .split(',')
+          .map(num => num.trim())
+          .filter(num => num)
+      : [];
+    const emailList = emails
+      ? emails
+          .split(',')
+          .map(email => email.trim())
+          .filter(email => email)
+      : [];
 
     let finalPassword = defaultPassword;
     if (passwordMethod === 'auto') {
@@ -184,7 +219,7 @@ router.post('/create-teacher-access', verifyToken, async (req, res) => {
       emails: emailList,
       passwordMethod,
       defaultPassword: finalPassword,
-      createdBy: req.user._id
+      createdBy: req.user._id,
     });
 
     const createdUsers = [];
@@ -194,10 +229,7 @@ router.post('/create-teacher-access', verifyToken, async (req, res) => {
     for (let identifier of identifiers) {
       try {
         const existingUser = await User.findOne({
-          $or: [
-            { username: identifier },
-            { email: identifier }
-          ]
+          $or: [{ username: identifier }, { email: identifier }],
         });
 
         if (existingUser) {
@@ -211,25 +243,27 @@ router.post('/create-teacher-access', verifyToken, async (req, res) => {
         const newUser = new User({
           username: identifier,
           name: `Teacher - ${university.name}`,
-          email: accessMethod === 'gmail' ? identifier : `${identifier}@${university.name.toLowerCase().replace(/\s+/g, '')}.edu`,
+          email:
+            accessMethod === 'gmail'
+              ? identifier
+              : `${identifier}@${university.name.toLowerCase().replace(/\s+/g, '')}.edu`,
           password: hashedPassword,
           role: 'UniTeach',
           universityId: universityId,
-          registrationNumber: accessMethod === 'registration' ? identifier : undefined
+          registrationNumber: accessMethod === 'registration' ? identifier : undefined,
         });
 
         await newUser.save();
         createdUsers.push({
           identifier,
           password: userPassword,
-          userId: newUser._id
+          userId: newUser._id,
         });
 
         generatedCredentials.push({
           identifier,
-          password: userPassword
+          password: userPassword,
         });
-
       } catch (userError) {
         console.error(`Error creating teacher user for ${identifier}:`, userError);
       }
@@ -248,7 +282,7 @@ router.post('/create-teacher-access', verifyToken, async (req, res) => {
         { header: 'Identifier', key: 'identifier', width: 25 },
         { header: 'Password', key: 'password', width: 15 },
         { header: 'Role', key: 'role', width: 15 },
-        { header: 'Created Date', key: 'createdDate', width: 20 }
+        { header: 'Created Date', key: 'createdDate', width: 20 },
       ];
 
       createdUsers.forEach(user => {
@@ -257,7 +291,7 @@ router.post('/create-teacher-access', verifyToken, async (req, res) => {
           identifier: user.identifier,
           password: user.password,
           role: 'UniTeach',
-          createdDate: new Date().toLocaleDateString()
+          createdDate: new Date().toLocaleDateString(),
         });
       });
 
@@ -269,9 +303,8 @@ router.post('/create-teacher-access', verifyToken, async (req, res) => {
       message: 'Teacher access created successfully',
       teacherAccess,
       createdUsers: createdUsers.length,
-      excelFile: excelBuffer ? excelBuffer.toString('base64') : null
+      excelFile: excelBuffer ? excelBuffer.toString('base64') : null,
     });
-
   } catch (error) {
     console.error('Error creating teacher access:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -292,7 +325,7 @@ router.post('/create-student-access', verifyToken, async (req, res) => {
       defaultPassword,
       department,
       year,
-      course
+      course,
     } = req.body;
 
     const user = await User.findById(req.user._id);
@@ -305,8 +338,18 @@ router.post('/create-student-access', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'University not found' });
     }
 
-    const regNumbers = registrationNumbers ? registrationNumbers.split(',').map(num => num.trim()).filter(num => num) : [];
-    const emailList = emails ? emails.split(',').map(email => email.trim()).filter(email => email) : [];
+    const regNumbers = registrationNumbers
+      ? registrationNumbers
+          .split(',')
+          .map(num => num.trim())
+          .filter(num => num)
+      : [];
+    const emailList = emails
+      ? emails
+          .split(',')
+          .map(email => email.trim())
+          .filter(email => email)
+      : [];
 
     let finalPassword = defaultPassword;
     if (passwordMethod === 'auto') {
@@ -320,10 +363,7 @@ router.post('/create-student-access', verifyToken, async (req, res) => {
     for (let identifier of identifiers) {
       try {
         const existingUser = await User.findOne({
-          $or: [
-            { username: identifier },
-            { email: identifier }
-          ]
+          $or: [{ username: identifier }, { email: identifier }],
         });
 
         if (existingUser) {
@@ -338,11 +378,14 @@ router.post('/create-student-access', verifyToken, async (req, res) => {
         const newUser = new User({
           username: identifier,
           name: `Student - ${identifier}`,
-          email: accessMethod === 'gmail' ? identifier : `${identifier}@${university.name.toLowerCase().replace(/\s+/g, '')}.edu`,
+          email:
+            accessMethod === 'gmail'
+              ? identifier
+              : `${identifier}@${university.name.toLowerCase().replace(/\s+/g, '')}.edu`,
           password: hashedPassword,
           role: 'Student',
           universityId: universityId,
-          registrationNumber: accessMethod === 'registration' ? identifier : undefined
+          registrationNumber: accessMethod === 'registration' ? identifier : undefined,
         });
 
         await newUser.save();
@@ -358,8 +401,8 @@ router.post('/create-student-access', verifyToken, async (req, res) => {
           createdBy: req.user._id,
           enrollment: {
             admissionDate: new Date(),
-            enrollmentType: 'full_time'
-          }
+            enrollmentType: 'full_time',
+          },
         });
 
         await newStudent.save();
@@ -374,7 +417,7 @@ router.post('/create-student-access', verifyToken, async (req, res) => {
             createdBy: user.name,
             department: department,
             year: year,
-            course: course
+            course: course,
           },
           req
         );
@@ -383,14 +426,13 @@ router.post('/create-student-access', verifyToken, async (req, res) => {
           identifier,
           password: userPassword,
           userId: newUser._id,
-          studentId: newStudent._id
+          studentId: newStudent._id,
         });
 
         generatedCredentials.push({
           identifier,
-          password: userPassword
+          password: userPassword,
         });
-
       } catch (userError) {
         console.error(`Error creating student user for ${identifier}:`, userError);
       }
@@ -410,7 +452,7 @@ router.post('/create-student-access', verifyToken, async (req, res) => {
         { header: 'Department', key: 'department', width: 20 },
         { header: 'Year', key: 'year', width: 10 },
         { header: 'Course', key: 'course', width: 15 },
-        { header: 'Created Date', key: 'createdDate', width: 20 }
+        { header: 'Created Date', key: 'createdDate', width: 20 },
       ];
 
       createdUsers.forEach(user => {
@@ -422,7 +464,7 @@ router.post('/create-student-access', verifyToken, async (req, res) => {
           department: department || 'N/A',
           year: year || 'N/A',
           course: course || 'N/A',
-          createdDate: new Date().toLocaleDateString()
+          createdDate: new Date().toLocaleDateString(),
         });
       });
 
@@ -434,9 +476,8 @@ router.post('/create-student-access', verifyToken, async (req, res) => {
       message: 'Student access created successfully',
       createdUsers: createdUsers.length,
       excelFile: excelBuffer ? excelBuffer.toString('base64') : null,
-      generatedCredentials: passwordMethod === 'auto' ? generatedCredentials : []
+      generatedCredentials: passwordMethod === 'auto' ? generatedCredentials : [],
     });
-
   } catch (error) {
     console.error('Error creating student access:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -457,11 +498,8 @@ router.get('/students', verifyToken, async (req, res) => {
     } else {
       // Find university for UniAdmin
       const university = await University.findOne({
-        $or: [
-          { registrationNumbers: user.username },
-          { emails: user.email }
-        ],
-        isActive: true
+        $or: [{ registrationNumbers: user.username }, { emails: user.email }],
+        isActive: true,
       });
 
       if (!university) {
@@ -473,7 +511,7 @@ router.get('/students', verifyToken, async (req, res) => {
     const students = await Student.findByUniversity(universityId)
       .populate({
         path: 'userId',
-        select: 'name email username registrationNumber lastLogin isActive createdAt'
+        select: 'name email username registrationNumber lastLogin isActive createdAt',
       })
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 });
@@ -495,7 +533,7 @@ router.get('/students', verifyToken, async (req, res) => {
       createdAt: student.createdAt,
       createdBy: student.createdBy?.name || 'System',
       academicStatus: student.academicStatus,
-      performance: student.performance || {}
+      performance: student.performance || {},
     }));
 
     res.json({ success: true, students: transformedStudents });
@@ -525,55 +563,55 @@ router.post('/student-action', verifyToken, async (req, res) => {
     let activityDetails = {};
 
     switch (action) {
-    case 'suspend':
-      if (!days || !reason) {
-        return res.status(400).json({ message: 'Days and reason are required for suspension' });
-      }
-      await student.suspendStudent(days, reason, req.user._id, user.name);
-      message = `Student suspended for ${days} days`;
-      activityType = 'student_suspended';
-      activityDetails = { days, reason, suspendedBy: user.name };
-      break;
+      case 'suspend':
+        if (!days || !reason) {
+          return res.status(400).json({ message: 'Days and reason are required for suspension' });
+        }
+        await student.suspendStudent(days, reason, req.user._id, user.name);
+        message = `Student suspended for ${days} days`;
+        activityType = 'student_suspended';
+        activityDetails = { days, reason, suspendedBy: user.name };
+        break;
 
-    case 'unsuspend':
-      await student.unsuspendStudent();
-      message = 'Student unsuspended successfully';
-      activityType = 'student_unsuspended';
-      activityDetails = { unsuspendedBy: user.name };
-      break;
+      case 'unsuspend':
+        await student.unsuspendStudent();
+        message = 'Student unsuspended successfully';
+        activityType = 'student_unsuspended';
+        activityDetails = { unsuspendedBy: user.name };
+        break;
 
-    case 'activate':
-      student.academicStatus = 'active';
-      student.userId.isActive = true;
-      await student.save();
-      await student.userId.save();
-      message = 'Student activated successfully';
-      activityType = 'student_activated';
-      activityDetails = { activatedBy: user.name };
-      break;
+      case 'activate':
+        student.academicStatus = 'active';
+        student.userId.isActive = true;
+        await student.save();
+        await student.userId.save();
+        message = 'Student activated successfully';
+        activityType = 'student_activated';
+        activityDetails = { activatedBy: user.name };
+        break;
 
-    case 'deactivate':
-      student.academicStatus = 'on_leave';
-      student.userId.isActive = false;
-      await student.save();
-      await student.userId.save();
-      message = 'Student deactivated successfully';
-      activityType = 'student_deactivated';
-      activityDetails = { deactivatedBy: user.name };
-      break;
+      case 'deactivate':
+        student.academicStatus = 'on_leave';
+        student.userId.isActive = false;
+        await student.save();
+        await student.userId.save();
+        message = 'Student deactivated successfully';
+        activityType = 'student_deactivated';
+        activityDetails = { deactivatedBy: user.name };
+        break;
 
-    case 'delete':
-      student.userId.isActive = false;
-      student.academicStatus = 'dropped';
-      await student.save();
-      await student.userId.save();
-      message = 'Student deleted successfully';
-      activityType = 'student_deleted';
-      activityDetails = { deletedBy: user.name };
-      break;
+      case 'delete':
+        student.userId.isActive = false;
+        student.academicStatus = 'dropped';
+        await student.save();
+        await student.userId.save();
+        message = 'Student deleted successfully';
+        activityType = 'student_deleted';
+        activityDetails = { deletedBy: user.name };
+        break;
 
-    default:
-      return res.status(400).json({ message: 'Invalid action' });
+      default:
+        return res.status(400).json({ message: 'Invalid action' });
     }
 
     // Log the activity
@@ -629,7 +667,7 @@ router.put('/edit-student/:studentId', verifyToken, async (req, res) => {
       'student_updated',
       {
         updatedBy: user.name,
-        updatedFields: { name, email, department, year, course }
+        updatedFields: { name, email, department, year, course },
       },
       req
     );
@@ -679,11 +717,8 @@ router.get('/university-stats', verifyToken, async (req, res) => {
       universityId = req.query.universityId;
     } else {
       const university = await University.findOne({
-        $or: [
-          { registrationNumbers: user.username },
-          { emails: user.email }
-        ],
-        isActive: true
+        $or: [{ registrationNumbers: user.username }, { emails: user.email }],
+        isActive: true,
       });
 
       if (!university) {
@@ -702,10 +737,10 @@ router.get('/university-stats', verifyToken, async (req, res) => {
         totalStudents: 0,
         activeStudents: 0,
         suspendedStudents: 0,
-        graduatedStudents: 0
+        graduatedStudents: 0,
       },
       activityStats,
-      currentlyActiveStudents: activeStudents.length
+      currentlyActiveStudents: activeStudents.length,
     });
   } catch (error) {
     console.error('Error fetching university stats:', error);
@@ -740,7 +775,7 @@ router.post('/student-note/:studentId', verifyToken, async (req, res) => {
       {
         addedBy: user.name,
         category,
-        isImportant
+        isImportant,
       },
       req
     );
@@ -778,7 +813,7 @@ router.put('/student-portal-access/:studentId', verifyToken, async (req, res) =>
       'portal_access_updated',
       {
         updatedBy: user.name,
-        accessSettings
+        accessSettings,
       },
       req
     );
@@ -820,11 +855,8 @@ router.get('/my-university', verifyToken, async (req, res) => {
     }
 
     const university = await University.findOne({
-      $or: [
-        { registrationNumbers: user.username },
-        { emails: user.email }
-      ],
-      isActive: true
+      $or: [{ registrationNumbers: user.username }, { emails: user.email }],
+      isActive: true,
     });
 
     if (!university) {
@@ -847,11 +879,8 @@ router.get('/teacher-access', verifyToken, async (req, res) => {
     }
 
     const university = await University.findOne({
-      $or: [
-        { registrationNumbers: user.username },
-        { emails: user.email }
-      ],
-      isActive: true
+      $or: [{ registrationNumbers: user.username }, { emails: user.email }],
+      isActive: true,
     });
 
     if (!university) {
@@ -860,7 +889,7 @@ router.get('/teacher-access', verifyToken, async (req, res) => {
 
     const teacherAccess = await TeacherAccess.find({
       university: university._id,
-      isActive: true
+      isActive: true,
     })
       .populate('university', 'name url')
       .populate('createdBy', 'name email')

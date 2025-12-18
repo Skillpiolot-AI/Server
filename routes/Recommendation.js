@@ -59,7 +59,6 @@
 
 // // module.exports = router;
 
-
 // const express = require('express');
 // const router = express.Router();
 // const Recommendation = require('../models/Recommendation');
@@ -157,7 +156,7 @@ router.post('/recommendations', async (req, res) => {
     console.log('Received user answers:', userAnswers);
 
     const query = {
-      afterTenthStream: userAnswers.afterTenthStream
+      afterTenthStream: userAnswers.afterTenthStream,
     };
 
     if (userAnswers.workEnvironment) {
@@ -226,7 +225,9 @@ router.post('/recommendation', async (req, res) => {
 // Update recommendation (for admin purposes)
 router.put('/recommendations/:id', async (req, res) => {
   try {
-    const updatedRecommendation = await Recommendation.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedRecommendation = await Recommendation.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
     if (!updatedRecommendation) {
       return res.status(404).json({ message: 'Recommendation not found' });
     }

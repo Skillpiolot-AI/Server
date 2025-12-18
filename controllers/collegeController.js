@@ -21,7 +21,7 @@ exports.getFilteredColleges = async (req, res) => {
       workExpMin,
       workExpMax,
       page = 1,
-      limit = 12
+      limit = 12,
     } = req.query;
 
     // Build query object
@@ -125,16 +125,15 @@ exports.getFilteredColleges = async (req, res) => {
         total,
         page: parseInt(page),
         limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit))
-      }
+        pages: Math.ceil(total / parseInt(limit)),
+      },
     });
-
   } catch (error) {
     console.error('Error filtering colleges:', error);
     res.status(500).json({
       success: false,
       message: 'Error filtering colleges',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -155,7 +154,7 @@ exports.getFilterOptions = async (req, res) => {
     const examsData = await College.aggregate([
       { $unwind: '$exams' },
       { $group: { _id: '$exams.name' } },
-      { $sort: { _id: 1 } }
+      { $sort: { _id: 1 } },
     ]);
     const exams = examsData.map(e => e._id).filter(Boolean);
 
@@ -165,9 +164,9 @@ exports.getFilterOptions = async (req, res) => {
         $group: {
           _id: null,
           minFee: { $min: '$minFees' },
-          maxFee: { $max: '$maxFees' }
-        }
-      }
+          maxFee: { $max: '$maxFees' },
+        },
+      },
     ]);
 
     // Get salary range
@@ -176,9 +175,9 @@ exports.getFilterOptions = async (req, res) => {
         $group: {
           _id: null,
           minSalary: { $min: '$minMedianSalary' },
-          maxSalary: { $max: '$maxMedianSalary' }
-        }
-      }
+          maxSalary: { $max: '$maxMedianSalary' },
+        },
+      },
     ]);
 
     res.status(200).json({
@@ -189,16 +188,15 @@ exports.getFilterOptions = async (req, res) => {
         locations: locations.filter(Boolean).sort(),
         exams: exams,
         feeRange: feeRange[0] || { minFee: 0, maxFee: 1000000 },
-        salaryRange: salaryRange[0] || { minSalary: 0, maxSalary: 2000000 }
-      }
+        salaryRange: salaryRange[0] || { minSalary: 0, maxSalary: 2000000 },
+      },
     });
-
   } catch (error) {
     console.error('Error getting filter options:', error);
     res.status(500).json({
       success: false,
       message: 'Error getting filter options',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -211,21 +209,20 @@ exports.getCollegeById = async (req, res) => {
     if (!college) {
       return res.status(404).json({
         success: false,
-        message: 'College not found'
+        message: 'College not found',
       });
     }
 
     res.status(200).json({
       success: true,
-      data: college
+      data: college,
     });
-
   } catch (error) {
     console.error('Error getting college:', error);
     res.status(500).json({
       success: false,
       message: 'Error getting college',
-      error: error.message
+      error: error.message,
     });
   }
 };

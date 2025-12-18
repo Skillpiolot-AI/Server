@@ -16,7 +16,7 @@ const CLUSTER_HOLLAND_MAPPING = {
   'Animation, Graphics & Design': ['A', 'I', 'R'],
   'Animation, Graphics & Visual Communication': ['A', 'I', 'C'],
   'Mass Communication': ['A', 'E', 'S'],
-  'Journalism': ['A', 'I', 'S'],
+  Journalism: ['A', 'I', 'S'],
   'Media & Entertainment': ['A', 'E', 'S'],
   'Electronics & Hardware': ['R', 'I', 'C'],
   'Information Technology & Computer Science': ['I', 'R', 'C'],
@@ -30,7 +30,7 @@ const CLUSTER_HOLLAND_MAPPING = {
   'Legal Services': ['I', 'E', 'C'],
   'Science & Mathematics': ['I', 'R', 'C'],
   'Architecture & Planning': ['A', 'R', 'I'],
-  'Construction': ['R', 'E', 'C'],
+  Construction: ['R', 'E', 'C'],
   'Sports & Fitness': ['R', 'S', 'E'],
   'Fitness & Well-Being': ['S', 'R', 'E'],
   'Beauty & Wellness': ['A', 'S', 'E'],
@@ -40,7 +40,7 @@ const CLUSTER_HOLLAND_MAPPING = {
   'Business Operations & Entrepreneurship': ['E', 'I', 'C'],
   'Gems & Jewellery': ['A', 'R', 'E'],
   'Textile & Handloom': ['A', 'R', 'C'],
-  'Apparel & Accessories': ['A', 'E', 'C']
+  'Apparel & Accessories': ['A', 'E', 'C'],
 };
 
 // Calculate match score between user's Holland code and career
@@ -70,13 +70,14 @@ exports.getCareerRecommendations = async (req, res) => {
     }
 
     // Get all careers and calculate match scores
-    const allCareers = await Career.find()
-      .select('id name career_cluster_name career_type salary_range future_growth holland_codes minimum_expense icon');
+    const allCareers = await Career.find().select(
+      'id name career_cluster_name career_type salary_range future_growth holland_codes minimum_expense icon'
+    );
 
     const careersWithScores = allCareers
       .map(career => ({
         ...career.toObject(),
-        matchScore: calculateMatchScore(hollandCode, career.holland_codes)
+        matchScore: calculateMatchScore(hollandCode, career.holland_codes),
       }))
       .filter(career => career.matchScore > 0)
       .sort((a, b) => b.matchScore - a.matchScore)
@@ -85,7 +86,7 @@ exports.getCareerRecommendations = async (req, res) => {
     res.json({
       success: true,
       count: careersWithScores.length,
-      data: careersWithScores
+      data: careersWithScores,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -97,12 +98,12 @@ exports.getAllClusters = async (req, res) => {
     const clusters = await Career.distinct('career_cluster_name');
 
     const clusterStats = await Promise.all(
-      clusters.map(async (cluster) => {
+      clusters.map(async cluster => {
         const count = await Career.countDocuments({ career_cluster_name: cluster });
         return {
           name: cluster,
           count,
-          holland_codes: CLUSTER_HOLLAND_MAPPING[cluster] || []
+          holland_codes: CLUSTER_HOLLAND_MAPPING[cluster] || [],
         };
       })
     );
@@ -110,7 +111,7 @@ exports.getAllClusters = async (req, res) => {
     res.json({
       success: true,
       count: clusters.length,
-      data: clusterStats.sort((a, b) => b.count - a.count)
+      data: clusterStats.sort((a, b) => b.count - a.count),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -134,7 +135,7 @@ exports.getCareersByCluster = async (req, res) => {
       data: careers,
       totalPages: Math.ceil(count / limit),
       currentPage: page,
-      total: count
+      total: count,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

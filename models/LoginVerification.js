@@ -4,18 +4,18 @@ const LoginVerificationSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   email: {
     type: String,
     required: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
   token: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   location: {
     country: String,
@@ -23,48 +23,48 @@ const LoginVerificationSchema = new mongoose.Schema({
     city: String,
     latitude: Number,
     longitude: Number,
-    timezone: String
+    timezone: String,
   },
   ipAddress: {
     type: String,
-    required: true
+    required: true,
   },
   userAgent: {
-    type: String
+    type: String,
   },
   deviceInfo: {
     device: String,
     browser: String,
-    os: String
+    os: String,
   },
   isVerified: {
     type: Boolean,
-    default: false
+    default: false,
   },
   verifiedAt: {
-    type: Date
+    type: Date,
   },
   isDenied: {
     type: Boolean,
-    default: false
+    default: false,
   },
   deniedAt: {
-    type: Date
+    type: Date,
   },
   status: {
     type: String,
     enum: ['pending', 'verified', 'denied', 'expired'],
-    default: 'pending'
+    default: 'pending',
   },
   expiresAt: {
     type: Date,
     required: true,
-    default: () => new Date(Date.now() + 2 * 60 * 60 * 1000) // 2 hours
+    default: () => new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Indexes
@@ -74,7 +74,7 @@ LoginVerificationSchema.index({ ipAddress: 1 });
 LoginVerificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 // Static method to create login verification
-LoginVerificationSchema.statics.createLoginVerification = async function(
+LoginVerificationSchema.statics.createLoginVerification = async function (
   userId,
   email,
   ipAddress,
@@ -92,12 +92,12 @@ LoginVerificationSchema.statics.createLoginVerification = async function(
     ipAddress,
     userAgent,
     location,
-    deviceInfo
+    deviceInfo,
   });
 };
 
 // Method to verify login
-LoginVerificationSchema.methods.verifyLogin = async function() {
+LoginVerificationSchema.methods.verifyLogin = async function () {
   if (this.isVerified) {
     return { success: false, message: 'Login already verified' };
   }
@@ -121,7 +121,7 @@ LoginVerificationSchema.methods.verifyLogin = async function() {
 };
 
 // Method to deny login
-LoginVerificationSchema.methods.denyLogin = async function() {
+LoginVerificationSchema.methods.denyLogin = async function () {
   if (this.isVerified) {
     return { success: false, message: 'Login was already verified' };
   }

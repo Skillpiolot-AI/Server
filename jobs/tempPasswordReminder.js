@@ -15,9 +15,9 @@ const sendTempPasswordReminders = async () => {
     console.log('\n📅 Running temporary password reminder job...');
 
     const now = new Date();
-    const twoDaysAgo = new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000));
-    const fourDaysAgo = new Date(now.getTime() - (4 * 24 * 60 * 60 * 1000));
-    const sixDaysAgo = new Date(now.getTime() - (6 * 24 * 60 * 60 * 1000));
+    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+    const fourDaysAgo = new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000);
+    const sixDaysAgo = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
 
     // Find users with temporary passwords who haven't changed them
     const usersWithTempPassword = await User.find({
@@ -27,8 +27,8 @@ const sendTempPasswordReminders = async () => {
       $or: [
         { passwordLastChanged: { $lte: twoDaysAgo } },
         { passwordLastChanged: { $lte: fourDaysAgo } },
-        { passwordLastChanged: { $lte: sixDaysAgo } }
-      ]
+        { passwordLastChanged: { $lte: sixDaysAgo } },
+      ],
     }).select('name email username createdAt passwordLastChanged');
 
     console.log(`Found ${usersWithTempPassword.length} users with temporary passwords`);
@@ -46,10 +46,7 @@ const sendTempPasswordReminders = async () => {
         if (daysSince % 2 === 0 && daysSince >= 2) {
           console.log(`Sending reminder to ${user.email} (${daysSince} days)`);
 
-          await sendEmailFast(
-            user.email,
-            tempPasswordReminderEmail(user.name, daysSince)
-          );
+          await sendEmailFast(user.email, tempPasswordReminderEmail(user.name, daysSince));
 
           emailsSent++;
 
@@ -62,20 +59,21 @@ const sendTempPasswordReminders = async () => {
       }
     }
 
-    console.log(`✅ Temporary password reminders complete: ${emailsSent} sent, ${emailsFailed} failed`);
+    console.log(
+      `✅ Temporary password reminders complete: ${emailsSent} sent, ${emailsFailed} failed`
+    );
 
     return {
       success: true,
       totalUsers: usersWithTempPassword.length,
       emailsSent,
-      emailsFailed
+      emailsFailed,
     };
-
   } catch (error) {
     console.error('❌ Error in temporary password reminder job:', error);
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 };
@@ -87,12 +85,16 @@ const sendTempPasswordReminders = async () => {
  */
 const scheduleReminders = () => {
   // Run every day at 9:00 AM
-  cron.schedule('0 9 * * *', async () => {
-    console.log('\n⏰ Scheduled job triggered: Temporary password reminders');
-    await sendTempPasswordReminders();
-  }, {
-    timezone: 'Asia/Kolkata' // Adjust to your timezone
-  });
+  cron.schedule(
+    '0 9 * * *',
+    async () => {
+      console.log('\n⏰ Scheduled job triggered: Temporary password reminders');
+      await sendTempPasswordReminders();
+    },
+    {
+      timezone: 'Asia/Kolkata', // Adjust to your timezone
+    }
+  );
 
   console.log('✅ Temporary password reminder scheduler initialized (runs daily at 9:00 AM)');
 };
@@ -108,5 +110,5 @@ const runNow = async () => {
 module.exports = {
   scheduleReminders,
   runNow,
-  sendTempPasswordReminders
+  sendTempPasswordReminders,
 };

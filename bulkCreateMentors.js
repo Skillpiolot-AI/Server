@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGO_URL 
+const MONGODB_URI = process.env.MONGO_URL;
 
 // Colors for console output
 const colors = {
@@ -15,19 +15,20 @@ const colors = {
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  magenta: '\x1b[35m'
+  magenta: '\x1b[35m',
 };
 
 const log = {
-  info: (msg) => console.log(`${colors.blue}ℹ ${msg}${colors.reset}`),
-  success: (msg) => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
-  error: (msg) => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
-  warning: (msg) => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
-  mentor: (msg) => console.log(`${colors.magenta}👨‍🏫 ${msg}${colors.reset}`)
+  info: msg => console.log(`${colors.blue}ℹ ${msg}${colors.reset}`),
+  success: msg => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
+  error: msg => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
+  warning: msg => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
+  mentor: msg => console.log(`${colors.magenta}👨‍🏫 ${msg}${colors.reset}`),
 };
 
 // Common image URL for all mentors
-const PROFILE_IMAGE = 'https://assets.vogue.in/photos/5f11296d7ef971dde92d95c2/2:3/w_2560%2Cc_limit/GettyImages-1153561513.jpg';
+const PROFILE_IMAGE =
+  'https://assets.vogue.in/photos/5f11296d7ef971dde92d95c2/2:3/w_2560%2Cc_limit/GettyImages-1153561513.jpg';
 
 // 10 Diverse Test Mentors
 const testMentors = [
@@ -54,7 +55,7 @@ const testMentors = [
     referralsInTopCompanies: true,
     topCompanyReferrals: ['Google', 'Microsoft', 'Amazon'],
     totalPlacements: 45,
-    rating: 4.9
+    rating: 4.9,
   },
   {
     name: 'Priya Sharma',
@@ -79,7 +80,7 @@ const testMentors = [
     referralsInTopCompanies: true,
     topCompanyReferrals: ['Amazon', 'Meta', 'Netflix'],
     totalPlacements: 35,
-    rating: 4.8
+    rating: 4.8,
   },
   {
     name: 'Amit Patel',
@@ -99,12 +100,18 @@ const testMentors = [
     location: { city: 'Hyderabad', state: 'Telangana', country: 'India' },
     bio: 'Product Manager at Microsoft with 12 years in tech. Mentored 50+ aspiring PMs to land their dream roles.',
     tagline: 'PM Career Coach | Ex-Apple, Microsoft',
-    pricing: { monthlyPrice: 0, threeMonthPrice: 25000, sixMonthPrice: 45000, trialAvailable: true, trialPrice: 199 },
+    pricing: {
+      monthlyPrice: 0,
+      threeMonthPrice: 25000,
+      sixMonthPrice: 45000,
+      trialAvailable: true,
+      trialPrice: 199,
+    },
     sessionsPerWeek: 2,
     referralsInTopCompanies: true,
     topCompanyReferrals: ['Microsoft', 'Apple', 'Google'],
     totalPlacements: 28,
-    rating: 4.7
+    rating: 4.7,
   },
   {
     name: 'Sneha Reddy',
@@ -129,7 +136,7 @@ const testMentors = [
     referralsInTopCompanies: false,
     topCompanyReferrals: [],
     totalPlacements: 15,
-    rating: 4.9
+    rating: 4.9,
   },
   {
     name: 'Vikram Singh',
@@ -154,7 +161,7 @@ const testMentors = [
     referralsInTopCompanies: true,
     topCompanyReferrals: ['Netflix', 'Amazon', 'Uber'],
     totalPlacements: 22,
-    rating: 4.8
+    rating: 4.8,
   },
   {
     name: 'Anjali Verma',
@@ -179,7 +186,7 @@ const testMentors = [
     referralsInTopCompanies: false,
     topCompanyReferrals: ['ONGC', 'BHEL', 'IOCL'],
     totalPlacements: 40,
-    rating: 4.6
+    rating: 4.6,
   },
   {
     name: 'Karan Mehta',
@@ -199,12 +206,18 @@ const testMentors = [
     location: { city: 'Pune', state: 'Maharashtra', country: 'India' },
     bio: 'Ex-Stripe engineer, now running my own funded startup. Love helping young developers build great products.',
     tagline: 'Startup Mentor | Full Stack Expert',
-    pricing: { monthlyPrice: 5000, threeMonthPrice: 12000, sixMonthPrice: 20000, trialAvailable: true, trialPrice: 0 },
+    pricing: {
+      monthlyPrice: 5000,
+      threeMonthPrice: 12000,
+      sixMonthPrice: 20000,
+      trialAvailable: true,
+      trialPrice: 0,
+    },
     sessionsPerWeek: 2,
     referralsInTopCompanies: true,
     topCompanyReferrals: ['Stripe', 'Razorpay'],
     totalPlacements: 18,
-    rating: 4.7
+    rating: 4.7,
   },
   {
     name: 'Deepika Joshi',
@@ -229,7 +242,7 @@ const testMentors = [
     referralsInTopCompanies: false,
     topCompanyReferrals: [],
     totalPlacements: 32,
-    rating: 4.8
+    rating: 4.8,
   },
   {
     name: 'Rohit Gupta',
@@ -254,7 +267,7 @@ const testMentors = [
     referralsInTopCompanies: true,
     topCompanyReferrals: ['Palo Alto', 'Cisco', 'CrowdStrike'],
     totalPlacements: 25,
-    rating: 4.9
+    rating: 4.9,
   },
   {
     name: 'Kavya Nair',
@@ -274,13 +287,19 @@ const testMentors = [
     location: { city: 'Kochi', state: 'Kerala', country: 'India' },
     bio: 'Mobile developer at Swiggy building apps used by millions. Passionate about teaching mobile development.',
     tagline: 'Mobile App Expert | React Native & Flutter',
-    pricing: { monthlyPrice: 6000, threeMonthPrice: 15000, sixMonthPrice: 25000, trialAvailable: true, trialPrice: 99 },
+    pricing: {
+      monthlyPrice: 6000,
+      threeMonthPrice: 15000,
+      sixMonthPrice: 25000,
+      trialAvailable: true,
+      trialPrice: 99,
+    },
     sessionsPerWeek: 3,
     referralsInTopCompanies: true,
     topCompanyReferrals: ['Swiggy', 'PhonePe', 'Flipkart'],
     totalPlacements: 20,
-    rating: 4.7
-  }
+    rating: 4.7,
+  },
 ];
 
 async function connectDB() {
@@ -343,18 +362,18 @@ async function createTestMentors() {
         isVerified: true,
         isActive: true,
         mentorStatus: 'verified', // Fully verified
-        mentorBadge: 'verified',  // Verified badge
+        mentorBadge: 'verified', // Verified badge
         mentorVerification: {
           emailVerified: true,
           emailVerifiedAt: new Date(),
           phoneVerified: true,
           phoneVerifiedAt: new Date(),
           documentVerified: true,
-          documentVerifiedAt: new Date()
+          documentVerifiedAt: new Date(),
         },
         totalPlacements: mentorData.totalPlacements,
         mentorRating: mentorData.rating,
-        totalReviews: Math.floor(Math.random() * 50) + 10
+        totalReviews: Math.floor(Math.random() * 50) + 10,
       });
 
       const savedUser = await newUser.save();
@@ -379,14 +398,24 @@ async function createTestMentors() {
         sessionDuration: 60,
         pricingType: mentorData.pricingType,
         pricingPlans: [
-          mentorData.pricing.monthlyPrice > 0 ? { duration: '1 Month', price: mentorData.pricing.monthlyPrice } : null,
-          mentorData.pricing.threeMonthPrice > 0 ? { duration: '3 Months', price: mentorData.pricing.threeMonthPrice, discountPercent: 10 } : null,
-          mentorData.pricing.sixMonthPrice > 0 ? { duration: '6 Months', price: mentorData.pricing.sixMonthPrice, discountPercent: 20 } : null
+          mentorData.pricing.monthlyPrice > 0
+            ? { duration: '1 Month', price: mentorData.pricing.monthlyPrice }
+            : null,
+          mentorData.pricing.threeMonthPrice > 0
+            ? {
+                duration: '3 Months',
+                price: mentorData.pricing.threeMonthPrice,
+                discountPercent: 10,
+              }
+            : null,
+          mentorData.pricing.sixMonthPrice > 0
+            ? { duration: '6 Months', price: mentorData.pricing.sixMonthPrice, discountPercent: 20 }
+            : null,
         ].filter(Boolean),
         trialSession: {
           available: mentorData.pricing.trialAvailable || false,
           price: mentorData.pricing.trialPrice || 0,
-          description: 'Try a session before committing'
+          description: 'Try a session before committing',
         },
         sectorType: mentorData.sectorType,
         referralsInTopCompanies: mentorData.referralsInTopCompanies,
@@ -394,22 +423,24 @@ async function createTestMentors() {
         curriculum: {
           available: true,
           description: 'Structured learning path',
-          topics: mentorData.expertise.slice(0, 5)
+          topics: mentorData.expertise.slice(0, 5),
         },
         socialLinks: {
           linkedIn: `https://linkedin.com/in/${mentorData.username}`,
           github: `https://github.com/${mentorData.username}`,
-          twitter: `https://twitter.com/${mentorData.username}`
+          twitter: `https://twitter.com/${mentorData.username}`,
         },
         education: [
-          { degree: 'B.Tech', field: 'Computer Science', institution: 'IIT Delhi', year: 2015 }
+          { degree: 'B.Tech', field: 'Computer Science', institution: 'IIT Delhi', year: 2015 },
         ],
-        certifications: [
-          { name: 'AWS Solutions Architect', issuer: 'Amazon', year: 2022 }
-        ],
+        certifications: [{ name: 'AWS Solutions Architect', issuer: 'Amazon', year: 2022 }],
         featured: mentorData.rating >= 4.8,
         isVisible: true,
-        searchTags: [...mentorData.expertise, ...mentorData.targetingDomains, mentorData.sectorType]
+        searchTags: [
+          ...mentorData.expertise,
+          ...mentorData.targetingDomains,
+          mentorData.sectorType,
+        ],
       });
 
       const savedProfile = await mentorProfile.save();
@@ -423,11 +454,12 @@ async function createTestMentors() {
         username: mentorData.username,
         email: mentorData.email,
         sector: mentorData.sectorType,
-        pricingType: mentorData.pricingType
+        pricingType: mentorData.pricingType,
       });
 
-      log.mentor(`Created: ${mentorData.name} (${mentorData.sectorType} | ${mentorData.pricingType})`);
-
+      log.mentor(
+        `Created: ${mentorData.name} (${mentorData.sectorType} | ${mentorData.pricingType})`
+      );
     } catch (error) {
       log.error(`Failed to create ${mentorData.name}: ${error.message}`);
     }
@@ -490,7 +522,6 @@ async function main() {
     console.log('');
 
     console.log('='.repeat(60) + '\n');
-
   } catch (error) {
     log.error(`Error: ${error.message}`);
     console.error(error);

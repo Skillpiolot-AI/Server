@@ -3,7 +3,6 @@
 // const Post = require('../models/Post'); // You'll need to create this model
 // const { verifyToken } = require('../middleware/auth');
 
-
 // const express = require('express');
 // const router = express.Router();
 // const Post = require('../models/Post');
@@ -61,8 +60,6 @@
 // });
 
 // // module.exports = router;
-
-
 
 // router.post('/', verifyToken, async (req, res) => {
 //   try {
@@ -137,7 +134,6 @@
 // });
 
 // module.exports = router;
-
 
 const express = require('express');
 const router = express.Router();
@@ -234,19 +230,17 @@ router.post('/posts/:id/comments', verifyToken, async (req, res) => {
   }
 });
 
-
 router.get('/users/random', async (req, res) => {
   try {
     const randomUsers = await User.aggregate([
       { $sample: { size: 5 } },
-      { $project: { name: 1, username: 1, imageUrl: 1, followers: 1 } }
+      { $project: { name: 1, username: 1, imageUrl: 1, followers: 1 } },
     ]);
     res.json(randomUsers);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
-
 
 router.get('/users/:userId', async (req, res) => {
   try {
@@ -281,8 +275,12 @@ router.post('/users/:userId/follow', verifyToken, async (req, res) => {
 
     if (isFollowing) {
       // Unfollow
-      currentUser.following = currentUser.following.filter(id => id.toString() !== userToFollow._id.toString());
-      userToFollow.followers = userToFollow.followers.filter(id => id.toString() !== currentUser._id.toString());
+      currentUser.following = currentUser.following.filter(
+        id => id.toString() !== userToFollow._id.toString()
+      );
+      userToFollow.followers = userToFollow.followers.filter(
+        id => id.toString() !== currentUser._id.toString()
+      );
     } else {
       // Follow
       currentUser.following.push(userToFollow._id);
@@ -310,6 +308,5 @@ router.get('/users/:userId/posts', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
 
 module.exports = router;

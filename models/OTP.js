@@ -5,44 +5,44 @@ const OTPSchema = new mongoose.Schema({
     type: String,
     required: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
   otp: {
     type: String,
-    required: true
+    required: true,
   },
   purpose: {
     type: String,
     enum: ['password_reset', 'email_verification', 'two_factor'],
-    default: 'password_reset'
+    default: 'password_reset',
   },
   attempts: {
     type: Number,
-    default: 0
+    default: 0,
   },
   maxAttempts: {
     type: Number,
-    default: 5
+    default: 5,
   },
   isUsed: {
     type: Boolean,
-    default: false
+    default: false,
   },
   isBlocked: {
     type: Boolean,
-    default: false
+    default: false,
   },
   ipAddress: {
-    type: String
+    type: String,
   },
   userAgent: {
-    type: String
+    type: String,
   },
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 600 // Document will be automatically deleted after 10 minutes (600 seconds)
-  }
+    expires: 600, // Document will be automatically deleted after 10 minutes (600 seconds)
+  },
 });
 
 // Index for faster queries
@@ -50,7 +50,7 @@ OTPSchema.index({ email: 1, createdAt: -1 });
 OTPSchema.index({ createdAt: 1 }, { expireAfterSeconds: 600 });
 
 // ✅ FIXED: Method to verify OTP - prevents parallel save error
-OTPSchema.methods.verifyOTP = async function(inputOTP) {
+OTPSchema.methods.verifyOTP = async function (inputOTP) {
   // Check if OTP is already used
   if (this.isUsed) {
     return { success: false, message: 'OTP has already been used' };
@@ -81,13 +81,13 @@ OTPSchema.methods.verifyOTP = async function(inputOTP) {
     await this.save();
     return {
       success: false,
-      message: `Invalid OTP. ${this.maxAttempts - this.attempts} attempts remaining`
+      message: `Invalid OTP. ${this.maxAttempts - this.attempts} attempts remaining`,
     };
   }
 };
 
 // Static method to generate OTP
-OTPSchema.statics.generateOTP = function(length = 6) {
+OTPSchema.statics.generateOTP = function (length = 6) {
   const digits = '0123456789';
   let otp = '';
   for (let i = 0; i < length; i++) {
@@ -97,12 +97,17 @@ OTPSchema.statics.generateOTP = function(length = 6) {
 };
 
 // Static method to create new OTP
-OTPSchema.statics.createOTP = async function(email, purpose = 'password_reset', ipAddress, userAgent) {
+OTPSchema.statics.createOTP = async function (
+  email,
+  purpose = 'password_reset',
+  ipAddress,
+  userAgent
+) {
   // Delete any existing unused OTPs for this email and purpose
   await this.deleteMany({
     email,
     purpose,
-    isUsed: false
+    isUsed: false,
   });
 
   // Generate new OTP
@@ -114,27 +119,27 @@ OTPSchema.statics.createOTP = async function(email, purpose = 'password_reset', 
     otp,
     purpose,
     ipAddress,
-    userAgent
+    userAgent,
   });
 
   return otpDoc;
 };
 
 // Static method to find valid OTP
-OTPSchema.statics.findValidOTP = async function(email, purpose = 'password_reset') {
+OTPSchema.statics.findValidOTP = async function (email, purpose = 'password_reset') {
   return await this.findOne({
     email,
     purpose,
     isUsed: false,
-    isBlocked: false
+    isBlocked: false,
   }).sort({ createdAt: -1 });
 };
 
 // Static method to clean up expired OTPs (backup cleanup)
-OTPSchema.statics.cleanupExpired = async function() {
+OTPSchema.statics.cleanupExpired = async function () {
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
   return await this.deleteMany({
-    createdAt: { $lt: tenMinutesAgo }
+    createdAt: { $lt: tenMinutesAgo },
   });
 };
 

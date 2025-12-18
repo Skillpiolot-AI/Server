@@ -4,11 +4,11 @@ const UserActivitySchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   sessionId: {
     type: String,
-    required: true
+    required: true,
   },
   activityType: {
     type: String,
@@ -25,30 +25,30 @@ const UserActivitySchema = new mongoose.Schema({
       'mentor_appointment',
       'resource_downloaded',
       'community_post',
-      'idle_timeout'
-    ]
+      'idle_timeout',
+    ],
   },
   page: {
     type: String,
   },
   details: {
     type: mongoose.Schema.Types.Mixed,
-    default: {}
+    default: {},
   },
   ipAddress: {
-    type: String
+    type: String,
   },
   userAgent: {
-    type: String
+    type: String,
   },
   timestamp: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   duration: {
     type: Number,
-    default: 0
-  }
+    default: 0,
+  },
 });
 
 UserActivitySchema.index({ userId: 1, timestamp: -1 });

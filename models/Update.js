@@ -5,63 +5,65 @@ const UpdateSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    maxlength: 200
+    maxlength: 200,
   },
   description: {
     type: String,
     required: true,
-    maxlength: 1000
+    maxlength: 1000,
   },
-  allowedRoles: [{
-    type: String,
-    enum: ['Admin', 'User', 'Mentor'],
-    required: true
-  }],
+  allowedRoles: [
+    {
+      type: String,
+      enum: ['Admin', 'User', 'Mentor'],
+      required: true,
+    },
+  ],
   redirectUrl: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   issueDescription: {
     type: String,
     default: '',
-    maxlength: 500
+    maxlength: 500,
   },
   version: {
     type: String,
-    default: '1.0.0'
+    default: '1.0.0',
   },
   priority: {
     type: String,
     enum: ['Low', 'Medium', 'High', 'Critical'],
-    default: 'Medium'
+    default: 'Medium',
   },
   updateType: {
     type: String,
     enum: ['Feature', 'Bug Fix', 'Enhancement', 'Security', 'UI/UX'],
-    required: true
+    required: true,
   },
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Update the updatedAt field on save
-UpdateSchema.pre('save', function(next) {
+UpdateSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   next();
 });

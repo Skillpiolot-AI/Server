@@ -14,17 +14,15 @@ app.use('/api/auth', authRoutes);
 describe('Authentication Integration Tests', () => {
   describe('POST /api/auth/signup', () => {
     it('should register a new user successfully', async () => {
-      const response = await request(app)
-        .post('/api/auth/signup')
-        .send({
-          username: 'newuser',
-          name: 'New User',
-          email: 'newuser@example.com',
-          password: 'Password123!',
-          confirmPassword: 'Password123!',
-          newsletter: false,
-          subscription: false
-        });
+      const response = await request(app).post('/api/auth/signup').send({
+        username: 'newuser',
+        name: 'New User',
+        email: 'newuser@example.com',
+        password: 'Password123!',
+        confirmPassword: 'Password123!',
+        newsletter: false,
+        subscription: false,
+      });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('success', true);
@@ -33,17 +31,15 @@ describe('Authentication Integration Tests', () => {
     });
 
     it('should not register user with mismatched passwords', async () => {
-      const response = await request(app)
-        .post('/api/auth/signup')
-        .send({
-          username: 'mismatch',
-          name: 'Mismatch User',
-          email: 'mismatch@example.com',
-          password: 'Password123!',
-          confirmPassword: 'DifferentPassword123!',
-          newsletter: false,
-          subscription: false
-        });
+      const response = await request(app).post('/api/auth/signup').send({
+        username: 'mismatch',
+        name: 'Mismatch User',
+        email: 'mismatch@example.com',
+        password: 'Password123!',
+        confirmPassword: 'DifferentPassword123!',
+        newsletter: false,
+        subscription: false,
+      });
 
       expect(response.status).toBe(400);
       expect(response.body.message).toContain('do not match');
@@ -57,7 +53,7 @@ describe('Authentication Integration Tests', () => {
         password: 'Password123!',
         confirmPassword: 'Password123!',
         newsletter: false,
-        subscription: false
+        subscription: false,
       };
 
       // First registration
@@ -68,7 +64,7 @@ describe('Authentication Integration Tests', () => {
         .post('/api/auth/signup')
         .send({
           ...userData,
-          username: 'duplicate2'
+          username: 'duplicate2',
         });
 
       expect(response.status).toBe(400);
@@ -86,17 +82,15 @@ describe('Authentication Integration Tests', () => {
         password: await bcrypt.hash('Password123!', 10),
         role: 'User',
         isVerified: true,
-        isActive: true
+        isActive: true,
       });
     });
 
     it('should login with valid credentials', async () => {
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          username: 'login@example.com',
-          password: 'Password123!'
-        });
+      const response = await request(app).post('/api/auth/login').send({
+        username: 'login@example.com',
+        password: 'Password123!',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('token');
@@ -105,12 +99,10 @@ describe('Authentication Integration Tests', () => {
     });
 
     it('should not login with invalid password', async () => {
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          username: 'login@example.com',
-          password: 'WrongPassword!'
-        });
+      const response = await request(app).post('/api/auth/login').send({
+        username: 'login@example.com',
+        password: 'WrongPassword!',
+      });
 
       expect(response.status).toBe(400);
       expect(response.body.message).toContain('password');
@@ -124,15 +116,13 @@ describe('Authentication Integration Tests', () => {
         password: await bcrypt.hash('Password123!', 10),
         role: 'User',
         isVerified: false,
-        isActive: false
+        isActive: false,
       });
 
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          username: 'unverified@example.com',
-          password: 'Password123!'
-        });
+      const response = await request(app).post('/api/auth/login').send({
+        username: 'unverified@example.com',
+        password: 'Password123!',
+      });
 
       expect(response.status).toBe(403);
       expect(response.body.errorCode).toBe('EMAIL_NOT_VERIFIED');
@@ -148,16 +138,14 @@ describe('Authentication Integration Tests', () => {
         password: await bcrypt.hash('Password123!', 10),
         role: 'User',
         isVerified: true,
-        isActive: true
+        isActive: true,
       });
     });
 
     it('should send OTP for password reset', async () => {
-      const response = await request(app)
-        .post('/api/auth/forgot-password')
-        .send({
-          email: 'reset@example.com'
-        });
+      const response = await request(app).post('/api/auth/forgot-password').send({
+        email: 'reset@example.com',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -165,11 +153,9 @@ describe('Authentication Integration Tests', () => {
     });
 
     it('should handle non-existent email gracefully', async () => {
-      const response = await request(app)
-        .post('/api/auth/forgot-password')
-        .send({
-          email: 'nonexistent@example.com'
-        });
+      const response = await request(app).post('/api/auth/forgot-password').send({
+        email: 'nonexistent@example.com',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);

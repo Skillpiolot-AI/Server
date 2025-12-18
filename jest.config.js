@@ -15,7 +15,7 @@ module.exports = {
     'config/**/*.js',
     '!**/node_modules/**',
     '!**/tests/**',
-    '!**/coverage/**'
+    '!**/coverage/**',
   ],
 
   // Coverage thresholds - lowered for initial CI pass
@@ -25,15 +25,12 @@ module.exports = {
       branches: 10,
       functions: 10,
       lines: 10,
-      statements: 10
-    }
+      statements: 10,
+    },
   },
 
   // Test match patterns
-  testMatch: [
-    '**/tests/**/*.test.js',
-    '**/__tests__/**/*.js'
-  ],
+  testMatch: ['**/tests/**/*.test.js', '**/__tests__/**/*.js'],
 
   // Setup files
   setupFilesAfterEnv: ['<rootDir>/tests/setup/setupTests.js'],
@@ -53,21 +50,15 @@ module.exports = {
   moduleDirectories: ['node_modules', '<rootDir>'],
 
   // Transform ESM modules (uuid uses ESM)
-  transformIgnorePatterns: [
-    '/node_modules/(?!(uuid)/)'
-  ],
+  transformIgnorePatterns: ['/node_modules/(?!(uuid)/)'],
 
   // Transform files - use babel for ESM support
   transform: {
-    '^.+\\.js$': 'babel-jest'
+    '^.+\\.js$': 'babel-jest',
   },
 
   // Ignore patterns
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/coverage/',
-    '/dist/'
-  ],
+  testPathIgnorePatterns: ['/node_modules/', '/coverage/', '/dist/'],
 
   // Force exit after tests complete
   forceExit: true,
@@ -83,5 +74,5 @@ module.exports = {
 
   // Global setup/teardown
   globalSetup: undefined,
-  globalTeardown: undefined
+  globalTeardown: undefined,
 };

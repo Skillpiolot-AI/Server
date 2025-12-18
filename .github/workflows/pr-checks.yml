@@ -2,7 +2,7 @@ name: PR Checks
 
 on:
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
@@ -18,24 +18,24 @@ jobs:
     name: 🔍 Lint Check
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Run ESLint
         id: eslint
         run: npm run lint
-        
+
       - name: Run Prettier check
         id: prettier
         run: npm run format:check
@@ -45,17 +45,17 @@ jobs:
     name: ⚡ Quick Tests
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          
+
       # Cache MongoDB binaries
       - name: Cache MongoDB binaries
         uses: actions/cache@v4
@@ -64,10 +64,10 @@ jobs:
           key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             mongodb-binaries-${{ runner.os }}-
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Run unit tests
         run: npm run test:unit -- --maxWorkers=2
         env:
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, quick-test]
     if: always() && github.event.pull_request.draft == false
-    
+
     steps:
       - name: Check job statuses
         id: check
@@ -93,20 +93,20 @@ jobs:
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "message=❌ Some PR checks failed" >> $GITHUB_OUTPUT
           fi
-          
+
       - name: Comment on PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: pr-checks
           message: |
             ## 🔄 PR Checks Summary
-            
+
             | Check | Status |
             |-------|--------|
             | 🔍 Lint | ${{ needs.lint.result == 'success' && '✅ Passed' || '❌ Failed' }} |
             | ⚡ Quick Tests | ${{ needs.quick-test.result == 'success' && '✅ Passed' || '❌ Failed' }} |
-            
+
             ${{ steps.check.outputs.message }}
-            
+
             ---
             _Full CI pipeline runs after these checks pass._

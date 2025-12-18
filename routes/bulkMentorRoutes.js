@@ -18,14 +18,14 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
     if (!Array.isArray(mentors) || mentors.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Mentors array is required'
+        message: 'Mentors array is required',
       });
     }
 
     const results = {
       created: [],
       failed: [],
-      skipped: []
+      skipped: [],
     };
 
     for (const mentorData of mentors) {
@@ -39,31 +39,28 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
           jobTitle,
           companiesJoined,
           experience,
-          imageUrl
+          imageUrl,
         } = mentorData;
 
         // Validate required fields
         if (!name || !email || !username || !password) {
           results.failed.push({
             email,
-            reason: 'Missing required fields'
+            reason: 'Missing required fields',
           });
           continue;
         }
 
         // Check if user already exists
         const existingUser = await User.findOne({
-          $or: [
-            { email: email.toLowerCase() },
-            { username }
-          ]
+          $or: [{ email: email.toLowerCase() }, { username }],
         });
 
         if (existingUser) {
           results.skipped.push({
             email,
             username,
-            reason: 'User already exists'
+            reason: 'User already exists',
           });
           continue;
         }
@@ -86,7 +83,7 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
           isVerified: true, // Auto-verify bulk created mentors
           isActive: true,
           newsletter: false,
-          subscription: false
+          subscription: false,
         });
 
         await mentor.save();
@@ -148,7 +145,7 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
               </body>
               </html>
             `,
-            text: `Welcome to Skill-Pilot!\n\nYour mentor account has been created.\n\nUsername: ${username}\nEmail: ${email}\nPassword: ${password}\n\nPlease login and change your password.`
+            text: `Welcome to Skill-Pilot!\n\nYour mentor account has been created.\n\nUsername: ${username}\nEmail: ${email}\nPassword: ${password}\n\nPlease login and change your password.`,
           };
 
           await sendEmailFast(email, welcomeEmail);
@@ -158,7 +155,7 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
             name,
             email,
             username,
-            emailSent: true
+            emailSent: true,
           });
         } catch (emailError) {
           console.error(`Email failed for ${email}:`, emailError.message);
@@ -168,23 +165,24 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
             email,
             username,
             emailSent: false,
-            emailError: emailError.message
+            emailError: emailError.message,
           });
         }
 
         console.log(`✅ Created: ${username} (${email})`);
-
       } catch (error) {
         console.error('Error creating mentor:', error.message);
         results.failed.push({
           email: mentorData.email,
           username: mentorData.username,
-          reason: error.message
+          reason: error.message,
         });
       }
     }
 
-    console.log(`\n📊 Results: ${results.created.length} created, ${results.skipped.length} skipped, ${results.failed.length} failed`);
+    console.log(
+      `\n📊 Results: ${results.created.length} created, ${results.skipped.length} skipped, ${results.failed.length} failed`
+    );
 
     res.status(201).json({
       success: true,
@@ -193,17 +191,16 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
         total: mentors.length,
         created: results.created.length,
         skipped: results.skipped.length,
-        failed: results.failed.length
+        failed: results.failed.length,
       },
-      results
+      results,
     });
-
   } catch (error) {
     console.error('❌ Bulk mentor creation error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during bulk creation',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -231,14 +228,14 @@ router.get('/mentors', auth, adminOnly, async (req, res) => {
       mentors,
       totalPages: Math.ceil(count / limit),
       currentPage: page,
-      totalMentors: count
+      totalMentors: count,
     });
   } catch (error) {
     console.error('Error fetching mentors:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -253,14 +250,14 @@ router.post('/verify-mentor/:mentorId', auth, adminOnly, async (req, res) => {
     if (!mentor) {
       return res.status(404).json({
         success: false,
-        message: 'Mentor not found'
+        message: 'Mentor not found',
       });
     }
 
     if (mentor.role !== 'Mentor') {
       return res.status(400).json({
         success: false,
-        message: 'User is not a mentor'
+        message: 'User is not a mentor',
       });
     }
 
@@ -278,15 +275,15 @@ router.post('/verify-mentor/:mentorId', auth, adminOnly, async (req, res) => {
         name: mentor.name,
         email: mentor.email,
         username: mentor.username,
-        isVerified: mentor.isVerified
-      }
+        isVerified: mentor.isVerified,
+      },
     });
   } catch (error) {
     console.error('Error verifying mentor:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -299,20 +296,20 @@ router.post('/bulk-verify-mentors', auth, adminOnly, async (req, res) => {
     if (!Array.isArray(mentorIds) || mentorIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'mentorIds array is required'
+        message: 'mentorIds array is required',
       });
     }
 
     const result = await User.updateMany(
       {
         _id: { $in: mentorIds },
-        role: 'Mentor'
+        role: 'Mentor',
       },
       {
         $set: {
           isVerified: true,
-          isActive: true
-        }
+          isActive: true,
+        },
       }
     );
 
@@ -321,14 +318,14 @@ router.post('/bulk-verify-mentors', auth, adminOnly, async (req, res) => {
     res.json({
       success: true,
       message: `Successfully verified ${result.modifiedCount} mentors`,
-      modifiedCount: result.modifiedCount
+      modifiedCount: result.modifiedCount,
     });
   } catch (error) {
     console.error('Error bulk verifying mentors:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -339,16 +336,13 @@ router.post('/auto-verify-all-mentors', auth, adminOnly, async (req, res) => {
     const result = await User.updateMany(
       {
         role: 'Mentor',
-        $or: [
-          { isVerified: { $exists: false } },
-          { isVerified: false }
-        ]
+        $or: [{ isVerified: { $exists: false } }, { isVerified: false }],
       },
       {
         $set: {
           isVerified: true,
-          isActive: true
-        }
+          isActive: true,
+        },
       }
     );
 
@@ -357,14 +351,14 @@ router.post('/auto-verify-all-mentors', auth, adminOnly, async (req, res) => {
     res.json({
       success: true,
       message: `Successfully verified ${result.modifiedCount} mentors`,
-      modifiedCount: result.modifiedCount
+      modifiedCount: result.modifiedCount,
     });
   } catch (error) {
     console.error('Error auto-verifying mentors:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 });

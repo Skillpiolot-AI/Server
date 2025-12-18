@@ -11,7 +11,7 @@ describe('User Model Tests', () => {
         name: 'Test User',
         email: 'test@example.com',
         password: await bcrypt.hash('password123', 10),
-        role: 'User'
+        role: 'User',
       };
 
       const user = new User(userData);
@@ -33,7 +33,7 @@ describe('User Model Tests', () => {
         name: 'User One',
         email: 'duplicate@example.com',
         password: await bcrypt.hash('password123', 10),
-        role: 'User'
+        role: 'User',
       };
 
       await User.create(userData);
@@ -43,7 +43,7 @@ describe('User Model Tests', () => {
         name: 'User Two',
         email: 'duplicate@example.com',
         password: await bcrypt.hash('password123', 10),
-        role: 'User'
+        role: 'User',
       });
 
       await expect(duplicateUser.save()).rejects.toThrow();
@@ -58,7 +58,7 @@ describe('User Model Tests', () => {
         email: 'locked@example.com',
         password: await bcrypt.hash('password123', 10),
         role: 'User',
-        lockUntil: new Date(Date.now() + 3600000) // 1 hour from now
+        lockUntil: new Date(Date.now() + 3600000), // 1 hour from now
       });
 
       expect(user.isLocked).toBe(true);
@@ -74,8 +74,8 @@ describe('User Model Tests', () => {
         suspension: {
           isSuspended: true,
           suspendedUntil: new Date(Date.now() + 86400000), // 1 day from now
-          reason: 'Test suspension'
-        }
+          reason: 'Test suspension',
+        },
       });
 
       expect(user.isSuspensionActive).toBe(true);
@@ -89,7 +89,7 @@ describe('User Model Tests', () => {
         name: 'Attempt User',
         email: 'attempt@example.com',
         password: await bcrypt.hash('password123', 10),
-        role: 'User'
+        role: 'User',
       });
 
       await user.incLoginAttempts();
@@ -105,7 +105,7 @@ describe('User Model Tests', () => {
         email: 'reset@example.com',
         password: await bcrypt.hash('password123', 10),
         role: 'User',
-        loginAttempts: 5
+        loginAttempts: 5,
       });
 
       await user.resetLoginAttempts();
@@ -121,7 +121,7 @@ describe('User Model Tests', () => {
         name: 'Password User',
         email: 'password@example.com',
         password: await bcrypt.hash('oldpassword', 10),
-        role: 'User'
+        role: 'User',
       });
 
       const newHashedPassword = await bcrypt.hash('newpassword', 10);

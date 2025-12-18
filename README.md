@@ -15,51 +15,58 @@ The Career Guidance Engine serves as the core backend infrastructure for a moder
 ## 🚀 Key Features
 
 ### 🎯 **Career Exploration**
+
 - AI-powered career recommendations using Google Gemini API
 - Comprehensive job market insights and industry trends
 - Personalized career path suggestions based on skills and interests
 
 ### 🧙‍♂️ **Mentorship Platform**
+
 - Seamless mentor-student matching system
 - Appointment booking and scheduling functionality
 - Real-time session management and tracking
 
 ### 📁 **Resource Management**
+
 - Curated educational content and learning materials
 - Workshop and event management system
 - Downloadable resources with organized categorization
 
 ### 🧑‍💼 **Application Tracking**
+
 - Job application submission and status monitoring
 - Unique tracking ID system for application management
 - Automated status updates and notifications
 
 ### 🎪 **Events & Workshops**
+
 - Comprehensive event management system
 - Registration and attendance tracking
 - Multi-format support (online/offline events)
 
 ### 🧠 **AI-Powered Intelligence**
+
 - Google Gemini API integration for career counseling
 - Natural language processing for personalized suggestions
 - Intelligent matching algorithms for mentor-student pairing
 
 ## 🛠️ Technology Stack
 
-| Category | Technology |
-|----------|------------|
-| **Runtime** | Node.js |
-| **Framework** | Express.js |
-| **Database** | MongoDB with Mongoose ODM |
-| **Authentication** | JWT (JSON Web Tokens) |
-| **AI Integration** | Google Gemini API |
-| **Email Service** | Nodemailer |
-| **File Handling** | Multer |
-| **Security** | bcrypt, CORS, Helmet |
+| Category           | Technology                |
+| ------------------ | ------------------------- |
+| **Runtime**        | Node.js                   |
+| **Framework**      | Express.js                |
+| **Database**       | MongoDB with Mongoose ODM |
+| **Authentication** | JWT (JSON Web Tokens)     |
+| **AI Integration** | Google Gemini API         |
+| **Email Service**  | Nodemailer                |
+| **File Handling**  | Multer                    |
+| **Security**       | bcrypt, CORS, Helmet      |
 
 ## ⚡ Quick Start
 
 ### Prerequisites
+
 - Node.js (v16+ recommended)
 - MongoDB (local or Atlas)
 - Git
@@ -116,14 +123,14 @@ Server will be accessible at `http://localhost:3001`
 
 ### Core Endpoints
 
-| Endpoint | Description | Authentication |
-|----------|-------------|----------------|
-| `/api/auth/*` | User authentication and authorization | Public/Protected |
-| `/api/careers/*` | Career data and AI recommendations | Protected |
-| `/api/mentors/*` | Mentor management and booking | Protected |
-| `/api/applications/*` | Job application tracking | Protected |
-| `/api/workshops/*` | Event and workshop management | Protected |
-| `/api/resources/*` | Educational resource access | Protected |
+| Endpoint              | Description                           | Authentication   |
+| --------------------- | ------------------------------------- | ---------------- |
+| `/api/auth/*`         | User authentication and authorization | Public/Protected |
+| `/api/careers/*`      | Career data and AI recommendations    | Protected        |
+| `/api/mentors/*`      | Mentor management and booking         | Protected        |
+| `/api/applications/*` | Job application tracking              | Protected        |
+| `/api/workshops/*`    | Event and workshop management         | Protected        |
+| `/api/resources/*`    | Educational resource access           | Protected        |
 
 ### Authentication Flow
 
@@ -140,6 +147,7 @@ graph TD
 ### Sample API Calls
 
 #### Authentication
+
 ```bash
 # User Registration
 POST /api/auth/signup
@@ -154,6 +162,7 @@ Content-Type: application/json
 ```
 
 #### Career Recommendations
+
 ```bash
 # Get AI-Powered Career Suggestions
 POST /api/careers/suggestions
@@ -168,6 +177,7 @@ Content-Type: application/json
 ```
 
 #### Mentor Booking
+
 ```bash
 # Book Mentorship Session
 POST /api/mentors/book-appointment
@@ -184,6 +194,7 @@ Content-Type: application/json
 ## 🔒 Security Implementation
 
 ### Multi-Layer Security
+
 - **Password Encryption**: bcrypt hashing algorithm
 - **JWT Authentication**: Stateless token-based authentication
 - **Role-Based Access Control**: User, Mentor, Admin hierarchies
@@ -192,16 +203,15 @@ Content-Type: application/json
 - **Rate Limiting**: API endpoint protection against abuse
 
 ### Security Best Practices
+
 ```javascript
 // Password hashing example
 const hashedPassword = await bcrypt.hash(password, 12);
 
 // JWT token generation
-const token = jwt.sign(
-  { userId: user._id, role: user.role },
-  process.env.JWT_SECRET,
-  { expiresIn: '24h' }
-);
+const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
+  expiresIn: '24h',
+});
 ```
 
 ## 📊 Database Schema
@@ -209,6 +219,7 @@ const token = jwt.sign(
 ### Core Models
 
 #### User Model
+
 ```javascript
 {
   username: { type: String, required: true, unique: true },
@@ -227,6 +238,7 @@ const token = jwt.sign(
 ```
 
 #### Career Model
+
 ```javascript
 {
   jobTitle: { type: String, required: true },
@@ -242,6 +254,7 @@ const token = jwt.sign(
 ## 🔧 Development & Deployment
 
 ### Development Workflow
+
 ```bash
 # Run in development mode with auto-reload
 npm run dev
@@ -257,6 +270,7 @@ npm run build
 ```
 
 ### Docker Deployment
+
 ```dockerfile
 FROM node:16-alpine
 WORKDIR /app
@@ -268,6 +282,7 @@ CMD ["node", "index.js"]
 ```
 
 ### Cloud Deployment Options
+
 - **Heroku**: Easy deployment with Git integration
 - **AWS EC2**: Scalable cloud hosting
 - **Digital Ocean**: Cost-effective VPS hosting
@@ -276,12 +291,14 @@ CMD ["node", "index.js"]
 ## 📈 Performance & Monitoring
 
 ### Performance Optimization
+
 - Database indexing for faster queries
 - Response caching for frequently accessed data
 - Pagination for large dataset handling
 - Connection pooling for database efficiency
 
 ### Monitoring Features
+
 - Request/response logging
 - Error tracking and reporting
 - Performance metrics collection
@@ -290,10 +307,12 @@ CMD ["node", "index.js"]
 ## 🤝 Integration Partners
 
 ### Connected Applications
+
 - **Frontend Application**: [MentorShip-FrontEnd](https://github.com/ujjwaljha1/MentorShip-FrontEnd)
 - **Live Platform**: [mentorshipsih.netlify.app](https://mentorshipsih.netlify.app/)
 
 ### Third-Party Integrations
+
 - **Google Gemini AI**: Career recommendation engine
 - **Email Services**: Automated notifications
 - **Cloud Storage**: Resource and file management
@@ -302,6 +321,7 @@ CMD ["node", "index.js"]
 ## 🧪 Testing & Quality Assurance
 
 ### Testing Strategy
+
 ```bash
 # Unit tests
 npm run test:unit
@@ -317,6 +337,7 @@ npm run test:load
 ```
 
 ### Code Quality Tools
+
 - ESLint for code standardization
 - Prettier for code formatting
 - Husky for pre-commit hooks
@@ -325,12 +346,14 @@ npm run test:load
 ## 📚 Documentation & Support
 
 ### API Documentation
+
 - Comprehensive endpoint documentation
 - Request/response examples
 - Error handling guidelines
 - Authentication flow diagrams
 
 ### Support Resources
+
 - Detailed setup instructions
 - Troubleshooting guides
 - FAQ section
@@ -339,6 +362,7 @@ npm run test:load
 ## 🚀 Future Roadmap
 
 ### Planned Features
+
 - **Advanced AI Integration**: Enhanced career prediction models
 - **Real-time Communication**: WebSocket integration for live mentoring
 - **Mobile API**: Dedicated mobile application endpoints
@@ -346,6 +370,7 @@ npm run test:load
 - **Multi-language Support**: International platform expansion
 
 ### Performance Enhancements
+
 - Redis caching implementation
 - GraphQL API development
 - Microservices architecture migration
@@ -356,6 +381,7 @@ npm run test:load
 We welcome contributions from the developer community!
 
 ### How to Contribute
+
 1. **Fork** the repository
 2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
 3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
@@ -363,6 +389,7 @@ We welcome contributions from the developer community!
 5. **Open** a Pull Request
 
 ### Development Guidelines
+
 - Follow established coding standards
 - Write comprehensive tests for new features
 - Update documentation for API changes
@@ -375,10 +402,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact & Support
 
 ### Development Team
+
 - **Primary Developer**: [Ujjwal Jha](https://github.com/ujjwaljha1)
 - **Project Repository**: [Mentorship-server](https://github.com/ujjwaljha1/Mentorship-server)
 
 ### Support Channels
+
 - **Issues**: GitHub Issues for bug reports
 - **Discussions**: GitHub Discussions for community support
 - **Email**: Technical support via repository contacts

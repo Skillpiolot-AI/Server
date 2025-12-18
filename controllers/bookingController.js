@@ -8,9 +8,9 @@ const crypto = require('crypto');
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // Generate Jitsi meeting link
-const generateJitsiLink = (bookingId) => {
-    const roomName = `skillpilot-${bookingId}-${crypto.randomBytes(4).toString('hex')}`;
-    return `https://meet.jit.si/${roomName}`;
+const generateJitsiLink = bookingId => {
+  const roomName = `skillpilot-${bookingId}-${crypto.randomBytes(4).toString('hex')}`;
+  return `https://meet.jit.si/${roomName}`;
 };
 
 // ==========================================
@@ -22,98 +22,94 @@ const generateJitsiLink = (bookingId) => {
  * POST /api/bookings/book
  */
 exports.createBooking = async (req, res) => {
-    try {
-        const userId = req.user._id;
-        const {
-            mentorProfileId,
-            scheduledAt,
-            duration = 60,
-            remark,
-            topics
-        } = req.body;
+  try {
+    const userId = req.user._id;
+    const { mentorProfileId, scheduledAt, duration = 60, remark, topics } = req.body;
 
-        // Validate required fields
-        if (!mentorProfileId || !scheduledAt) {
-            return res.status(400).json({
-                error: 'Missing required fields',
-                required: ['mentorProfileId', 'scheduledAt']
-            });
-        }
+    // Validate required fields
+    if (!mentorProfileId || !scheduledAt) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        required: ['mentorProfileId', 'scheduledAt'],
+      });
+    }
 
-        // Get mentor profile
-        const mentorProfile = await MentorProfile.findById(mentorProfileId)
-            .populate('userId', 'name email');
+    // Get mentor profile
+    const mentorProfile = await MentorProfile.findById(mentorProfileId).populate(
+      'userId',
+      'name email'
+    );
 
-        if (!mentorProfile || !mentorProfile.isVisible) {
-            return res.status(404).json({ error: 'Mentor not found or unavailable' });
-        }
+    if (!mentorProfile || !mentorProfile.isVisible) {
+      return res.status(404).json({ error: 'Mentor not found or unavailable' });
+    }
 
-        const mentorId = mentorProfile.userId._id;
+    const mentorId = mentorProfile.userId._id;
 
-        // Prevent self-booking
-        if (mentorId.toString() === userId.toString()) {
-            return res.status(400).json({ error: 'You cannot book a session with yourself' });
-        }
+    // Prevent self-booking
+    if (mentorId.toString() === userId.toString()) {
+      return res.status(400).json({ error: 'You cannot book a session with yourself' });
+    }
 
-        // Check for time conflicts
-        const scheduledDate = new Date(scheduledAt);
-        const conflict = await MentorBooking.checkConflict(mentorId, scheduledDate, duration);
-        if (conflict) {
-            return res.status(400).json({
-                error: 'This time slot is not available',
-                conflictingBooking: conflict.bookingId
-            });
-        }
+    // Check for time conflicts
+    const scheduledDate = new Date(scheduledAt);
+    const conflict = await MentorBooking.checkConflict(mentorId, scheduledDate, duration);
+    if (conflict) {
+      return res.status(400).json({
+        error: 'This time slot is not available',
+        conflictingBooking: conflict.bookingId,
+      });
+    }
 
-        // Get system settings for pricing
-        const settings = await SystemSettings.getSettings();
-        const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
+    // Get system settings for pricing
+    const settings = await SystemSettings.getSettings();
+    const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
 
-        // Calculate pricing
-        let isFree = isFreeMentorship;
-        let originalPrice = 0;
-        let paidAmount = 0;
+    // Calculate pricing
+    let isFree = isFreeMentorship;
+    let originalPrice = 0;
+    let paidAmount = 0;
 
-        if (!isFreeMentorship && mentorProfile.pricingType !== 'free') {
-            // Calculate from mentor's pricing
-            if (mentorProfile.trialSession?.available && mentorProfile.trialSession?.price) {
-                originalPrice = mentorProfile.trialSession.price;
-            } else if (mentorProfile.pricingPlans?.length > 0) {
-                originalPrice = mentorProfile.pricingPlans[0].price / 4; // Per session estimate
-            }
-            paidAmount = originalPrice;
-        } else {
-            isFree = true;
-        }
+    if (!isFreeMentorship && mentorProfile.pricingType !== 'free') {
+      // Calculate from mentor's pricing
+      if (mentorProfile.trialSession?.available && mentorProfile.trialSession?.price) {
+        originalPrice = mentorProfile.trialSession.price;
+      } else if (mentorProfile.pricingPlans?.length > 0) {
+        originalPrice = mentorProfile.pricingPlans[0].price / 4; // Per session estimate
+      }
+      paidAmount = originalPrice;
+    } else {
+      isFree = true;
+    }
 
-        // Create booking with auto-generated Jitsi link
-        const booking = new MentorBooking({
-            userId,
-            mentorId,
-            mentorProfileId,
-            scheduledAt: scheduledDate,
-            duration,
-            remark,
-            topics: topics || [],
-            isFree,
-            originalPrice,
-            paidAmount,
-            status: settings.bookingSettings?.autoConfirmBookings ? 'confirmed' : 'pending'
-        });
+    // Create booking with auto-generated Jitsi link
+    const booking = new MentorBooking({
+      userId,
+      mentorId,
+      mentorProfileId,
+      scheduledAt: scheduledDate,
+      duration,
+      remark,
+      topics: topics || [],
+      isFree,
+      originalPrice,
+      paidAmount,
+      status: settings.bookingSettings?.autoConfirmBookings ? 'confirmed' : 'pending',
+    });
 
-        // Auto-generate Jitsi meeting link
-        booking.meetingLink = generateJitsiLink(booking.bookingId);
-        booking.meetingLinkSentAt = new Date();
+    // Auto-generate Jitsi meeting link
+    booking.meetingLink = generateJitsiLink(booking.bookingId);
+    booking.meetingLinkSentAt = new Date();
 
-        const savedBooking = await booking.save();
+    const savedBooking = await booking.save();
 
-        // Get user details for email
-        const user = await User.findById(userId).select('name email');
+    // Get user details for email
+    const user = await User.findById(userId).select('name email');
 
-        // Send confirmation email to user (async)
-        sendEmailFast(user.email, {
-            subject: '✅ Booking Confirmed - Skill-Pilot Mentorship',
-            html: `
+    // Send confirmation email to user (async)
+    sendEmailFast(user.email, {
+      subject: '✅ Booking Confirmed - Skill-Pilot Mentorship',
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #3F3FF3 0%, #2F2FD3 100%); color: white; padding: 30px; text-align: center;">
             <h1>🎯 Session Booked!</h1>
@@ -145,13 +141,13 @@ exports.createBooking = async (req, res) => {
           </div>
         </div>
       `,
-            text: `Hello ${user.name}!\n\nYour mentorship session has been ${savedBooking.status}.\n\nBooking ID: ${savedBooking.bookingId}\nMentor: ${mentorProfile.displayName}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${duration} minutes\n\nBest regards,\nThe Skill-Pilot Team`
-        }).catch(err => console.error('Failed to send user booking email:', err));
+      text: `Hello ${user.name}!\n\nYour mentorship session has been ${savedBooking.status}.\n\nBooking ID: ${savedBooking.bookingId}\nMentor: ${mentorProfile.displayName}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${duration} minutes\n\nBest regards,\nThe Skill-Pilot Team`,
+    }).catch(err => console.error('Failed to send user booking email:', err));
 
-        // Send notification to mentor (async)
-        sendEmailFast(mentorProfile.userId.email, {
-            subject: '📅 New Booking Request - Skill-Pilot',
-            html: `
+    // Send notification to mentor (async)
+    sendEmailFast(mentorProfile.userId.email, {
+      subject: '📅 New Booking Request - Skill-Pilot',
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">
             <h1>📅 New Session Booked!</h1>
@@ -182,28 +178,28 @@ exports.createBooking = async (req, res) => {
           </div>
         </div>
       `,
-            text: `Hello ${mentorProfile.displayName}!\n\nA student has booked a session with you.\n\nBooking ID: ${savedBooking.bookingId}\nStudent: ${user.name}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${duration} minutes\n\nMessage: ${remark || 'No message'}\n\nBest regards,\nThe Skill-Pilot Team`
-        }).catch(err => console.error('Failed to send mentor booking email:', err));
+      text: `Hello ${mentorProfile.displayName}!\n\nA student has booked a session with you.\n\nBooking ID: ${savedBooking.bookingId}\nStudent: ${user.name}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${duration} minutes\n\nMessage: ${remark || 'No message'}\n\nBest regards,\nThe Skill-Pilot Team`,
+    }).catch(err => console.error('Failed to send mentor booking email:', err));
 
-        res.status(201).json({
-            message: 'Booking created successfully',
-            booking: {
-                id: savedBooking._id,
-                bookingId: savedBooking.bookingId,
-                status: savedBooking.status,
-                scheduledAt: savedBooking.scheduledAt,
-                duration: savedBooking.duration,
-                isFree: savedBooking.isFree,
-                mentor: {
-                    name: mentorProfile.displayName,
-                    profileImage: mentorProfile.profileImage
-                }
-            }
-        });
-    } catch (error) {
-        console.error('Error creating booking:', error);
-        res.status(500).json({ error: 'Failed to create booking', details: error.message });
-    }
+    res.status(201).json({
+      message: 'Booking created successfully',
+      booking: {
+        id: savedBooking._id,
+        bookingId: savedBooking.bookingId,
+        status: savedBooking.status,
+        scheduledAt: savedBooking.scheduledAt,
+        duration: savedBooking.duration,
+        isFree: savedBooking.isFree,
+        mentor: {
+          name: mentorProfile.displayName,
+          profileImage: mentorProfile.profileImage,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({ error: 'Failed to create booking', details: error.message });
+  }
 };
 
 /**
@@ -211,38 +207,38 @@ exports.createBooking = async (req, res) => {
  * GET /api/bookings/my-bookings
  */
 exports.getUserBookings = async (req, res) => {
-    try {
-        const userId = req.user._id;
-        const { status, page = 1, limit = 10 } = req.query;
+  try {
+    const userId = req.user._id;
+    const { status, page = 1, limit = 10 } = req.query;
 
-        const query = { userId };
-        if (status) query.status = status;
+    const query = { userId };
+    if (status) query.status = status;
 
-        const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        const [bookings, total] = await Promise.all([
-            MentorBooking.find(query)
-                .sort({ scheduledAt: -1 })
-                .skip(skip)
-                .limit(parseInt(limit))
-                .populate('mentorId', 'name email imageUrl')
-                .populate('mentorProfileId', 'displayName tagline profileImage'),
-            MentorBooking.countDocuments(query)
-        ]);
+    const [bookings, total] = await Promise.all([
+      MentorBooking.find(query)
+        .sort({ scheduledAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate('mentorId', 'name email imageUrl')
+        .populate('mentorProfileId', 'displayName tagline profileImage'),
+      MentorBooking.countDocuments(query),
+    ]);
 
-        res.json({
-            bookings,
-            pagination: {
-                total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                pages: Math.ceil(total / parseInt(limit))
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching user bookings:', error);
-        res.status(500).json({ error: 'Failed to fetch bookings' });
-    }
+    res.json({
+      bookings,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching user bookings:', error);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
 };
 
 /**
@@ -250,35 +246,35 @@ exports.getUserBookings = async (req, res) => {
  * GET /api/bookings/:bookingId
  */
 exports.getBookingById = async (req, res) => {
-    try {
-        const { bookingId } = req.params;
-        const userId = req.user._id;
+  try {
+    const { bookingId } = req.params;
+    const userId = req.user._id;
 
-        const booking = await MentorBooking.findOne({
-            $or: [{ _id: bookingId }, { bookingId }]
-        })
-            .populate('userId', 'name email imageUrl')
-            .populate('mentorId', 'name email imageUrl')
-            .populate('mentorProfileId', 'displayName tagline profileImage bio');
+    const booking = await MentorBooking.findOne({
+      $or: [{ _id: bookingId }, { bookingId }],
+    })
+      .populate('userId', 'name email imageUrl')
+      .populate('mentorId', 'name email imageUrl')
+      .populate('mentorProfileId', 'displayName tagline profileImage bio');
 
-        if (!booking) {
-            return res.status(404).json({ error: 'Booking not found' });
-        }
-
-        // Check access (user or mentor can view)
-        const isUser = booking.userId._id.toString() === userId.toString();
-        const isMentor = booking.mentorId._id.toString() === userId.toString();
-        const isAdmin = req.user.role === 'Admin';
-
-        if (!isUser && !isMentor && !isAdmin) {
-            return res.status(403).json({ error: 'Access denied' });
-        }
-
-        res.json({ booking, isUser, isMentor });
-    } catch (error) {
-        console.error('Error fetching booking:', error);
-        res.status(500).json({ error: 'Failed to fetch booking' });
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
     }
+
+    // Check access (user or mentor can view)
+    const isUser = booking.userId._id.toString() === userId.toString();
+    const isMentor = booking.mentorId._id.toString() === userId.toString();
+    const isAdmin = req.user.role === 'Admin';
+
+    if (!isUser && !isMentor && !isAdmin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    res.json({ booking, isUser, isMentor });
+  } catch (error) {
+    console.error('Error fetching booking:', error);
+    res.status(500).json({ error: 'Failed to fetch booking' });
+  }
 };
 
 /**
@@ -286,45 +282,45 @@ exports.getBookingById = async (req, res) => {
  * PUT /api/bookings/:bookingId/cancel
  */
 exports.cancelBooking = async (req, res) => {
-    try {
-        const { bookingId } = req.params;
-        const { reason } = req.body;
-        const userId = req.user._id;
+  try {
+    const { bookingId } = req.params;
+    const { reason } = req.body;
+    const userId = req.user._id;
 
-        const booking = await MentorBooking.findOne({
-            $or: [{ _id: bookingId }, { bookingId }]
-        });
+    const booking = await MentorBooking.findOne({
+      $or: [{ _id: bookingId }, { bookingId }],
+    });
 
-        if (!booking) {
-            return res.status(404).json({ error: 'Booking not found' });
-        }
-
-        // Check if user can cancel
-        const isUser = booking.userId.toString() === userId.toString();
-        const isMentor = booking.mentorId.toString() === userId.toString();
-
-        if (!isUser && !isMentor) {
-            return res.status(403).json({ error: 'Access denied' });
-        }
-
-        if (['completed', 'cancelled'].includes(booking.status)) {
-            return res.status(400).json({ error: 'Cannot cancel this booking' });
-        }
-
-        await booking.cancel(isUser ? 'user' : 'mentor', reason);
-
-        res.json({
-            message: 'Booking cancelled',
-            booking: {
-                id: booking._id,
-                bookingId: booking.bookingId,
-                status: booking.status
-            }
-        });
-    } catch (error) {
-        console.error('Error cancelling booking:', error);
-        res.status(500).json({ error: 'Failed to cancel booking' });
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
     }
+
+    // Check if user can cancel
+    const isUser = booking.userId.toString() === userId.toString();
+    const isMentor = booking.mentorId.toString() === userId.toString();
+
+    if (!isUser && !isMentor) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (['completed', 'cancelled'].includes(booking.status)) {
+      return res.status(400).json({ error: 'Cannot cancel this booking' });
+    }
+
+    await booking.cancel(isUser ? 'user' : 'mentor', reason);
+
+    res.json({
+      message: 'Booking cancelled',
+      booking: {
+        id: booking._id,
+        bookingId: booking.bookingId,
+        status: booking.status,
+      },
+    });
+  } catch (error) {
+    console.error('Error cancelling booking:', error);
+    res.status(500).json({ error: 'Failed to cancel booking' });
+  }
 };
 
 // ==========================================
@@ -336,41 +332,41 @@ exports.cancelBooking = async (req, res) => {
  * GET /api/bookings/mentor/sessions
  */
 exports.getMentorBookings = async (req, res) => {
-    try {
-        const mentorId = req.user._id;
-        const { status, upcoming, page = 1, limit = 10 } = req.query;
+  try {
+    const mentorId = req.user._id;
+    const { status, upcoming, page = 1, limit = 10 } = req.query;
 
-        const query = { mentorId };
-        if (status) query.status = status;
-        if (upcoming === 'true') {
-            query.scheduledAt = { $gte: new Date() };
-            query.status = { $in: ['pending', 'confirmed'] };
-        }
-
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-
-        const [bookings, total] = await Promise.all([
-            MentorBooking.find(query)
-                .sort({ scheduledAt: upcoming === 'true' ? 1 : -1 })
-                .skip(skip)
-                .limit(parseInt(limit))
-                .populate('userId', 'name email imageUrl'),
-            MentorBooking.countDocuments(query)
-        ]);
-
-        res.json({
-            bookings,
-            pagination: {
-                total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                pages: Math.ceil(total / parseInt(limit))
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching mentor bookings:', error);
-        res.status(500).json({ error: 'Failed to fetch bookings' });
+    const query = { mentorId };
+    if (status) query.status = status;
+    if (upcoming === 'true') {
+      query.scheduledAt = { $gte: new Date() };
+      query.status = { $in: ['pending', 'confirmed'] };
     }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [bookings, total] = await Promise.all([
+      MentorBooking.find(query)
+        .sort({ scheduledAt: upcoming === 'true' ? 1 : -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate('userId', 'name email imageUrl'),
+      MentorBooking.countDocuments(query),
+    ]);
+
+    res.json({
+      bookings,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching mentor bookings:', error);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
 };
 
 /**
@@ -378,52 +374,52 @@ exports.getMentorBookings = async (req, res) => {
  * POST /api/bookings/mentor/:bookingId/send-link
  */
 exports.sendMeetingLink = async (req, res) => {
-    try {
-        const { bookingId } = req.params;
-        const { meetingLink, token } = req.body;
+  try {
+    const { bookingId } = req.params;
+    const { meetingLink, token } = req.body;
 
-        if (!meetingLink) {
-            return res.status(400).json({ error: 'Meeting link is required' });
-        }
+    if (!meetingLink) {
+      return res.status(400).json({ error: 'Meeting link is required' });
+    }
 
-        // Find booking by token or by mentor auth
-        let booking;
+    // Find booking by token or by mentor auth
+    let booking;
 
-        if (token) {
-            // Token-based access (from email)
-            booking = await MentorBooking.findOne({
-                $or: [{ _id: bookingId }, { bookingId }],
-                meetingLinkToken: token
-            });
+    if (token) {
+      // Token-based access (from email)
+      booking = await MentorBooking.findOne({
+        $or: [{ _id: bookingId }, { bookingId }],
+        meetingLinkToken: token,
+      });
 
-            if (!booking || !booking.verifyMeetingLinkToken(token)) {
-                return res.status(400).json({ error: 'Invalid or expired token' });
-            }
-        } else {
-            // Authenticated mentor access
-            const mentorId = req.user._id;
-            booking = await MentorBooking.findOne({
-                $or: [{ _id: bookingId }, { bookingId }],
-                mentorId
-            });
-        }
+      if (!booking || !booking.verifyMeetingLinkToken(token)) {
+        return res.status(400).json({ error: 'Invalid or expired token' });
+      }
+    } else {
+      // Authenticated mentor access
+      const mentorId = req.user._id;
+      booking = await MentorBooking.findOne({
+        $or: [{ _id: bookingId }, { bookingId }],
+        mentorId,
+      });
+    }
 
-        if (!booking) {
-            return res.status(404).json({ error: 'Booking not found' });
-        }
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
 
-        await booking.setMeetingLink(meetingLink);
-        booking.status = 'in-progress';
-        await booking.save();
+    await booking.setMeetingLink(meetingLink);
+    booking.status = 'in-progress';
+    await booking.save();
 
-        // Get user details
-        const user = await User.findById(booking.userId).select('name email');
-        const mentor = await User.findById(booking.mentorId).select('name');
+    // Get user details
+    const user = await User.findById(booking.userId).select('name email');
+    const mentor = await User.findById(booking.mentorId).select('name');
 
-        // Send meeting link to user
-        sendEmailFast(user.email, {
-            subject: '🔗 Meeting Link Ready - Your Session Starts Now!',
-            html: `
+    // Send meeting link to user
+    sendEmailFast(user.email, {
+      subject: '🔗 Meeting Link Ready - Your Session Starts Now!',
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">
             <h1>🚀 Your Session is Starting!</h1>
@@ -444,22 +440,22 @@ exports.sendMeetingLink = async (req, res) => {
           </div>
         </div>
       `,
-            text: `Hello ${user.name}!\n\nYour mentor ${mentor.name} has shared the meeting link.\n\nJoin now: ${meetingLink}\n\nHave a great session!`
-        }).catch(err => console.error('Failed to send meeting link email:', err));
+      text: `Hello ${user.name}!\n\nYour mentor ${mentor.name} has shared the meeting link.\n\nJoin now: ${meetingLink}\n\nHave a great session!`,
+    }).catch(err => console.error('Failed to send meeting link email:', err));
 
-        res.json({
-            message: 'Meeting link sent successfully',
-            booking: {
-                id: booking._id,
-                bookingId: booking.bookingId,
-                status: booking.status,
-                meetingLinkSentAt: booking.meetingLinkSentAt
-            }
-        });
-    } catch (error) {
-        console.error('Error sending meeting link:', error);
-        res.status(500).json({ error: 'Failed to send meeting link' });
-    }
+    res.json({
+      message: 'Meeting link sent successfully',
+      booking: {
+        id: booking._id,
+        bookingId: booking.bookingId,
+        status: booking.status,
+        meetingLinkSentAt: booking.meetingLinkSentAt,
+      },
+    });
+  } catch (error) {
+    console.error('Error sending meeting link:', error);
+    res.status(500).json({ error: 'Failed to send meeting link' });
+  }
 };
 
 /**
@@ -467,36 +463,36 @@ exports.sendMeetingLink = async (req, res) => {
  * GET /api/bookings/send-link-page/:token
  */
 exports.getMeetingLinkPage = async (req, res) => {
-    try {
-        const { token } = req.params;
+  try {
+    const { token } = req.params;
 
-        const booking = await MentorBooking.findOne({ meetingLinkToken: token })
-            .populate('userId', 'name')
-            .populate('mentorId', 'name')
-            .populate('mentorProfileId', 'displayName');
+    const booking = await MentorBooking.findOne({ meetingLinkToken: token })
+      .populate('userId', 'name')
+      .populate('mentorId', 'name')
+      .populate('mentorProfileId', 'displayName');
 
-        if (!booking) {
-            return res.status(404).json({ error: 'Invalid token' });
-        }
-
-        if (!booking.verifyMeetingLinkToken(token)) {
-            return res.status(400).json({ error: 'Token expired' });
-        }
-
-        res.json({
-            booking: {
-                bookingId: booking.bookingId,
-                scheduledAt: booking.scheduledAt,
-                duration: booking.duration,
-                studentName: booking.userId.name,
-                mentorName: booking.mentorProfileId?.displayName || booking.mentorId.name,
-                remark: booking.remark
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching meeting link page:', error);
-        res.status(500).json({ error: 'Failed to load page' });
+    if (!booking) {
+      return res.status(404).json({ error: 'Invalid token' });
     }
+
+    if (!booking.verifyMeetingLinkToken(token)) {
+      return res.status(400).json({ error: 'Token expired' });
+    }
+
+    res.json({
+      booking: {
+        bookingId: booking.bookingId,
+        scheduledAt: booking.scheduledAt,
+        duration: booking.duration,
+        studentName: booking.userId.name,
+        mentorName: booking.mentorProfileId?.displayName || booking.mentorId.name,
+        remark: booking.remark,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching meeting link page:', error);
+    res.status(500).json({ error: 'Failed to load page' });
+  }
 };
 
 /**
@@ -504,42 +500,42 @@ exports.getMeetingLinkPage = async (req, res) => {
  * PUT /api/bookings/mentor/:bookingId/complete
  */
 exports.completeSession = async (req, res) => {
-    try {
-        const { bookingId } = req.params;
-        const { notes } = req.body;
-        const mentorId = req.user._id;
+  try {
+    const { bookingId } = req.params;
+    const { notes } = req.body;
+    const mentorId = req.user._id;
 
-        const booking = await MentorBooking.findOne({
-            $or: [{ _id: bookingId }, { bookingId }],
-            mentorId
-        }).populate('userId', 'name email');
+    const booking = await MentorBooking.findOne({
+      $or: [{ _id: bookingId }, { bookingId }],
+      mentorId,
+    }).populate('userId', 'name email');
 
-        if (!booking) {
-            return res.status(404).json({ error: 'Booking not found' });
-        }
-
-        if (booking.status === 'completed') {
-            return res.status(400).json({ error: 'Session already completed' });
-        }
-
-        await booking.markComplete('mentor', notes);
-
-        // Schedule rating request email (will be sent by cron job)
-        // The job checks for completed sessions without rating requests sent
-
-        res.json({
-            message: 'Session marked as complete',
-            booking: {
-                id: booking._id,
-                bookingId: booking.bookingId,
-                status: booking.status,
-                completedAt: booking.completedAt
-            }
-        });
-    } catch (error) {
-        console.error('Error completing session:', error);
-        res.status(500).json({ error: 'Failed to complete session' });
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
     }
+
+    if (booking.status === 'completed') {
+      return res.status(400).json({ error: 'Session already completed' });
+    }
+
+    await booking.markComplete('mentor', notes);
+
+    // Schedule rating request email (will be sent by cron job)
+    // The job checks for completed sessions without rating requests sent
+
+    res.json({
+      message: 'Session marked as complete',
+      booking: {
+        id: booking._id,
+        bookingId: booking.bookingId,
+        status: booking.status,
+        completedAt: booking.completedAt,
+      },
+    });
+  } catch (error) {
+    console.error('Error completing session:', error);
+    res.status(500).json({ error: 'Failed to complete session' });
+  }
 };
 
 // ==========================================
@@ -551,42 +547,42 @@ exports.completeSession = async (req, res) => {
  * POST /api/bookings/:bookingId/rate
  */
 exports.submitRating = async (req, res) => {
-    try {
-        const { bookingId } = req.params;
-        const { score, comment } = req.body;
-        const userId = req.user._id;
+  try {
+    const { bookingId } = req.params;
+    const { score, comment } = req.body;
+    const userId = req.user._id;
 
-        if (!score || score < 1 || score > 5) {
-            return res.status(400).json({ error: 'Rating score must be between 1 and 5' });
-        }
-
-        const booking = await MentorBooking.findOne({
-            $or: [{ _id: bookingId }, { bookingId }],
-            userId
-        });
-
-        if (!booking) {
-            return res.status(404).json({ error: 'Booking not found' });
-        }
-
-        if (booking.status !== 'completed') {
-            return res.status(400).json({ error: 'Can only rate completed sessions' });
-        }
-
-        if (booking.rating?.submittedAt) {
-            return res.status(400).json({ error: 'Rating already submitted' });
-        }
-
-        await booking.addRating(score, comment);
-
-        res.json({
-            message: 'Rating submitted successfully',
-            rating: booking.rating
-        });
-    } catch (error) {
-        console.error('Error submitting rating:', error);
-        res.status(500).json({ error: 'Failed to submit rating' });
+    if (!score || score < 1 || score > 5) {
+      return res.status(400).json({ error: 'Rating score must be between 1 and 5' });
     }
+
+    const booking = await MentorBooking.findOne({
+      $or: [{ _id: bookingId }, { bookingId }],
+      userId,
+    });
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    if (booking.status !== 'completed') {
+      return res.status(400).json({ error: 'Can only rate completed sessions' });
+    }
+
+    if (booking.rating?.submittedAt) {
+      return res.status(400).json({ error: 'Rating already submitted' });
+    }
+
+    await booking.addRating(score, comment);
+
+    res.json({
+      message: 'Rating submitted successfully',
+      rating: booking.rating,
+    });
+  } catch (error) {
+    console.error('Error submitting rating:', error);
+    res.status(500).json({ error: 'Failed to submit rating' });
+  }
 };
 
 // ==========================================
@@ -598,13 +594,13 @@ exports.submitRating = async (req, res) => {
  * GET /api/bookings/admin/settings
  */
 exports.getSystemSettings = async (req, res) => {
-    try {
-        const settings = await SystemSettings.getSettings();
-        res.json({ settings });
-    } catch (error) {
-        console.error('Error fetching settings:', error);
-        res.status(500).json({ error: 'Failed to fetch settings' });
-    }
+  try {
+    const settings = await SystemSettings.getSettings();
+    res.json({ settings });
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
 };
 
 /**
@@ -612,33 +608,33 @@ exports.getSystemSettings = async (req, res) => {
  * PUT /api/bookings/admin/settings
  */
 exports.updateSystemSettings = async (req, res) => {
-    try {
-        const adminId = req.user._id;
-        const { globalFreeMentorship, bookingSettings } = req.body;
+  try {
+    const adminId = req.user._id;
+    const { globalFreeMentorship, bookingSettings } = req.body;
 
-        let settings = await SystemSettings.getSettings();
+    let settings = await SystemSettings.getSettings();
 
-        if (globalFreeMentorship !== undefined) {
-            settings = await SystemSettings.toggleFreeMentorship(
-                globalFreeMentorship.enabled,
-                adminId,
-                globalFreeMentorship.reason || '',
-                globalFreeMentorship.endDate
-            );
-        }
-
-        if (bookingSettings) {
-            settings = await SystemSettings.updateBookingSettings(bookingSettings, adminId);
-        }
-
-        res.json({
-            message: 'Settings updated successfully',
-            settings
-        });
-    } catch (error) {
-        console.error('Error updating settings:', error);
-        res.status(500).json({ error: 'Failed to update settings' });
+    if (globalFreeMentorship !== undefined) {
+      settings = await SystemSettings.toggleFreeMentorship(
+        globalFreeMentorship.enabled,
+        adminId,
+        globalFreeMentorship.reason || '',
+        globalFreeMentorship.endDate
+      );
     }
+
+    if (bookingSettings) {
+      settings = await SystemSettings.updateBookingSettings(bookingSettings, adminId);
+    }
+
+    res.json({
+      message: 'Settings updated successfully',
+      settings,
+    });
+  } catch (error) {
+    console.error('Error updating settings:', error);
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
 };
 
 /**
@@ -646,52 +642,54 @@ exports.updateSystemSettings = async (req, res) => {
  * GET /api/bookings/admin/all-bookings
  */
 exports.getAllBookings = async (req, res) => {
-    try {
-        const { status, page = 1, limit = 20, mentorId, userId } = req.query;
+  try {
+    const { status, page = 1, limit = 20, mentorId, userId } = req.query;
 
-        const query = {};
-        if (status) query.status = status;
-        if (mentorId) query.mentorId = mentorId;
-        if (userId) query.userId = userId;
+    const query = {};
+    if (status) query.status = status;
+    if (mentorId) query.mentorId = mentorId;
+    if (userId) query.userId = userId;
 
-        const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        const [bookings, total, stats] = await Promise.all([
-            MentorBooking.find(query)
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(parseInt(limit))
-                .populate('userId', 'name email')
-                .populate('mentorId', 'name email')
-                .populate('mentorProfileId', 'displayName'),
-            MentorBooking.countDocuments(query),
-            MentorBooking.aggregate([
-                {
-                    $group: {
-                        _id: '$status',
-                        count: { $sum: 1 }
-                    }
-                }
-            ])
-        ]);
+    const [bookings, total, stats] = await Promise.all([
+      MentorBooking.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate('userId', 'name email')
+        .populate('mentorId', 'name email')
+        .populate('mentorProfileId', 'displayName'),
+      MentorBooking.countDocuments(query),
+      MentorBooking.aggregate([
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
 
-        const statusCounts = {};
-        stats.forEach(s => { statusCounts[s._id] = s.count; });
+    const statusCounts = {};
+    stats.forEach(s => {
+      statusCounts[s._id] = s.count;
+    });
 
-        res.json({
-            bookings,
-            pagination: {
-                total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                pages: Math.ceil(total / parseInt(limit))
-            },
-            stats: statusCounts
-        });
-    } catch (error) {
-        console.error('Error fetching all bookings:', error);
-        res.status(500).json({ error: 'Failed to fetch bookings' });
-    }
+    res.json({
+      bookings,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+      stats: statusCounts,
+    });
+  } catch (error) {
+    console.error('Error fetching all bookings:', error);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
 };
 
 module.exports = exports;

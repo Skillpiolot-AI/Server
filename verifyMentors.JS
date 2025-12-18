@@ -16,15 +16,15 @@ const colors = {
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 const log = {
-  info: (msg) => console.log(`${colors.blue}ℹ ${msg}${colors.reset}`),
-  success: (msg) => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
-  error: (msg) => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
-  warning: (msg) => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
-  data: (msg) => console.log(`${colors.cyan}${msg}${colors.reset}`)
+  info: msg => console.log(`${colors.blue}ℹ ${msg}${colors.reset}`),
+  success: msg => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
+  error: msg => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
+  warning: msg => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
+  data: msg => console.log(`${colors.cyan}${msg}${colors.reset}`),
 };
 
 async function verifyMentors() {
@@ -35,10 +35,10 @@ async function verifyMentors() {
   try {
     // Step 1: Login as Admin
     log.info('Logging in as Admin...');
-    
+
     const loginResponse = await axios.post(`${API_URL}/auth/login`, {
       username: ADMIN_EMAIL,
-      password: ADMIN_PASSWORD
+      password: ADMIN_PASSWORD,
     });
 
     if (!loginResponse.data.token) {
@@ -51,15 +51,12 @@ async function verifyMentors() {
 
     // Step 2: Get all mentors
     log.info('Fetching all mentors...\n');
-    
-    const mentorsResponse = await axios.get(
-      `${API_URL}/mentors?limit=100`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
+
+    const mentorsResponse = await axios.get(`${API_URL}/mentors?limit=100`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!mentorsResponse.data.success) {
       log.error('Failed to fetch mentors');
@@ -78,7 +75,7 @@ async function verifyMentors() {
       verified: 0,
       unverified: 0,
       active: 0,
-      inactive: 0
+      inactive: 0,
     };
 
     console.log('📊 MENTOR DETAILS:\n');
@@ -86,7 +83,7 @@ async function verifyMentors() {
 
     mentors.forEach((mentor, index) => {
       const status = [];
-      
+
       if (mentor.isVerified) {
         stats.verified++;
         status.push(`${colors.green}✓ Verified${colors.reset}`);
@@ -109,7 +106,7 @@ async function verifyMentors() {
       console.log(`   Job Title: ${mentor.jobTitle || 'N/A'}`);
       console.log(`   Experience: ${mentor.experience || 'N/A'} years`);
       console.log(`   Status: ${status.join(' | ')}`);
-      
+
       if (mentor.companiesJoined && mentor.companiesJoined.length > 0) {
         console.log(`   Companies: ${mentor.companiesJoined.join(', ')}`);
       }
@@ -140,11 +137,10 @@ async function verifyMentors() {
     console.log('   Default Password: Mentor@123');
     console.log('   Login URL: http://localhost:5173/login');
     console.log('\n' + '='.repeat(60) + '\n');
-
   } catch (error) {
     console.error('\n' + '='.repeat(60));
     log.error('Error occurred:');
-    
+
     if (error.response) {
       console.log('Status:', error.response.status);
       console.log('Message:', error.response.data.message || error.response.data);
@@ -153,7 +149,7 @@ async function verifyMentors() {
     } else {
       console.log('Error:', error.message);
     }
-    
+
     console.log('='.repeat(60) + '\n');
     process.exit(1);
   }

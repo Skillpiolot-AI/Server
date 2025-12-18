@@ -1,10 +1,16 @@
-
-
 const Resource = require('../models/Resource');
 
 exports.addResource = async (req, res) => {
   try {
-    const { imageLink, bookTitle, publishedDate, publisherName, pdfLink, description, manufactureCompanyName } = req.body;
+    const {
+      imageLink,
+      bookTitle,
+      publishedDate,
+      publisherName,
+      pdfLink,
+      description,
+      manufactureCompanyName,
+    } = req.body;
 
     const resource = new Resource({
       imageLink,

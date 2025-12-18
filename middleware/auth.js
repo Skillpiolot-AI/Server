@@ -2,7 +2,9 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 // Use consistent JWT_SECRET
-const JWT_SECRET = process.env.JWT_SECRET || 'eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcyNTI4MDAzMCwiaWF0IjoxNzI1MjgwMDMwfQ';
+const JWT_SECRET =
+  process.env.JWT_SECRET ||
+  'eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcyNTI4MDAzMCwiaWF0IjoxNzI1MjgwMDMwfQ';
 
 exports.auth = async (req, res, next) => {
   try {
@@ -11,7 +13,7 @@ exports.auth = async (req, res, next) => {
     if (!authHeader) {
       return res.status(401).json({
         success: false,
-        message: 'Access denied. No authorization header provided.'
+        message: 'Access denied. No authorization header provided.',
       });
     }
 
@@ -20,7 +22,7 @@ exports.auth = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Access denied. No token provided.'
+        message: 'Access denied. No token provided.',
       });
     }
 
@@ -37,7 +39,7 @@ exports.auth = async (req, res, next) => {
       console.log('User not found for ID:', decoded.id);
       return res.status(401).json({
         success: false,
-        message: 'Invalid token. User not found.'
+        message: 'Invalid token. User not found.',
       });
     }
 
@@ -45,7 +47,8 @@ exports.auth = async (req, res, next) => {
     if (user.isLocked) {
       return res.status(423).json({
         success: false,
-        message: 'Account is temporarily locked due to too many failed login attempts. Please try again later.'
+        message:
+          'Account is temporarily locked due to too many failed login attempts. Please try again later.',
       });
     }
 
@@ -53,7 +56,7 @@ exports.auth = async (req, res, next) => {
     if (!user.isActive) {
       return res.status(403).json({
         success: false,
-        message: 'Account has been deactivated. Please contact administrator.'
+        message: 'Account has been deactivated. Please contact administrator.',
       });
     }
 
@@ -66,21 +69,21 @@ exports.auth = async (req, res, next) => {
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token format.'
+        message: 'Invalid token format.',
       });
     }
 
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
-        message: 'Token has expired. Please login again.'
+        message: 'Token has expired. Please login again.',
       });
     }
 
     res.status(500).json({
       success: false,
       message: 'Server error during authentication.',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -115,14 +118,15 @@ exports.verifyToken = async (req, res, next) => {
     // Check if account is locked
     if (user.isLocked) {
       return res.status(423).json({
-        message: 'Account is temporarily locked due to too many failed login attempts. Please try again later.'
+        message:
+          'Account is temporarily locked due to too many failed login attempts. Please try again later.',
       });
     }
 
     // Check if account is active
     if (!user.isActive) {
       return res.status(403).json({
-        message: 'Account has been deactivated. Please contact administrator.'
+        message: 'Account has been deactivated. Please contact administrator.',
       });
     }
 
@@ -145,19 +149,19 @@ exports.verifyToken = async (req, res, next) => {
 };
 
 // Role-based access control middleware
-exports.requireRole = (allowedRoles) => {
+exports.requireRole = allowedRoles => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required.'
+        message: 'Authentication required.',
       });
     }
 
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: `Access denied. Required roles: ${allowedRoles.join(', ')}`
+        message: `Access denied. Required roles: ${allowedRoles.join(', ')}`,
       });
     }
 
@@ -170,14 +174,14 @@ exports.adminOnly = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
-      message: 'Authentication required.'
+      message: 'Authentication required.',
     });
   }
 
   if (req.user.role !== 'Admin') {
     return res.status(403).json({
       success: false,
-      message: 'Access denied. Admin role required.'
+      message: 'Access denied. Admin role required.',
     });
   }
 
@@ -189,7 +193,7 @@ exports.requireUniversityAccess = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
-      message: 'Authentication required.'
+      message: 'Authentication required.',
     });
   }
 
@@ -198,7 +202,7 @@ exports.requireUniversityAccess = (req, res, next) => {
   if (!allowedRoles.includes(req.user.role)) {
     return res.status(403).json({
       success: false,
-      message: 'Access denied. University access required.'
+      message: 'Access denied. University access required.',
     });
   }
 
@@ -211,7 +215,7 @@ exports.requireUniversityAccess = (req, res, next) => {
   if (!req.user.universityId) {
     return res.status(403).json({
       success: false,
-      message: 'Access denied. No university association found.'
+      message: 'Access denied. No university association found.',
     });
   }
 
@@ -226,14 +230,14 @@ exports.isMentor = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
-      message: 'Authentication required.'
+      message: 'Authentication required.',
     });
   }
 
   if (req.user.role !== 'Mentor') {
     return res.status(403).json({
       success: false,
-      message: 'Access denied. Mentor role required.'
+      message: 'Access denied. Mentor role required.',
     });
   }
 
@@ -245,14 +249,14 @@ exports.isMentorOrAdmin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
-      message: 'Authentication required.'
+      message: 'Authentication required.',
     });
   }
 
   if (!['Mentor', 'Admin'].includes(req.user.role)) {
     return res.status(403).json({
       success: false,
-      message: 'Access denied. Mentor or Admin role required.'
+      message: 'Access denied. Mentor or Admin role required.',
     });
   }
 

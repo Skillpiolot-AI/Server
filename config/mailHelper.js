@@ -9,13 +9,13 @@ const transporter = nodemailer.createTransport({
   secure: true,
   auth: {
     user: 'no-reply@pratimesh.com',
-    pass: 'Ujjwaljha_12'
+    pass: 'Ujjwaljha_12',
   },
   pool: true,
   maxConnections: 5,
   maxMessages: 100,
   rateDelta: 1000,
-  rateLimit: 10
+  rateLimit: 10,
 });
 
 // Verify transporter on startup
@@ -56,13 +56,13 @@ const sendMail = async (to, template) => {
     const mailOptions = {
       from: {
         name: 'Spark Career Guidance',
-        address: 'no-reply@pratimesh.com'
+        address: 'no-reply@pratimesh.com',
       },
       to: to,
       subject: template.subject,
       text: template.text,
       html: template.html,
-      priority: 'high'
+      priority: 'high',
     };
 
     const startTime = Date.now();
@@ -76,7 +76,7 @@ const sendMail = async (to, template) => {
       success: true,
       messageId: info.messageId,
       responseTime: endTime - startTime,
-      previewUrl: nodemailer.getTestMessageUrl(info)
+      previewUrl: nodemailer.getTestMessageUrl(info),
     };
   } catch (error) {
     console.error('❌ Email sending failed:', error);
@@ -137,11 +137,11 @@ const verificationEmailTemplate = (name, verificationLink, username) => ({
     </body>
     </html>
   `,
-  text: `Hello ${name}!\n\nWelcome to Spark Career Guidance Portal!\n\nPlease verify your email by clicking this link:\n${verificationLink}\n\nThis link expires in 24 hours.\n\nBest regards,\nThe Spark Team`
+  text: `Hello ${name}!\n\nWelcome to Spark Career Guidance Portal!\n\nPlease verify your email by clicking this link:\n${verificationLink}\n\nThis link expires in 24 hours.\n\nBest regards,\nThe Spark Team`,
 });
 
 // Template function: Verification Success
-const verificationSuccessTemplate = (name) => ({
+const verificationSuccessTemplate = name => ({
   subject: '🎉 Email Verified Successfully - Spark',
   html: `
     <!DOCTYPE html>
@@ -184,7 +184,7 @@ const verificationSuccessTemplate = (name) => ({
     </body>
     </html>
   `,
-  text: `Congratulations ${name}!\n\nYour email has been successfully verified!\n\nYour account is now fully activated. Log in to start exploring!\n\nBest regards,\nThe Spark Team`
+  text: `Congratulations ${name}!\n\nYour email has been successfully verified!\n\nYour account is now fully activated. Log in to start exploring!\n\nBest regards,\nThe Spark Team`,
 });
 
 // Template function: Suspicious Location
@@ -246,7 +246,7 @@ const suspiciousLocationTemplate = (name, location, verificationLink, deviceInfo
     </body>
     </html>
   `,
-  text: `Hello ${name},\n\nWe detected a login from a new location:\n\nLocation: ${location.city}, ${location.region}, ${location.country}\nDevice: ${deviceInfo.device}\nBrowser: ${deviceInfo.browser}\n\nWas this you?\nVerify: ${verificationLink}\n\nIf not, secure your account immediately.\n\nBest regards,\nThe Spark Security Team`
+  text: `Hello ${name},\n\nWe detected a login from a new location:\n\nLocation: ${location.city}, ${location.region}, ${location.country}\nDevice: ${deviceInfo.device}\nBrowser: ${deviceInfo.browser}\n\nWas this you?\nVerify: ${verificationLink}\n\nIf not, secure your account immediately.\n\nBest regards,\nThe Spark Security Team`,
 });
 
 // Legacy template-based functions for backward compatibility
@@ -265,12 +265,12 @@ const sendLocationVerificationEmail = async (email, name, loginDetails, verifica
   const location = {
     city: loginDetails.location?.city || 'Unknown',
     region: loginDetails.location?.region || 'Unknown',
-    country: loginDetails.location?.country || 'Unknown'
+    country: loginDetails.location?.country || 'Unknown',
   };
   const deviceInfo = {
     device: loginDetails.userAgent || 'Unknown Device',
     browser: 'Unknown',
-    os: 'Unknown'
+    os: 'Unknown',
   };
   const template = suspiciousLocationTemplate(name, location, verificationLink, deviceInfo);
   return await sendMail(email, template);
@@ -306,7 +306,7 @@ const sendLocationVerifiedEmail = async (email, name) => {
       </body>
       </html>
     `,
-    text: `Hello ${name},\n\nYour new login location has been verified successfully!\n\nStay secure,\nThe Spark Team`
+    text: `Hello ${name},\n\nYour new login location has been verified successfully!\n\nStay secure,\nThe Spark Team`,
   };
   return await sendMail(email, template);
 };
@@ -323,5 +323,5 @@ module.exports = {
   sendVerificationEmail,
   sendVerificationSuccessEmail,
   sendLocationVerificationEmail,
-  sendLocationVerifiedEmail
+  sendLocationVerifiedEmail,
 };

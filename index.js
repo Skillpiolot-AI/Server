@@ -1,5 +1,3 @@
-
-
 const express = require('express');
 const connectDB = require('./db');
 const cors = require('cors');
@@ -47,10 +45,12 @@ const PORT = process.env.PORT || 3001;
 app.use(compression());
 
 // 2. Security headers
-app.use(helmet({
-  contentSecurityPolicy: false, // Adjust based on your needs
-  crossOriginEmbedderPolicy: false
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Adjust based on your needs
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // 3. Optimized CORS configuration
 // const corsOptions = {
@@ -63,21 +63,28 @@ app.use(helmet({
 app.use(cors());
 
 // 4. Increase JSON payload limit with streaming
-app.use(express.json({
-  limit: '10mb',
-  strict: true
-}));
-app.use(express.urlencoded({
-  extended: true,
-  limit: '10mb'
-}));
+app.use(
+  express.json({
+    limit: '10mb',
+    strict: true,
+  })
+);
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: '10mb',
+  })
+);
 
 // 5. Static file caching
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-  maxAge: '1d', // Cache for 1 day
-  etag: true,
-  lastModified: true
-}));
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, 'uploads'), {
+    maxAge: '1d', // Cache for 1 day
+    etag: true,
+    lastModified: true,
+  })
+);
 
 // ==================== REQUEST LOGGING (DEVELOPMENT) ====================
 if (process.env.NODE_ENV === 'development') {
@@ -92,7 +99,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
@@ -120,8 +127,7 @@ app.use('/api/questions', require('./routes/questions'));
 app.use('/api/assessments', require('./routes/assessments'));
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/user-data', userDataRoutes);
-app.use('/api', bulkMentorRoutes);// Add this with your other route imports
-
+app.use('/api', bulkMentorRoutes); // Add this with your other route imports
 
 // Add this with your other routes
 app.use('/api/chatbot', chatbotRoutes);
@@ -140,7 +146,7 @@ app.get('/api/job-info/:jobTitle', (req, res) => {
 
   // Check cache first
   const now = Date.now();
-  if (jobDataCache && cacheTime && (now - cacheTime) < CACHE_DURATION) {
+  if (jobDataCache && cacheTime && now - cacheTime < CACHE_DURATION) {
     const job = jobDataCache.find(j => j.jobTitle === jobTitle);
     if (job) {
       return res.json(job);
@@ -181,14 +187,14 @@ app.post('/api/admin/trigger-password-reminders', async (req, res) => {
     res.json({
       success: true,
       message: 'Temporary password reminders sent',
-      result
+      result,
     });
   } catch (error) {
     console.error('Error triggering password reminders:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to send reminders',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -201,11 +207,11 @@ app.get('/api/admin/scheduler-status', (req, res) => {
         name: 'Temporary Password Reminder',
         schedule: 'Daily at 9:00 AM',
         status: 'active',
-        description: 'Sends reminders to users with temporary passwords every 2 days'
-      }
+        description: 'Sends reminders to users with temporary passwords every 2 days',
+      },
     },
     serverTime: new Date().toISOString(),
-    timezone: process.env.TZ || 'Asia/Kolkata'
+    timezone: process.env.TZ || 'Asia/Kolkata',
   });
 });
 
@@ -214,7 +220,7 @@ app.use((err, req, res, next) => {
   console.error('Server Error:', err.stack);
   res.status(500).json({
     error: 'Something went wrong!',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined,
   });
 });
 
@@ -233,8 +239,8 @@ const startServer = async () => {
       console.log(`\n🚀 Server running on port ${PORT}`);
       console.log(`📅 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL}`);
-      console.log(`⚡ Compression: Enabled`);
-      console.log(`🔒 Security: Enabled`);
+      console.log('⚡ Compression: Enabled');
+      console.log('🔒 Security: Enabled');
 
       // Initialize scheduled jobs
       console.log('\n⏰ Initializing scheduled jobs...');

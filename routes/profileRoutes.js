@@ -3,7 +3,6 @@ const router = express.Router();
 const Profile = require('../models/Profile');
 const { verifyToken } = require('../middleware/auth');
 
-
 router.get('/', verifyToken, async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user._id });
@@ -15,7 +14,6 @@ router.get('/', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.post('/', verifyToken, async (req, res) => {
   try {
@@ -30,7 +28,7 @@ router.post('/', verifyToken, async (req, res) => {
     } else {
       profile = new Profile({
         user: req.user._id,
-        ...req.body
+        ...req.body,
       });
       await profile.save();
     }
@@ -40,7 +38,6 @@ router.post('/', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.post('/project', verifyToken, async (req, res) => {
   try {
@@ -63,7 +60,6 @@ router.post('/certification', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.post('/goal', verifyToken, async (req, res) => {
   try {

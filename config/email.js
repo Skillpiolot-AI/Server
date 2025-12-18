@@ -1,5 +1,3 @@
-
-
 const FRONTEND_URL = process.env.FRONTEND_URL;
 const COMPANY_NAME = 'Skill-Pilot Career Guidance';
 
@@ -66,13 +64,13 @@ const otpEmail = (name, otp, validityMinutes = 10) => ({
     </body>
     </html>
   `,
-  text: `Hello ${name}!\n\nYour verification code is: ${otp}\n\nThis code expires in ${validityMinutes} minutes.\n\nNever share this code with anyone.\n\nBest regards,\n${COMPANY_NAME} Team`
+  text: `Hello ${name}!\n\nYour verification code is: ${otp}\n\nThis code expires in ${validityMinutes} minutes.\n\nNever share this code with anyone.\n\nBest regards,\n${COMPANY_NAME} Team`,
 });
 
 /**
  * Password Reset Success Email
  */
-const passwordResetSuccess = (name) => ({
+const passwordResetSuccess = name => ({
   subject: `✅ Password Reset Successful - ${COMPANY_NAME}`,
   html: `
     <!DOCTYPE html>
@@ -112,7 +110,7 @@ const passwordResetSuccess = (name) => ({
     </body>
     </html>
   `,
-  text: `Hello ${name}!\n\nYour password has been successfully reset!\n\nYou can now log in with your new password at: ${FRONTEND_URL}/login\n\nIf you didn't make this change, contact support immediately.\n\nBest regards,\n${COMPANY_NAME} Team`
+  text: `Hello ${name}!\n\nYour password has been successfully reset!\n\nYou can now log in with your new password at: ${FRONTEND_URL}/login\n\nIf you didn't make this change, contact support immediately.\n\nBest regards,\n${COMPANY_NAME} Team`,
 });
 
 /**
@@ -165,13 +163,13 @@ const accountLockedEmail = (name, unlockTime) => ({
     </body>
     </html>
   `,
-  text: `Hello ${name},\n\nYour account has been temporarily locked due to multiple failed login attempts.\n\nUnlock Time: ${unlockTime}\n\nYou can:\n- Wait for the lock period to expire\n- Reset your password at: ${FRONTEND_URL}/forgot-password\n\nStay secure,\n${COMPANY_NAME} Security Team`
+  text: `Hello ${name},\n\nYour account has been temporarily locked due to multiple failed login attempts.\n\nUnlock Time: ${unlockTime}\n\nYou can:\n- Wait for the lock period to expire\n- Reset your password at: ${FRONTEND_URL}/forgot-password\n\nStay secure,\n${COMPANY_NAME} Security Team`,
 });
 
 module.exports = {
   emailTemplates: {
     otpEmail,
     passwordResetSuccess,
-    accountLockedEmail
-  }
+    accountLockedEmail,
+  },
 };

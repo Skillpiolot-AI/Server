@@ -1,4 +1,11 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Load nvm if available
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Add common paths for npm/node
+export PATH="/usr/local/bin:/opt/homebrew/bin:$HOME/.volta/bin:$PATH"
+
 npm test

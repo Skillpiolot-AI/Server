@@ -27,7 +27,11 @@ router.post('/interests', async (req, res) => {
 router.put('/interests/:id', async (req, res) => {
   try {
     const { name } = req.body;
-    const updatedInterest = await Interest.findByIdAndUpdate(req.params.id, { name }, { new: true });
+    const updatedInterest = await Interest.findByIdAndUpdate(
+      req.params.id,
+      { name },
+      { new: true }
+    );
     res.json(updatedInterest);
   } catch (error) {
     res.status(500).json({ message: 'Failed to update interest' });

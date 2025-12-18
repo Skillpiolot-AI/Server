@@ -7,23 +7,23 @@ const StudentActivitySchema = new mongoose.Schema({
   studentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
-    required: true
+    required: true,
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   universityId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'University',
-    required: true
+    required: true,
   },
 
   // Session information
   sessionId: {
     type: String,
-    required: true
+    required: true,
   },
 
   // Activity details
@@ -55,8 +55,8 @@ const StudentActivitySchema = new mongoose.Schema({
       'suspension_notice_view',
       'password_change',
       'profile_update',
-      'emergency_contact_update'
-    ]
+      'emergency_contact_update',
+    ],
   },
 
   // Detailed activity information
@@ -64,179 +64,179 @@ const StudentActivitySchema = new mongoose.Schema({
     // For login/logout
     loginMethod: {
       type: String,
-      enum: ['username', 'email', 'registration']
+      enum: ['username', 'email', 'registration'],
     },
     loginSuccess: {
-      type: Boolean
+      type: Boolean,
     },
     logoutReason: {
       type: String,
-      enum: ['manual', 'timeout', 'forced', 'system']
+      enum: ['manual', 'timeout', 'forced', 'system'],
     },
 
     // For academic activities
     courseId: {
-      type: String
+      type: String,
     },
     courseName: {
-      type: String
+      type: String,
     },
     assignmentId: {
-      type: String
+      type: String,
     },
     assignmentName: {
-      type: String
+      type: String,
     },
     gradeViewed: {
-      type: String
+      type: String,
     },
 
     // For portal navigation
     pageAccessed: {
-      type: String
+      type: String,
     },
     timeSpent: {
-      type: Number // in seconds
+      type: Number, // in seconds
     },
 
     // For file operations
     fileName: {
-      type: String
+      type: String,
     },
     fileSize: {
-      type: Number
+      type: Number,
     },
     fileType: {
-      type: String
+      type: String,
     },
 
     // For quiz/exam attempts
     quizId: {
-      type: String
+      type: String,
     },
     quizName: {
-      type: String
+      type: String,
     },
     scoreObtained: {
-      type: Number
+      type: Number,
     },
     maxScore: {
-      type: Number
+      type: Number,
     },
     timeSpentOnQuiz: {
-      type: Number // in minutes
+      type: Number, // in minutes
     },
 
     // Additional context
     additionalData: {
-      type: mongoose.Schema.Types.Mixed
-    }
+      type: mongoose.Schema.Types.Mixed,
+    },
   },
 
   // Technical information
   ipAddress: {
     type: String,
-    required: true
+    required: true,
   },
   userAgent: {
     type: String,
-    required: true
+    required: true,
   },
   deviceInfo: {
     deviceType: {
       type: String,
-      enum: ['desktop', 'tablet', 'mobile', 'unknown']
+      enum: ['desktop', 'tablet', 'mobile', 'unknown'],
     },
     browser: {
-      type: String
+      type: String,
     },
     operatingSystem: {
-      type: String
+      type: String,
     },
     screenResolution: {
-      type: String
-    }
+      type: String,
+    },
   },
 
   // Location and network information
   location: {
     country: {
-      type: String
+      type: String,
     },
     region: {
-      type: String
+      type: String,
     },
     city: {
-      type: String
+      type: String,
     },
     timezone: {
-      type: String
-    }
+      type: String,
+    },
   },
 
   // Activity status and flags
   status: {
     type: String,
     enum: ['success', 'failed', 'partial', 'blocked'],
-    default: 'success'
+    default: 'success',
   },
 
   // Security flags
   securityFlags: {
     suspiciousActivity: {
       type: Boolean,
-      default: false
+      default: false,
     },
     multipleLocationAccess: {
       type: Boolean,
-      default: false
+      default: false,
     },
     unusualTimeAccess: {
       type: Boolean,
-      default: false
+      default: false,
     },
     repeatedFailedAttempts: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
   // Timestamps
   timestamp: {
     type: Date,
     default: Date.now,
-    required: true
+    required: true,
   },
   sessionStartTime: {
-    type: Date
+    type: Date,
   },
   sessionEndTime: {
-    type: Date
+    type: Date,
   },
 
   // Academic year/semester context
   academicYear: {
-    type: String
+    type: String,
   },
   semester: {
-    type: String
+    type: String,
   },
 
   // Notes and remarks
   notes: {
     type: String,
-    trim: true
+    trim: true,
   },
 
   // For tracking consecutive activities
   previousActivityId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'StudentActivity'
+    ref: 'StudentActivity',
   },
   nextActivityId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'StudentActivity'
-  }
+    ref: 'StudentActivity',
+  },
 });
 
 // Indexes for performance optimization
@@ -251,7 +251,7 @@ StudentActivitySchema.index({ 'securityFlags.suspiciousActivity': 1 });
 StudentActivitySchema.index({ academicYear: 1, semester: 1 });
 
 // Virtual for activity duration (for session-based activities)
-StudentActivitySchema.virtual('duration').get(function() {
+StudentActivitySchema.virtual('duration').get(function () {
   if (this.sessionStartTime && this.sessionEndTime) {
     return Math.floor((this.sessionEndTime - this.sessionStartTime) / 1000); // in seconds
   }
@@ -259,7 +259,7 @@ StudentActivitySchema.virtual('duration').get(function() {
 });
 
 // Pre-save middleware
-StudentActivitySchema.pre('save', function(next) {
+StudentActivitySchema.pre('save', function (next) {
   // Auto-detect device type from user agent
   if (this.userAgent && !this.deviceInfo.deviceType) {
     const userAgent = this.userAgent.toLowerCase();
@@ -301,26 +301,30 @@ StudentActivitySchema.pre('save', function(next) {
 });
 
 // Static methods for analytics and reporting
-StudentActivitySchema.statics.getStudentLoginHistory = function(studentId, days = 30) {
+StudentActivitySchema.statics.getStudentLoginHistory = function (studentId, days = 30) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
   return this.find({
     studentId: studentId,
     activityType: { $in: ['login', 'logout'] },
-    timestamp: { $gte: startDate }
+    timestamp: { $gte: startDate },
   }).sort({ timestamp: -1 });
 };
 
-StudentActivitySchema.statics.getUniversityActivityStats = function(universityId, startDate, endDate) {
+StudentActivitySchema.statics.getUniversityActivityStats = function (
+  universityId,
+  startDate,
+  endDate
+) {
   const matchConditions = {
-    universityId: mongoose.Types.ObjectId(universityId)
+    universityId: mongoose.Types.ObjectId(universityId),
   };
 
   if (startDate && endDate) {
     matchConditions.timestamp = {
       $gte: new Date(startDate),
-      $lte: new Date(endDate)
+      $lte: new Date(endDate),
     };
   }
 
@@ -330,11 +334,11 @@ StudentActivitySchema.statics.getUniversityActivityStats = function(universityId
       $group: {
         _id: {
           date: { $dateToString: { format: '%Y-%m-%d', date: '$timestamp' } },
-          activityType: '$activityType'
+          activityType: '$activityType',
         },
         count: { $sum: 1 },
-        uniqueStudents: { $addToSet: '$studentId' }
-      }
+        uniqueStudents: { $addToSet: '$studentId' },
+      },
     },
     {
       $group: {
@@ -343,17 +347,17 @@ StudentActivitySchema.statics.getUniversityActivityStats = function(universityId
           $push: {
             type: '$_id.activityType',
             count: '$count',
-            uniqueStudents: { $size: '$uniqueStudents' }
-          }
+            uniqueStudents: { $size: '$uniqueStudents' },
+          },
         },
-        totalActivities: { $sum: '$count' }
-      }
+        totalActivities: { $sum: '$count' },
+      },
     },
-    { $sort: { '_id': -1 } }
+    { $sort: { _id: -1 } },
   ]);
 };
 
-StudentActivitySchema.statics.detectSuspiciousActivity = function(studentId, hours = 24) {
+StudentActivitySchema.statics.detectSuspiciousActivity = function (studentId, hours = 24) {
   const startTime = new Date();
   startTime.setHours(startTime.getHours() - hours);
 
@@ -361,60 +365,56 @@ StudentActivitySchema.statics.detectSuspiciousActivity = function(studentId, hou
     {
       $match: {
         studentId: mongoose.Types.ObjectId(studentId),
-        timestamp: { $gte: startTime }
-      }
+        timestamp: { $gte: startTime },
+      },
     },
     {
       $group: {
         _id: {
           studentId: '$studentId',
-          ipAddress: '$ipAddress'
+          ipAddress: '$ipAddress',
         },
         uniqueIPs: { $addToSet: '$ipAddress' },
         loginAttempts: {
           $sum: {
-            $cond: [
-              { $eq: ['$activityType', 'login'] },
-              1,
-              0
-            ]
-          }
+            $cond: [{ $eq: ['$activityType', 'login'] }, 1, 0],
+          },
         },
         failedLogins: {
           $sum: {
             $cond: [
               { $and: [{ $eq: ['$activityType', 'login'] }, { $eq: ['$status', 'failed'] }] },
               1,
-              0
-            ]
-          }
+              0,
+            ],
+          },
         },
-        activities: { $push: '$$ROOT' }
-      }
+        activities: { $push: '$$ROOT' },
+      },
     },
     {
       $match: {
         $or: [
           { 'uniqueIPs.10': { $exists: true } }, // More than 10 unique IPs
           { loginAttempts: { $gte: 20 } }, // More than 20 login attempts
-          { failedLogins: { $gte: 5 } } // More than 5 failed logins
-        ]
-      }
-    }
+          { failedLogins: { $gte: 5 } }, // More than 5 failed logins
+        ],
+      },
+    },
   ]);
 };
 
-StudentActivitySchema.statics.getActiveStudentsCount = function(universityId, minutes = 30) {
+StudentActivitySchema.statics.getActiveStudentsCount = function (universityId, minutes = 30) {
   const cutoffTime = new Date();
   cutoffTime.setMinutes(cutoffTime.getMinutes() - minutes);
 
   return this.distinct('studentId', {
     universityId: mongoose.Types.ObjectId(universityId),
-    timestamp: { $gte: cutoffTime }
+    timestamp: { $gte: cutoffTime },
   });
 };
 
-StudentActivitySchema.statics.getPopularActivities = function(universityId, days = 7) {
+StudentActivitySchema.statics.getPopularActivities = function (universityId, days = 7) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
@@ -422,36 +422,36 @@ StudentActivitySchema.statics.getPopularActivities = function(universityId, days
     {
       $match: {
         universityId: mongoose.Types.ObjectId(universityId),
-        timestamp: { $gte: startDate }
-      }
+        timestamp: { $gte: startDate },
+      },
     },
     {
       $group: {
         _id: '$activityType',
         count: { $sum: 1 },
-        uniqueStudents: { $addToSet: '$studentId' }
-      }
+        uniqueStudents: { $addToSet: '$studentId' },
+      },
     },
     {
       $project: {
         activityType: '$_id',
         count: 1,
-        uniqueStudents: { $size: '$uniqueStudents' }
-      }
+        uniqueStudents: { $size: '$uniqueStudents' },
+      },
     },
     { $sort: { count: -1 } },
-    { $limit: 10 }
+    { $limit: 10 },
   ]);
 };
 
 // Instance methods
-StudentActivitySchema.methods.markAsSuspicious = function(reason) {
+StudentActivitySchema.methods.markAsSuspicious = function (reason) {
   this.securityFlags.suspiciousActivity = true;
   this.notes = (this.notes || '') + `\nMarked as suspicious: ${reason}`;
   return this.save();
 };
 
-StudentActivitySchema.methods.linkToPreviousActivity = function(previousActivityId) {
+StudentActivitySchema.methods.linkToPreviousActivity = function (previousActivityId) {
   this.previousActivityId = previousActivityId;
   return this.save();
 };

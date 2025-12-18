@@ -65,7 +65,6 @@ exports.getAllCareers = async (req, res) => {
   }
 };
 
-
 exports.insertCareerData = async (req, res) => {
   try {
     const careerData = req.body;
@@ -77,7 +76,7 @@ exports.insertCareerData = async (req, res) => {
             const newCareer = new Career({
               industry,
               category,
-              ...job
+              ...job,
             });
             await newCareer.save();
           }
@@ -92,9 +91,6 @@ exports.insertCareerData = async (req, res) => {
   }
 };
 
-
-
-
 exports.getInterestsAndStrengths = async (req, res) => {
   try {
     const interests = await Career.distinct('industry');
@@ -105,8 +101,6 @@ exports.getInterestsAndStrengths = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching interests and strengths' });
   }
 };
-
-
 
 exports.getCareerSuggestions = async (req, res) => {
   try {
@@ -120,7 +114,9 @@ exports.getCareerSuggestions = async (req, res) => {
     console.log('Query:', query);
 
     const suggestions = await Career.find(query)
-      .select('jobTitle averageSalary description skills companies education workEnvironment jobOutlook challenges rewards topColleges hiringTrends salaryTrends')
+      .select(
+        'jobTitle averageSalary description skills companies education workEnvironment jobOutlook challenges rewards topColleges hiringTrends salaryTrends'
+      )
       .limit(10);
 
     console.log('Suggestions found:', suggestions.length);
@@ -128,7 +124,9 @@ exports.getCareerSuggestions = async (req, res) => {
     if (suggestions.length === 0) {
       delete query.category;
       const flexibleSuggestions = await Career.find(query)
-        .select('jobTitle averageSalary description skills companies education workEnvironment jobOutlook challenges rewards topColleges hiringTrends salaryTrends')
+        .select(
+          'jobTitle averageSalary description skills companies education workEnvironment jobOutlook challenges rewards topColleges hiringTrends salaryTrends'
+        )
         .limit(10);
 
       console.log('Flexible suggestions found:', flexibleSuggestions.length);
@@ -143,8 +141,6 @@ exports.getCareerSuggestions = async (req, res) => {
   }
 };
 
-
-
 exports.getAllJobTitles = async (req, res) => {
   try {
     const jobTitles = await Career.distinct('jobTitle');
@@ -156,7 +152,6 @@ exports.getAllJobTitles = async (req, res) => {
   }
 };
 
-
 exports.getCareerSuggestion = async (req, res) => {
   try {
     const { jobTitle } = req.query;
@@ -167,8 +162,10 @@ exports.getCareerSuggestion = async (req, res) => {
     }
 
     const career = await Career.findOne({
-      jobTitle: { $regex: new RegExp('^' + jobTitle + '$', 'i') }
-    }).select('jobTitle averageSalary description skills companies education workEnvironment jobOutlook challenges rewards topColleges hiringTrends salaryTrends');
+      jobTitle: { $regex: new RegExp('^' + jobTitle + '$', 'i') },
+    }).select(
+      'jobTitle averageSalary description skills companies education workEnvironment jobOutlook challenges rewards topColleges hiringTrends salaryTrends'
+    );
 
     if (!career) {
       console.log('Career not found for job title:', jobTitle);
@@ -183,12 +180,13 @@ exports.getCareerSuggestion = async (req, res) => {
   }
 };
 
-
 exports.checkJobTitleExists = async (req, res) => {
   try {
     const { jobTitle } = req.query;
     console.log(jobTitle);
-    const career = await Career.findOne({ jobTitle: { $regex: new RegExp('^' + jobTitle + '$', 'i') } });
+    const career = await Career.findOne({
+      jobTitle: { $regex: new RegExp('^' + jobTitle + '$', 'i') },
+    });
     res.json({ exists: !!career });
   } catch (error) {
     console.error('Error checking job title:', error);

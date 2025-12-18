@@ -34,7 +34,7 @@ exports.getAllUsers = async (req, res) => {
       isSuspended,
       search,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
     } = req.query;
 
     const query = {};
@@ -49,7 +49,7 @@ exports.getAllUsers = async (req, res) => {
         { name: { $regex: search, $options: 'i' } },
         { username: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
-        { registrationNumber: { $regex: search, $options: 'i' } }
+        { registrationNumber: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -75,10 +75,10 @@ exports.getAllUsers = async (req, res) => {
         {
           $group: {
             _id: '$role',
-            count: { $sum: 1 }
-          }
-        }
-      ])
+            count: { $sum: 1 },
+          },
+        },
+      ]),
     };
 
     res.json({
@@ -88,16 +88,16 @@ exports.getAllUsers = async (req, res) => {
         total: count,
         totalPages: Math.ceil(count / limit),
         currentPage: parseInt(page),
-        perPage: parseInt(limit)
+        perPage: parseInt(limit),
       },
-      stats
+      stats,
     });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while fetching users',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -115,7 +115,7 @@ exports.getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -133,14 +133,14 @@ exports.getUserById = async (req, res) => {
       success: true,
       user,
       studentProfile,
-      recentActivities
+      recentActivities,
     });
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while fetching user',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -157,7 +157,7 @@ exports.updateUser = async (req, res) => {
     if (!originalUser) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -170,12 +170,14 @@ exports.updateUser = async (req, res) => {
       roleChanged: updateData.role && updateData.role !== originalUser.role,
       oldRole: originalUser.role,
       newRole: updateData.role,
-      verificationChanged: updateData.isVerified !== undefined && updateData.isVerified !== originalUser.isVerified,
+      verificationChanged:
+        updateData.isVerified !== undefined && updateData.isVerified !== originalUser.isVerified,
       wasUnverified: !originalUser.isVerified && updateData.isVerified === false,
       wasReVerified: !originalUser.isVerified && updateData.isVerified === true,
-      statusChanged: updateData.isActive !== undefined && updateData.isActive !== originalUser.isActive,
+      statusChanged:
+        updateData.isActive !== undefined && updateData.isActive !== originalUser.isActive,
       wasDeactivated: originalUser.isActive && updateData.isActive === false,
-      wasReactivated: !originalUser.isActive && updateData.isActive === true
+      wasReactivated: !originalUser.isActive && updateData.isActive === true,
     };
 
     // Validate email if being updated
@@ -184,19 +186,19 @@ exports.updateUser = async (req, res) => {
       if (!emailRegex.test(updateData.email)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid email format'
+          message: 'Invalid email format',
         });
       }
 
       const existingUser = await User.findOne({
         email: updateData.email.toLowerCase(),
-        _id: { $ne: userId }
+        _id: { $ne: userId },
       });
 
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: 'Email already registered to another user'
+          message: 'Email already registered to another user',
         });
       }
 
@@ -207,13 +209,13 @@ exports.updateUser = async (req, res) => {
     if (updateData.username) {
       const existingUser = await User.findOne({
         username: updateData.username,
-        _id: { $ne: userId }
+        _id: { $ne: userId },
       });
 
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: 'Username already taken by another user'
+          message: 'Username already taken by another user',
         });
       }
     }
@@ -224,7 +226,7 @@ exports.updateUser = async (req, res) => {
       if (!validRoles.includes(updateData.role)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid role specified'
+          message: 'Invalid role specified',
         });
       }
     }
@@ -239,7 +241,7 @@ exports.updateUser = async (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -249,11 +251,7 @@ exports.updateUser = async (req, res) => {
     if (changes.roleChanged) {
       await sendEmailSafely(
         updatedUser.email,
-        emailTemplates.roleChangedEmail(
-          updatedUser.name,
-          changes.oldRole,
-          changes.newRole
-        ),
+        emailTemplates.roleChangedEmail(updatedUser.name, changes.oldRole, changes.newRole),
         'Role changed notification'
       );
     }
@@ -263,7 +261,7 @@ exports.updateUser = async (req, res) => {
       // Delete old verification tokens
       await EmailVerification.deleteMany({
         userId: updatedUser._id,
-        isVerified: false
+        isVerified: false,
       });
 
       // Create new verification token
@@ -318,10 +316,10 @@ exports.updateUser = async (req, res) => {
         updatedFields: Object.keys(updateData),
         updatedBy: req.user.name,
         updateTime: new Date(),
-        changes: changes
+        changes: changes,
       },
       ipAddress: req.ip || '127.0.0.1',
-      userAgent: req.get('User-Agent') || 'Unknown'
+      userAgent: req.get('User-Agent') || 'Unknown',
     });
 
     res.json({
@@ -332,15 +330,15 @@ exports.updateUser = async (req, res) => {
         roleChanged: changes.roleChanged,
         verificationSent: changes.wasUnverified,
         deactivationSent: changes.wasDeactivated,
-        reactivationSent: changes.wasReactivated
-      }
+        reactivationSent: changes.wasReactivated,
+      },
     });
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while updating user',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -354,7 +352,7 @@ exports.deleteUser = async (req, res) => {
     if (userId === req.user._id.toString()) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot delete your own account'
+        message: 'Cannot delete your own account',
       });
     }
 
@@ -363,7 +361,7 @@ exports.deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -372,7 +370,7 @@ exports.deleteUser = async (req, res) => {
       name: user.name,
       email: user.email,
       username: user.username,
-      role: user.role
+      role: user.role,
     };
 
     // Send deletion notification email BEFORE deleting
@@ -405,23 +403,23 @@ exports.deleteUser = async (req, res) => {
         deletedUserRole: userData.role,
         deletedBy: req.user.name,
         deleteTime: new Date(),
-        reason: reason || 'No reason provided'
+        reason: reason || 'No reason provided',
       },
       ipAddress: req.ip || '127.0.0.1',
-      userAgent: req.get('User-Agent') || 'Unknown'
+      userAgent: req.get('User-Agent') || 'Unknown',
     });
 
     res.json({
       success: true,
       message: `User ${userData.name} deleted successfully`,
-      emailSent: true
+      emailSent: true,
     });
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while deleting user',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -434,14 +432,14 @@ exports.bulkDeleteUsers = async (req, res) => {
     if (!Array.isArray(userIds) || userIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'userIds array is required'
+        message: 'userIds array is required',
       });
     }
 
     if (userIds.includes(req.user._id.toString())) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot delete your own account'
+        message: 'Cannot delete your own account',
       });
     }
 
@@ -477,24 +475,24 @@ exports.bulkDeleteUsers = async (req, res) => {
         deletedUsers: usersToDelete.map(u => ({ id: u._id, email: u.email, name: u.name })),
         deletedBy: req.user.name,
         deleteTime: new Date(),
-        reason: reason || 'No reason provided'
+        reason: reason || 'No reason provided',
       },
       ipAddress: req.ip || '127.0.0.1',
-      userAgent: req.get('User-Agent') || 'Unknown'
+      userAgent: req.get('User-Agent') || 'Unknown',
     });
 
     res.json({
       success: true,
       message: `Successfully deleted ${result.deletedCount} users`,
       deletedCount: result.deletedCount,
-      emailsSent: usersToDelete.length
+      emailsSent: usersToDelete.length,
     });
   } catch (error) {
     console.error('Error bulk deleting users:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while deleting users',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -508,20 +506,18 @@ exports.toggleUserStatus = async (req, res) => {
     if (typeof isActive !== 'boolean') {
       return res.status(400).json({
         success: false,
-        message: 'isActive must be a boolean value'
+        message: 'isActive must be a boolean value',
       });
     }
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { $set: { isActive } },
-      { new: true }
-    ).select('-password');
+    const user = await User.findByIdAndUpdate(userId, { $set: { isActive } }, { new: true }).select(
+      '-password'
+    );
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -553,24 +549,24 @@ exports.toggleUserStatus = async (req, res) => {
         newStatus: isActive,
         changedBy: req.user.name,
         changeTime: new Date(),
-        reason: reason || 'No reason provided'
+        reason: reason || 'No reason provided',
       },
       ipAddress: req.ip || '127.0.0.1',
-      userAgent: req.get('User-Agent') || 'Unknown'
+      userAgent: req.get('User-Agent') || 'Unknown',
     });
 
     res.json({
       success: true,
       message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
       user,
-      emailSent: true
+      emailSent: true,
     });
   } catch (error) {
     console.error('Error toggling user status:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while updating user status',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -584,7 +580,7 @@ exports.resetUserPassword = async (req, res) => {
     if (!newPassword || newPassword.length < 6) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 6 characters long'
+        message: 'Password must be at least 6 characters long',
       });
     }
 
@@ -593,7 +589,7 @@ exports.resetUserPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -655,7 +651,7 @@ exports.resetUserPassword = async (req, res) => {
             </body>
             </html>
           `,
-          text: `Hello ${user.name},\n\nYour password has been reset by an administrator.\n\nTemporary Password: ${newPassword}\n\nYou must change this password after logging in.\n\nLogin at: ${FRONTEND_URL}/login\n\nBest regards,\nSkill-Pilot Team`
+          text: `Hello ${user.name},\n\nYour password has been reset by an administrator.\n\nTemporary Password: ${newPassword}\n\nYou must change this password after logging in.\n\nLogin at: ${FRONTEND_URL}/login\n\nBest regards,\nSkill-Pilot Team`,
         };
 
         await sendEmailFast(user.email, passwordResetTemplate);
@@ -674,24 +670,24 @@ exports.resetUserPassword = async (req, res) => {
         targetUserEmail: user.email,
         emailSent: sendEmail,
         resetBy: req.user.name,
-        resetTime: new Date()
+        resetTime: new Date(),
       },
       ipAddress: req.ip || '127.0.0.1',
-      userAgent: req.get('User-Agent') || 'Unknown'
+      userAgent: req.get('User-Agent') || 'Unknown',
     });
 
     res.json({
       success: true,
       message: `Password reset successfully${sendEmail ? '. Email sent to user.' : ''}`,
       temporaryPassword: newPassword,
-      emailSent: sendEmail
+      emailSent: sendEmail,
     });
   } catch (error) {
     console.error('Error resetting password:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while resetting password',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -707,7 +703,7 @@ exports.getUserStatistics = async (req, res) => {
         verified: await User.countDocuments({ isVerified: true }),
         unverified: await User.countDocuments({ isVerified: false }),
         suspended: await User.countDocuments({ isSuspended: true }),
-        tempPassword: await User.countDocuments({ temporaryPassword: true })
+        tempPassword: await User.countDocuments({ temporaryPassword: true }),
       },
       byRole: await User.aggregate([
         {
@@ -715,10 +711,10 @@ exports.getUserStatistics = async (req, res) => {
             _id: '$role',
             count: { $sum: 1 },
             active: {
-              $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
-            }
-          }
-        }
+              $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] },
+            },
+          },
+        },
       ]),
       recentUsers: await User.find()
         .select('name email role createdAt isActive isVerified')
@@ -730,26 +726,26 @@ exports.getUserStatistics = async (req, res) => {
           $group: {
             _id: {
               year: { $year: '$createdAt' },
-              month: { $month: '$createdAt' }
+              month: { $month: '$createdAt' },
             },
-            count: { $sum: 1 }
-          }
+            count: { $sum: 1 },
+          },
         },
         { $sort: { '_id.year': -1, '_id.month': -1 } },
-        { $limit: 6 }
-      ])
+        { $limit: 6 },
+      ]),
     };
 
     res.json({
       success: true,
-      stats
+      stats,
     });
   } catch (error) {
     console.error('Error fetching statistics:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while fetching statistics',
-      error: error.message
+      error: error.message,
     });
   }
 };

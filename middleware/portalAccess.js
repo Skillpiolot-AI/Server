@@ -16,10 +16,10 @@ const logPortalActivity = async (student, userId, activityType, details, req) =>
       details: {
         ...details,
         pageAccessed: req.path,
-        method: req.method
+        method: req.method,
       },
       ipAddress: req.ip || req.connection.remoteAddress || '127.0.0.1',
-      userAgent: req.get('User-Agent') || 'Unknown'
+      userAgent: req.get('User-Agent') || 'Unknown',
     });
   } catch (error) {
     console.error('Error logging portal activity:', error);
@@ -27,7 +27,7 @@ const logPortalActivity = async (student, userId, activityType, details, req) =>
 };
 
 // Middleware to check if student has access to specific portal features
-const checkPortalAccess = (requiredAccess) => {
+const checkPortalAccess = requiredAccess => {
   return async (req, res, next) => {
     try {
       // Only apply to students
@@ -39,79 +39,102 @@ const checkPortalAccess = (requiredAccess) => {
       if (!student) {
         return res.status(404).json({
           success: false,
-          message: 'Student profile not found'
+          message: 'Student profile not found',
         });
       }
 
       // Check if student is suspended
       if (student.isSuspended) {
-        await logPortalActivity(student, req.user._id, 'access_denied', {
-          reason: 'student_suspended',
-          requiredAccess: requiredAccess,
-          suspensionDetails: student.suspensionDetails
-        }, req);
+        await logPortalActivity(
+          student,
+          req.user._id,
+          'access_denied',
+          {
+            reason: 'student_suspended',
+            requiredAccess: requiredAccess,
+            suspensionDetails: student.suspensionDetails,
+          },
+          req
+        );
 
-        const suspensionMessage = student.suspensionDetails?.until ?
-          `Access denied. You are suspended until ${new Date(student.suspensionDetails.until).toLocaleDateString()}. Reason: ${student.suspensionDetails.reason || 'No reason provided'}` :
-          `Access denied. Your account is suspended. Reason: ${student.suspensionDetails?.reason || 'No reason provided'}`;
+        const suspensionMessage = student.suspensionDetails?.until
+          ? `Access denied. You are suspended until ${new Date(student.suspensionDetails.until).toLocaleDateString()}. Reason: ${student.suspensionDetails.reason || 'No reason provided'}`
+          : `Access denied. Your account is suspended. Reason: ${student.suspensionDetails?.reason || 'No reason provided'}`;
 
         return res.status(403).json({
           success: false,
           message: suspensionMessage,
           isSuspended: true,
-          suspensionDetails: student.suspensionDetails
+          suspensionDetails: student.suspensionDetails,
         });
       }
 
       // Check if student has required portal access
       if (requiredAccess && !student.portalAccess[requiredAccess]) {
-        await logPortalActivity(student, req.user._id, 'access_denied', {
-          reason: 'insufficient_permissions',
-          requiredAccess: requiredAccess,
-          currentAccess: student.portalAccess
-        }, req);
+        await logPortalActivity(
+          student,
+          req.user._id,
+          'access_denied',
+          {
+            reason: 'insufficient_permissions',
+            requiredAccess: requiredAccess,
+            currentAccess: student.portalAccess,
+          },
+          req
+        );
 
         return res.status(403).json({
           success: false,
           message: `Access denied. You don't have permission to access ${requiredAccess.replace(/([A-Z])/g, ' $1').toLowerCase()}`,
-          requiredAccess: requiredAccess
+          requiredAccess: requiredAccess,
         });
       }
 
       // Check if accessing restricted areas
-      const restrictedArea = student.portalAccess.restrictedAreas?.find(
-        area => req.path.includes(area.area)
+      const restrictedArea = student.portalAccess.restrictedAreas?.find(area =>
+        req.path.includes(area.area)
       );
 
       if (restrictedArea) {
-        await logPortalActivity(student, req.user._id, 'access_denied', {
-          reason: 'restricted_area',
-          restrictedArea: restrictedArea.area,
-          restrictionReason: restrictedArea.reason
-        }, req);
+        await logPortalActivity(
+          student,
+          req.user._id,
+          'access_denied',
+          {
+            reason: 'restricted_area',
+            restrictedArea: restrictedArea.area,
+            restrictionReason: restrictedArea.reason,
+          },
+          req
+        );
 
         return res.status(403).json({
           success: false,
           message: `Access to this area is restricted. Reason: ${restrictedArea.reason}`,
-          restrictedArea: restrictedArea
+          restrictedArea: restrictedArea,
         });
       }
 
       // Log successful access
-      await logPortalActivity(student, req.user._id, 'portal_navigation', {
-        accessGranted: true,
-        requiredAccess: requiredAccess
-      }, req);
+      await logPortalActivity(
+        student,
+        req.user._id,
+        'portal_navigation',
+        {
+          accessGranted: true,
+          requiredAccess: requiredAccess,
+        },
+        req
+      );
 
       // Attach student info to request for use in routes
       req.studentProfile = student;
       next();
-
     } catch (error) {
       console.error('Error checking portal access:', error);
       res.status(500).json({
         success: false,
-        message: 'Error checking portal access'
+        message: 'Error checking portal access',
       });
     }
   };
@@ -127,22 +150,34 @@ const trackStudentActivity = async (req, res, next) => {
         req.studentVisitStart = Date.now();
 
         // Log page access
-        await logPortalActivity(student, req.user._id, 'portal_navigation', {
-          pageAccessed: req.path,
-          method: req.method,
-          accessTime: new Date()
-        }, req);
+        await logPortalActivity(
+          student,
+          req.user._id,
+          'portal_navigation',
+          {
+            pageAccessed: req.path,
+            method: req.method,
+            accessTime: new Date(),
+          },
+          req
+        );
 
         // Attach middleware to track time spent when response finishes
         res.on('finish', async () => {
           try {
             const timeSpent = Math.round((Date.now() - req.studentVisitStart) / 1000); // in seconds
 
-            await logPortalActivity(student, req.user._id, 'portal_navigation', {
-              pageLeft: req.path,
-              timeSpent: timeSpent,
-              exitTime: new Date()
-            }, req);
+            await logPortalActivity(
+              student,
+              req.user._id,
+              'portal_navigation',
+              {
+                pageLeft: req.path,
+                timeSpent: timeSpent,
+                exitTime: new Date(),
+              },
+              req
+            );
           } catch (error) {
             console.error('Error tracking visit duration:', error);
           }
@@ -166,13 +201,22 @@ const detectSuspiciousActivity = async (req, res, next) => {
 
         if (suspiciousActivity.length > 0) {
           // Log suspicious activity detection
-          await logPortalActivity(student, req.user._id, 'suspicious_activity_detected', {
-            suspiciousPatterns: suspiciousActivity,
-            detectedAt: new Date()
-          }, req);
+          await logPortalActivity(
+            student,
+            req.user._id,
+            'suspicious_activity_detected',
+            {
+              suspiciousPatterns: suspiciousActivity,
+              detectedAt: new Date(),
+            },
+            req
+          );
 
           // For now, just log - could implement blocking or alerts here
-          console.warn(`Suspicious activity detected for student ${student._id}:`, suspiciousActivity);
+          console.warn(
+            `Suspicious activity detected for student ${student._id}:`,
+            suspiciousActivity
+          );
         }
       }
     } catch (error) {
@@ -208,7 +252,7 @@ const enforceAcademicContext = (req, res, next) => {
   req.academicContext = {
     academicYear,
     semester,
-    currentDate: now
+    currentDate: now,
   };
 
   next();
@@ -225,20 +269,27 @@ const manageStudentSessions = async (req, res, next) => {
 
         // Check if current session is still valid
         if (req.user.currentSession && req.user.currentSession.lastActivity) {
-          const timeSinceLastActivity = currentTime - new Date(req.user.currentSession.lastActivity);
+          const timeSinceLastActivity =
+            currentTime - new Date(req.user.currentSession.lastActivity);
 
           if (timeSinceLastActivity > sessionTimeout) {
             // Session expired - log automatic logout
-            await logPortalActivity(student, req.user._id, 'session_expired', {
-              sessionId: req.user.currentSession.sessionId,
-              lastActivity: req.user.currentSession.lastActivity,
-              expiredAt: currentTime
-            }, req);
+            await logPortalActivity(
+              student,
+              req.user._id,
+              'session_expired',
+              {
+                sessionId: req.user.currentSession.sessionId,
+                lastActivity: req.user.currentSession.lastActivity,
+                expiredAt: currentTime,
+              },
+              req
+            );
 
             return res.status(401).json({
               success: false,
               message: 'Session expired due to inactivity. Please log in again.',
-              sessionExpired: true
+              sessionExpired: true,
             });
           }
         }
@@ -271,11 +322,11 @@ const portalAccessControls = {
   grades: checkPortalAccess('canViewGrades'),
 
   // General portal access (for students not suspended)
-  general: checkPortalAccess(null)
+  general: checkPortalAccess(null),
 };
 
 // Middleware to log file downloads/uploads
-const trackFileActivity = (activityType) => {
+const trackFileActivity = activityType => {
   return async (req, res, next) => {
     if (req.user && req.user.role === 'Student') {
       try {
@@ -285,7 +336,7 @@ const trackFileActivity = (activityType) => {
           const fileInfo = {
             fileName: req.body?.fileName || req.query?.fileName || 'unknown',
             fileSize: req.body?.fileSize || req.headers['content-length'] || 0,
-            fileType: req.body?.fileType || req.headers['content-type'] || 'unknown'
+            fileType: req.body?.fileType || req.headers['content-type'] || 'unknown',
           };
 
           await logPortalActivity(student, req.user._id, activityType, fileInfo, req);
@@ -310,24 +361,36 @@ const emergencyAccess = (allowedActions = []) => {
           const currentAction = req.path.split('/').pop();
 
           if (!allowedActions.includes(currentAction)) {
-            await logPortalActivity(student, req.user._id, 'emergency_access_denied', {
-              attemptedAction: currentAction,
-              allowedActions: allowedActions,
-              suspensionDetails: student.suspensionDetails
-            }, req);
+            await logPortalActivity(
+              student,
+              req.user._id,
+              'emergency_access_denied',
+              {
+                attemptedAction: currentAction,
+                allowedActions: allowedActions,
+                suspensionDetails: student.suspensionDetails,
+              },
+              req
+            );
 
             return res.status(403).json({
               success: false,
               message: 'This action is not available during suspension',
-              allowedActions: allowedActions
+              allowedActions: allowedActions,
             });
           }
 
           // Log emergency access usage
-          await logPortalActivity(student, req.user._id, 'emergency_access_granted', {
-            action: currentAction,
-            suspensionDetails: student.suspensionDetails
-          }, req);
+          await logPortalActivity(
+            student,
+            req.user._id,
+            'emergency_access_granted',
+            {
+              action: currentAction,
+              suspensionDetails: student.suspensionDetails,
+            },
+            req
+          );
         }
       } catch (error) {
         console.error('Error handling emergency access:', error);
@@ -358,17 +421,23 @@ const rateLimitStudentActions = (maxActions = 100, windowMs = 15 * 60 * 1000) =>
       if (currentAttempts.length >= maxActions) {
         const student = await Student.findOne({ userId: req.user._id });
         if (student) {
-          await logPortalActivity(student, req.user._id, 'rate_limit_exceeded', {
-            maxActions,
-            windowMs,
-            currentAttempts: currentAttempts.length
-          }, req);
+          await logPortalActivity(
+            student,
+            req.user._id,
+            'rate_limit_exceeded',
+            {
+              maxActions,
+              windowMs,
+              currentAttempts: currentAttempts.length,
+            },
+            req
+          );
         }
 
         return res.status(429).json({
           success: false,
           message: 'Too many requests. Please slow down.',
-          retryAfter: Math.ceil(windowMs / 1000)
+          retryAfter: Math.ceil(windowMs / 1000),
         });
       }
 
@@ -390,5 +459,5 @@ module.exports = {
   trackFileActivity,
   emergencyAccess,
   rateLimitStudentActions,
-  logPortalActivity
+  logPortalActivity,
 };

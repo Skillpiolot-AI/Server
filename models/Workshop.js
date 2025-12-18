@@ -19,7 +19,7 @@ const workshopSchema = new mongoose.Schema({
   location: String,
   ageGroup: String,
   language: String,
-  venueAddress: String
+  venueAddress: String,
 });
 
 module.exports = mongoose.model('Workshop', workshopSchema);

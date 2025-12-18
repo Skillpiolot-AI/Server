@@ -6,58 +6,64 @@ const TeacherAccessSchema = new mongoose.Schema({
   university: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'University',
-    required: true
+    required: true,
   },
   accessMethod: {
     type: String,
     enum: ['registration', 'gmail'],
-    required: true
+    required: true,
   },
-  registrationNumbers: [{
-    type: String,
-    trim: true
-  }],
-  emails: [{
-    type: String,
-    lowercase: true,
-    trim: true
-  }],
+  registrationNumbers: [
+    {
+      type: String,
+      trim: true,
+    },
+  ],
+  emails: [
+    {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
+  ],
   passwordMethod: {
     type: String,
     enum: ['manual', 'auto'],
-    required: true
+    required: true,
   },
   defaultPassword: {
     type: String,
-    trim: true
+    trim: true,
   },
-  generatedCredentials: [{
-    identifier: {
-      type: String,
-      required: true
+  generatedCredentials: [
+    {
+      identifier: {
+        type: String,
+        required: true,
+      },
+      password: {
+        type: String,
+        required: true,
+      },
     },
-    password: {
-      type: String,
-      required: true
-    }
-  }],
+  ],
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Indexes for better performance
@@ -67,7 +73,7 @@ TeacherAccessSchema.index({ emails: 1 });
 TeacherAccessSchema.index({ isActive: 1 });
 
 // Pre-save middleware to update the updatedAt field
-TeacherAccessSchema.pre('save', function(next) {
+TeacherAccessSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });

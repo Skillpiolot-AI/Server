@@ -4,41 +4,41 @@ const EmailVerificationSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   email: {
     type: String,
     required: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
   token: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   isVerified: {
     type: Boolean,
-    default: false
+    default: false,
   },
   verifiedAt: {
-    type: Date
+    type: Date,
   },
   ipAddress: {
-    type: String
+    type: String,
   },
   userAgent: {
-    type: String
+    type: String,
   },
   expiresAt: {
     type: Date,
     required: true,
-    default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+    default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Index for faster queries
@@ -51,7 +51,12 @@ EmailVerificationSchema.index({ expiresAt: 1 });
 EmailVerificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 // Static method to create verification token
-EmailVerificationSchema.statics.createVerificationToken = function(userId, email, ipAddress, userAgent) {
+EmailVerificationSchema.statics.createVerificationToken = function (
+  userId,
+  email,
+  ipAddress,
+  userAgent
+) {
   const crypto = require('crypto');
   const token = crypto.randomBytes(32).toString('hex');
 
@@ -60,12 +65,12 @@ EmailVerificationSchema.statics.createVerificationToken = function(userId, email
     email,
     token,
     ipAddress,
-    userAgent
+    userAgent,
   });
 };
 
 // Method to verify token
-EmailVerificationSchema.methods.verify = async function() {
+EmailVerificationSchema.methods.verify = async function () {
   if (this.isVerified) {
     return { success: false, message: 'Email already verified' };
   }

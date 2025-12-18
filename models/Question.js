@@ -1,15 +1,18 @@
 const mongoose = require('mongoose');
 
-const questionSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
-  domain: {
-    type: String,
-    required: true,
-    enum: ['R', 'I', 'A', 'S', 'E', 'C']
+const questionSchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true, unique: true },
+    domain: {
+      type: String,
+      required: true,
+      enum: ['R', 'I', 'A', 'S', 'E', 'C'],
+    },
+    text: { type: String, required: true },
+    order: { type: Number, required: true },
   },
-  text: { type: String, required: true },
-  order: { type: Number, required: true }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 questionSchema.index({ domain: 1, order: 1 });
 

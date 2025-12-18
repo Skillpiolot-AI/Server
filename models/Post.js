@@ -27,46 +27,47 @@ const mongoose = require('mongoose');
 
 // module.exports = mongoose.model('Post', PostSchema);
 
-
 // const mongoose = require('mongoose');
 
 const CommentSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
-    maxlength: 280
+    maxlength: 280,
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 const PostSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
-    maxlength: 280 // Twitter-like character limit
+    maxlength: 280, // Twitter-like character limit
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
-  likes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  ],
   comments: [CommentSchema],
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model('Post', PostSchema);

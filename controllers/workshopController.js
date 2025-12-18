@@ -1,7 +1,5 @@
-
 const Workshop = require('../models/Workshop');
 const cloudinary = require('../config/cloudinary');
-
 
 exports.createWorkshop = async (req, res) => {
   try {
@@ -13,7 +11,7 @@ exports.createWorkshop = async (req, res) => {
       location: req.body.location,
       ageGroup: req.body.ageGroup,
       language: req.body.language,
-      venueAddress: req.body.venueAddress
+      venueAddress: req.body.venueAddress,
     });
 
     await workshop.save();
@@ -21,7 +19,7 @@ exports.createWorkshop = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: 'An error occurred while creating the workshop',
-      error: error.message
+      error: error.message,
     });
   }
 };

@@ -2,30 +2,30 @@
 
 // Mock dependencies
 jest.mock('../../../models/User', () => ({
-    find: jest.fn(),
-    findById: jest.fn(),
-    findByIdAndUpdate: jest.fn(),
-    findByIdAndDelete: jest.fn(),
-    findOne: jest.fn(),
-    countDocuments: jest.fn(),
-    aggregate: jest.fn(),
-    deleteMany: jest.fn()
+  find: jest.fn(),
+  findById: jest.fn(),
+  findByIdAndUpdate: jest.fn(),
+  findByIdAndDelete: jest.fn(),
+  findOne: jest.fn(),
+  countDocuments: jest.fn(),
+  aggregate: jest.fn(),
+  deleteMany: jest.fn(),
 }));
 
 jest.mock('../../../models/Student', () => ({
-    findOne: jest.fn(),
-    deleteOne: jest.fn(),
-    deleteMany: jest.fn()
+  findOne: jest.fn(),
+  deleteOne: jest.fn(),
+  deleteMany: jest.fn(),
 }));
 
 jest.mock('../../../models/UserActivity', () => ({
-    find: jest.fn(),
-    create: jest.fn(),
-    deleteMany: jest.fn()
+  find: jest.fn(),
+  create: jest.fn(),
+  deleteMany: jest.fn(),
 }));
 
 jest.mock('../../../config/mailHelper', () => ({
-    sendEmailFast: jest.fn()
+  sendEmailFast: jest.fn(),
 }));
 
 const User = require('../../../models/User');
@@ -36,635 +36,636 @@ const { sendEmailFast } = require('../../../config/mailHelper');
 const userDataController = require('../../../controllers/userDataController');
 
 describe('UserData Controller Tests', () => {
-    let mockReq, mockRes;
+  let mockReq, mockRes;
 
-    beforeEach(() => {
-        mockReq = {
-            body: {},
-            params: {},
-            query: {},
-            user: { _id: 'admin123', name: 'Admin User' },
-            ip: '127.0.0.1',
-            get: jest.fn().mockReturnValue('Mozilla/5.0'),
-            sessionID: 'session123'
-        };
-        mockRes = {
-            status: jest.fn().mockReturnThis(),
-            json: jest.fn().mockReturnThis()
-        };
-        jest.clearAllMocks();
+  beforeEach(() => {
+    mockReq = {
+      body: {},
+      params: {},
+      query: {},
+      user: { _id: 'admin123', name: 'Admin User' },
+      ip: '127.0.0.1',
+      get: jest.fn().mockReturnValue('Mozilla/5.0'),
+      sessionID: 'session123',
+    };
+    mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    };
+    jest.clearAllMocks();
+  });
+
+  describe('getAllUsers', () => {
+    it('should return paginated users with default parameters', async () => {
+      const mockUsers = [
+        { _id: 'u1', name: 'User 1', email: 'user1@test.com' },
+        { _id: 'u2', name: 'User 2', email: 'user2@test.com' },
+      ];
+
+      User.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          populate: jest.fn().mockReturnValue({
+            sort: jest.fn().mockReturnValue({
+              limit: jest.fn().mockReturnValue({
+                skip: jest.fn().mockReturnValue({
+                  lean: jest.fn().mockResolvedValue(mockUsers),
+                }),
+              }),
+            }),
+          }),
+        }),
+      });
+
+      User.countDocuments
+        .mockResolvedValueOnce(2) // For filter count
+        .mockResolvedValueOnce(10) // Total
+        .mockResolvedValueOnce(8) // Active
+        .mockResolvedValueOnce(7) // Verified
+        .mockResolvedValueOnce(1); // Suspended
+
+      User.aggregate.mockResolvedValue([
+        { _id: 'User', count: 8 },
+        { _id: 'Admin', count: 2 },
+      ]);
+
+      await userDataController.getAllUsers(mockReq, mockRes);
+
+      expect(User.find).toHaveBeenCalled();
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          users: mockUsers,
+          pagination: expect.objectContaining({
+            currentPage: 1,
+            perPage: 10,
+          }),
+        })
+      );
     });
 
-    describe('getAllUsers', () => {
-        it('should return paginated users with default parameters', async () => {
-            const mockUsers = [
-                { _id: 'u1', name: 'User 1', email: 'user1@test.com' },
-                { _id: 'u2', name: 'User 2', email: 'user2@test.com' }
-            ];
+    it('should filter users by role', async () => {
+      mockReq.query = { role: 'Admin' };
 
-            User.find.mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    populate: jest.fn().mockReturnValue({
-                        sort: jest.fn().mockReturnValue({
-                            limit: jest.fn().mockReturnValue({
-                                skip: jest.fn().mockReturnValue({
-                                    lean: jest.fn().mockResolvedValue(mockUsers)
-                                })
-                            })
-                        })
-                    })
-                })
-            });
+      User.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          populate: jest.fn().mockReturnValue({
+            sort: jest.fn().mockReturnValue({
+              limit: jest.fn().mockReturnValue({
+                skip: jest.fn().mockReturnValue({
+                  lean: jest.fn().mockResolvedValue([]),
+                }),
+              }),
+            }),
+          }),
+        }),
+      });
 
-            User.countDocuments.mockResolvedValueOnce(2) // For filter count
-                .mockResolvedValueOnce(10)  // Total
-                .mockResolvedValueOnce(8)   // Active
-                .mockResolvedValueOnce(7)   // Verified
-                .mockResolvedValueOnce(1);  // Suspended
+      User.countDocuments.mockResolvedValue(0);
+      User.aggregate.mockResolvedValue([]);
 
-            User.aggregate.mockResolvedValue([
-                { _id: 'User', count: 8 },
-                { _id: 'Admin', count: 2 }
-            ]);
+      await userDataController.getAllUsers(mockReq, mockRes);
 
-            await userDataController.getAllUsers(mockReq, mockRes);
-
-            expect(User.find).toHaveBeenCalled();
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    users: mockUsers,
-                    pagination: expect.objectContaining({
-                        currentPage: 1,
-                        perPage: 10
-                    })
-                })
-            );
-        });
-
-        it('should filter users by role', async () => {
-            mockReq.query = { role: 'Admin' };
-
-            User.find.mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    populate: jest.fn().mockReturnValue({
-                        sort: jest.fn().mockReturnValue({
-                            limit: jest.fn().mockReturnValue({
-                                skip: jest.fn().mockReturnValue({
-                                    lean: jest.fn().mockResolvedValue([])
-                                })
-                            })
-                        })
-                    })
-                })
-            });
-
-            User.countDocuments.mockResolvedValue(0);
-            User.aggregate.mockResolvedValue([]);
-
-            await userDataController.getAllUsers(mockReq, mockRes);
-
-            expect(User.find).toHaveBeenCalled();
-        });
-
-        it('should search users by name, email, or username', async () => {
-            mockReq.query = { search: 'john' };
-
-            User.find.mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    populate: jest.fn().mockReturnValue({
-                        sort: jest.fn().mockReturnValue({
-                            limit: jest.fn().mockReturnValue({
-                                skip: jest.fn().mockReturnValue({
-                                    lean: jest.fn().mockResolvedValue([])
-                                })
-                            })
-                        })
-                    })
-                })
-            });
-
-            User.countDocuments.mockResolvedValue(0);
-            User.aggregate.mockResolvedValue([]);
-
-            await userDataController.getAllUsers(mockReq, mockRes);
-
-            expect(User.find).toHaveBeenCalled();
-        });
-
-        it('should handle database errors gracefully', async () => {
-            User.find.mockImplementation(() => {
-                throw new Error('Database error');
-            });
-
-            await userDataController.getAllUsers(mockReq, mockRes);
-
-            expect(mockRes.status).toHaveBeenCalledWith(500);
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: false,
-                    message: 'Server error while fetching users'
-                })
-            );
-        });
+      expect(User.find).toHaveBeenCalled();
     });
 
-    describe('getUserById', () => {
-        it('should return user when found', async () => {
-            const mockUser = {
-                _id: 'user123',
-                name: 'Test User',
-                email: 'test@example.com',
-                role: 'User'
-            };
+    it('should search users by name, email, or username', async () => {
+      mockReq.query = { search: 'john' };
 
-            User.findById.mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    populate: jest.fn().mockReturnValue({
-                        lean: jest.fn().mockResolvedValue(mockUser)
-                    })
-                })
-            });
+      User.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          populate: jest.fn().mockReturnValue({
+            sort: jest.fn().mockReturnValue({
+              limit: jest.fn().mockReturnValue({
+                skip: jest.fn().mockReturnValue({
+                  lean: jest.fn().mockResolvedValue([]),
+                }),
+              }),
+            }),
+          }),
+        }),
+      });
 
-            Student.findOne.mockReturnValue({
-                lean: jest.fn().mockResolvedValue(null)
-            });
+      User.countDocuments.mockResolvedValue(0);
+      User.aggregate.mockResolvedValue([]);
 
-            UserActivity.find.mockReturnValue({
-                sort: jest.fn().mockReturnValue({
-                    limit: jest.fn().mockReturnValue({
-                        lean: jest.fn().mockResolvedValue([])
-                    })
-                })
-            });
+      await userDataController.getAllUsers(mockReq, mockRes);
 
-            mockReq.params.userId = 'user123';
-
-            await userDataController.getUserById(mockReq, mockRes);
-
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    user: mockUser
-                })
-            );
-        });
-
-        it('should return 404 when user not found', async () => {
-            User.findById.mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    populate: jest.fn().mockReturnValue({
-                        lean: jest.fn().mockResolvedValue(null)
-                    })
-                })
-            });
-
-            mockReq.params.userId = 'nonexistent';
-
-            await userDataController.getUserById(mockReq, mockRes);
-
-            expect(mockRes.status).toHaveBeenCalledWith(404);
-            expect(mockRes.json).toHaveBeenCalledWith({
-                success: false,
-                message: 'User not found'
-            });
-        });
-
-        it('should include student profile for Student role', async () => {
-            const mockUser = {
-                _id: 'student123',
-                name: 'Student User',
-                role: 'Student'
-            };
-
-            const mockStudentProfile = {
-                userId: 'student123',
-                department: 'Computer Science',
-                year: '2024'
-            };
-
-            User.findById.mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    populate: jest.fn().mockReturnValue({
-                        lean: jest.fn().mockResolvedValue(mockUser)
-                    })
-                })
-            });
-
-            Student.findOne.mockReturnValue({
-                lean: jest.fn().mockResolvedValue(mockStudentProfile)
-            });
-
-            UserActivity.find.mockReturnValue({
-                sort: jest.fn().mockReturnValue({
-                    limit: jest.fn().mockReturnValue({
-                        lean: jest.fn().mockResolvedValue([])
-                    })
-                })
-            });
-
-            mockReq.params.userId = 'student123';
-
-            await userDataController.getUserById(mockReq, mockRes);
-
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    studentProfile: mockStudentProfile
-                })
-            );
-        });
+      expect(User.find).toHaveBeenCalled();
     });
 
-    describe('updateUser', () => {
-        it('should update user successfully', async () => {
-            const originalUser = {
-                _id: 'user123',
-                name: 'Original Name',
-                email: 'original@test.com',
-                role: 'User',
-                isVerified: true,
-                isActive: true
-            };
+    it('should handle database errors gracefully', async () => {
+      User.find.mockImplementation(() => {
+        throw new Error('Database error');
+      });
 
-            const updatedUser = {
-                ...originalUser,
-                name: 'Updated Name'
-            };
+      await userDataController.getAllUsers(mockReq, mockRes);
 
-            User.findById.mockResolvedValue(originalUser);
-            User.findByIdAndUpdate.mockReturnValue({
-                select: jest.fn().mockResolvedValue(updatedUser)
-            });
-            User.findOne.mockResolvedValue(null);
-            UserActivity.create.mockResolvedValue({});
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: 'Server error while fetching users',
+        })
+      );
+    });
+  });
 
-            mockReq.params.userId = 'user123';
-            mockReq.body = { name: 'Updated Name' };
+  describe('getUserById', () => {
+    it('should return user when found', async () => {
+      const mockUser = {
+        _id: 'user123',
+        name: 'Test User',
+        email: 'test@example.com',
+        role: 'User',
+      };
 
-            await userDataController.updateUser(mockReq, mockRes);
+      User.findById.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          populate: jest.fn().mockReturnValue({
+            lean: jest.fn().mockResolvedValue(mockUser),
+          }),
+        }),
+      });
 
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    message: 'User updated successfully'
-                })
-            );
-        });
+      Student.findOne.mockReturnValue({
+        lean: jest.fn().mockResolvedValue(null),
+      });
 
-        it('should return 404 when user not found', async () => {
-            User.findById.mockResolvedValue(null);
+      UserActivity.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          limit: jest.fn().mockReturnValue({
+            lean: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
 
-            mockReq.params.userId = 'nonexistent';
-            mockReq.body = { name: 'New Name' };
+      mockReq.params.userId = 'user123';
 
-            await userDataController.updateUser(mockReq, mockRes);
+      await userDataController.getUserById(mockReq, mockRes);
 
-            expect(mockRes.status).toHaveBeenCalledWith(404);
-        });
-
-        it('should validate email format', async () => {
-            User.findById.mockResolvedValue({ _id: 'user123' });
-
-            mockReq.params.userId = 'user123';
-            mockReq.body = { email: 'invalid-email' };
-
-            await userDataController.updateUser(mockReq, mockRes);
-
-            expect(mockRes.status).toHaveBeenCalledWith(400);
-            expect(mockRes.json).toHaveBeenCalledWith({
-                success: false,
-                message: 'Invalid email format'
-            });
-        });
-
-        it('should prevent duplicate email', async () => {
-            User.findById.mockResolvedValue({ _id: 'user123' });
-            User.findOne.mockResolvedValue({ _id: 'other-user', email: 'existing@test.com' });
-
-            mockReq.params.userId = 'user123';
-            mockReq.body = { email: 'existing@test.com' };
-
-            await userDataController.updateUser(mockReq, mockRes);
-
-            expect(mockRes.status).toHaveBeenCalledWith(400);
-            expect(mockRes.json).toHaveBeenCalledWith({
-                success: false,
-                message: 'Email already registered to another user'
-            });
-        });
-
-        it('should validate role values', async () => {
-            User.findById.mockResolvedValue({ _id: 'user123' });
-
-            mockReq.params.userId = 'user123';
-            mockReq.body = { role: 'InvalidRole' };
-
-            await userDataController.updateUser(mockReq, mockRes);
-
-            expect(mockRes.status).toHaveBeenCalledWith(400);
-            expect(mockRes.json).toHaveBeenCalledWith({
-                success: false,
-                message: 'Invalid role specified'
-            });
-        });
-
-        it('should not allow password update through this endpoint', async () => {
-            User.findById.mockResolvedValue({ _id: 'user123', role: 'User' });
-            User.findByIdAndUpdate.mockReturnValue({
-                select: jest.fn().mockResolvedValue({ _id: 'user123' })
-            });
-            UserActivity.create.mockResolvedValue({});
-
-            mockReq.params.userId = 'user123';
-            mockReq.body = { password: 'newpassword', name: 'Test' };
-
-            await userDataController.updateUser(mockReq, mockRes);
-
-            // Password should be stripped from update data
-            expect(User.findByIdAndUpdate).toHaveBeenCalled();
-        });
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          user: mockUser,
+        })
+      );
     });
 
-    describe('deleteUser', () => {
-        it('should delete user successfully', async () => {
-            const mockUser = {
-                _id: 'user123',
-                name: 'Test User',
-                email: 'test@test.com',
-                role: 'User'
-            };
+    it('should return 404 when user not found', async () => {
+      User.findById.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          populate: jest.fn().mockReturnValue({
+            lean: jest.fn().mockResolvedValue(null),
+          }),
+        }),
+      });
 
-            User.findById.mockResolvedValue(mockUser);
-            User.findByIdAndDelete.mockResolvedValue(mockUser);
-            UserActivity.deleteMany.mockResolvedValue({});
-            UserActivity.create.mockResolvedValue({});
-            sendEmailFast.mockResolvedValue({});
+      mockReq.params.userId = 'nonexistent';
 
-            mockReq.params.userId = 'user123';
+      await userDataController.getUserById(mockReq, mockRes);
 
-            await userDataController.deleteUser(mockReq, mockRes);
-
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true
-                })
-            );
-        });
-
-        it('should prevent self-deletion', async () => {
-            mockReq.user._id = 'user123';
-            mockReq.params.userId = 'user123';
-
-            await userDataController.deleteUser(mockReq, mockRes);
-
-            expect(mockRes.status).toHaveBeenCalledWith(400);
-            expect(mockRes.json).toHaveBeenCalledWith({
-                success: false,
-                message: 'Cannot delete your own account'
-            });
-        });
-
-        it('should return 404 when user not found', async () => {
-            User.findById.mockResolvedValue(null);
-
-            mockReq.params.userId = 'nonexistent';
-
-            await userDataController.deleteUser(mockReq, mockRes);
-
-            expect(mockRes.status).toHaveBeenCalledWith(404);
-        });
-
-        it('should delete associated student profile', async () => {
-            const mockUser = {
-                _id: 'student123',
-                name: 'Student',
-                email: 'student@test.com',
-                role: 'Student'
-            };
-
-            User.findById.mockResolvedValue(mockUser);
-            User.findByIdAndDelete.mockResolvedValue(mockUser);
-            Student.deleteOne.mockResolvedValue({});
-            UserActivity.deleteMany.mockResolvedValue({});
-            UserActivity.create.mockResolvedValue({});
-            sendEmailFast.mockResolvedValue({});
-
-            mockReq.params.userId = 'student123';
-
-            await userDataController.deleteUser(mockReq, mockRes);
-
-            expect(Student.deleteOne).toHaveBeenCalledWith({ userId: mockUser._id });
-        });
+      expect(mockRes.status).toHaveBeenCalledWith(404);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'User not found',
+      });
     });
 
-    describe('bulkDeleteUsers', () => {
-        it('should delete multiple users', async () => {
-            const mockUsers = [
-                { _id: 'u1', name: 'User 1', email: 'u1@test.com' },
-                { _id: 'u2', name: 'User 2', email: 'u2@test.com' }
-            ];
+    it('should include student profile for Student role', async () => {
+      const mockUser = {
+        _id: 'student123',
+        name: 'Student User',
+        role: 'Student',
+      };
 
-            User.find.mockResolvedValue(mockUsers);
-            User.deleteMany.mockResolvedValue({ deletedCount: 2 });
-            Student.deleteMany.mockResolvedValue({});
-            UserActivity.deleteMany.mockResolvedValue({});
-            UserActivity.create.mockResolvedValue({});
-            sendEmailFast.mockResolvedValue({});
+      const mockStudentProfile = {
+        userId: 'student123',
+        department: 'Computer Science',
+        year: '2024',
+      };
 
-            mockReq.body = { userIds: ['u1', 'u2'] };
+      User.findById.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          populate: jest.fn().mockReturnValue({
+            lean: jest.fn().mockResolvedValue(mockUser),
+          }),
+        }),
+      });
 
-            await userDataController.bulkDeleteUsers(mockReq, mockRes);
+      Student.findOne.mockReturnValue({
+        lean: jest.fn().mockResolvedValue(mockStudentProfile),
+      });
 
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    deletedCount: 2
-                })
-            );
-        });
+      UserActivity.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          limit: jest.fn().mockReturnValue({
+            lean: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
 
-        it('should return 400 for empty userIds array', async () => {
-            mockReq.body = { userIds: [] };
+      mockReq.params.userId = 'student123';
 
-            await userDataController.bulkDeleteUsers(mockReq, mockRes);
+      await userDataController.getUserById(mockReq, mockRes);
 
-            expect(mockRes.status).toHaveBeenCalledWith(400);
-            expect(mockRes.json).toHaveBeenCalledWith({
-                success: false,
-                message: 'userIds array is required'
-            });
-        });
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          studentProfile: mockStudentProfile,
+        })
+      );
+    });
+  });
 
-        it('should prevent self-deletion in bulk', async () => {
-            mockReq.user._id = 'admin123';
-            mockReq.body = { userIds: ['u1', 'admin123', 'u2'] };
+  describe('updateUser', () => {
+    it('should update user successfully', async () => {
+      const originalUser = {
+        _id: 'user123',
+        name: 'Original Name',
+        email: 'original@test.com',
+        role: 'User',
+        isVerified: true,
+        isActive: true,
+      };
 
-            await userDataController.bulkDeleteUsers(mockReq, mockRes);
+      const updatedUser = {
+        ...originalUser,
+        name: 'Updated Name',
+      };
 
-            expect(mockRes.status).toHaveBeenCalledWith(400);
-            expect(mockRes.json).toHaveBeenCalledWith({
-                success: false,
-                message: 'Cannot delete your own account'
-            });
-        });
+      User.findById.mockResolvedValue(originalUser);
+      User.findByIdAndUpdate.mockReturnValue({
+        select: jest.fn().mockResolvedValue(updatedUser),
+      });
+      User.findOne.mockResolvedValue(null);
+      UserActivity.create.mockResolvedValue({});
+
+      mockReq.params.userId = 'user123';
+      mockReq.body = { name: 'Updated Name' };
+
+      await userDataController.updateUser(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          message: 'User updated successfully',
+        })
+      );
     });
 
-    describe('toggleUserStatus', () => {
-        it('should activate user', async () => {
-            const mockUser = {
-                _id: 'user123',
-                name: 'Test User',
-                email: 'test@test.com',
-                isActive: true
-            };
+    it('should return 404 when user not found', async () => {
+      User.findById.mockResolvedValue(null);
 
-            User.findByIdAndUpdate.mockReturnValue({
-                select: jest.fn().mockResolvedValue(mockUser)
-            });
-            UserActivity.create.mockResolvedValue({});
-            sendEmailFast.mockResolvedValue({});
+      mockReq.params.userId = 'nonexistent';
+      mockReq.body = { name: 'New Name' };
 
-            mockReq.params.userId = 'user123';
-            mockReq.body = { isActive: true };
+      await userDataController.updateUser(mockReq, mockRes);
 
-            await userDataController.toggleUserStatus(mockReq, mockRes);
-
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    message: 'User activated successfully'
-                })
-            );
-        });
-
-        it('should deactivate user', async () => {
-            const mockUser = {
-                _id: 'user123',
-                name: 'Test User',
-                email: 'test@test.com',
-                isActive: false
-            };
-
-            User.findByIdAndUpdate.mockReturnValue({
-                select: jest.fn().mockResolvedValue(mockUser)
-            });
-            UserActivity.create.mockResolvedValue({});
-            sendEmailFast.mockResolvedValue({});
-
-            mockReq.params.userId = 'user123';
-            mockReq.body = { isActive: false };
-
-            await userDataController.toggleUserStatus(mockReq, mockRes);
-
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    message: 'User deactivated successfully'
-                })
-            );
-        });
-
-        it('should return 400 for non-boolean isActive', async () => {
-            mockReq.params.userId = 'user123';
-            mockReq.body = { isActive: 'true' };
-
-            await userDataController.toggleUserStatus(mockReq, mockRes);
-
-            expect(mockRes.status).toHaveBeenCalledWith(400);
-            expect(mockRes.json).toHaveBeenCalledWith({
-                success: false,
-                message: 'isActive must be a boolean value'
-            });
-        });
+      expect(mockRes.status).toHaveBeenCalledWith(404);
     });
 
-    describe('resetUserPassword', () => {
-        it('should reset password successfully', async () => {
-            const mockUser = {
-                _id: 'user123',
-                name: 'Test User',
-                email: 'test@test.com',
-                save: jest.fn().mockResolvedValue(true)
-            };
+    it('should validate email format', async () => {
+      User.findById.mockResolvedValue({ _id: 'user123' });
 
-            User.findById.mockResolvedValue(mockUser);
-            UserActivity.create.mockResolvedValue({});
-            sendEmailFast.mockResolvedValue({});
+      mockReq.params.userId = 'user123';
+      mockReq.body = { email: 'invalid-email' };
 
-            mockReq.params.userId = 'user123';
-            mockReq.body = { newPassword: 'NewPass123!' };
+      await userDataController.updateUser(mockReq, mockRes);
 
-            await userDataController.resetUserPassword(mockReq, mockRes);
-
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    temporaryPassword: 'NewPass123!'
-                })
-            );
-        });
-
-        it('should return 400 for short password', async () => {
-            mockReq.params.userId = 'user123';
-            mockReq.body = { newPassword: '123' };
-
-            await userDataController.resetUserPassword(mockReq, mockRes);
-
-            expect(mockRes.status).toHaveBeenCalledWith(400);
-            expect(mockRes.json).toHaveBeenCalledWith({
-                success: false,
-                message: 'Password must be at least 6 characters long'
-            });
-        });
-
-        it('should return 404 when user not found', async () => {
-            User.findById.mockResolvedValue(null);
-
-            mockReq.params.userId = 'nonexistent';
-            mockReq.body = { newPassword: 'ValidPass123!' };
-
-            await userDataController.resetUserPassword(mockReq, mockRes);
-
-            expect(mockRes.status).toHaveBeenCalledWith(404);
-        });
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Invalid email format',
+      });
     });
 
-    describe('getUserStatistics', () => {
-        it('should return user statistics', async () => {
-            User.countDocuments
-                .mockResolvedValueOnce(100) // total
-                .mockResolvedValueOnce(80)  // active
-                .mockResolvedValueOnce(20)  // inactive
-                .mockResolvedValueOnce(75)  // verified
-                .mockResolvedValueOnce(25)  // unverified
-                .mockResolvedValueOnce(5)   // suspended
-                .mockResolvedValueOnce(10); // tempPassword
+    it('should prevent duplicate email', async () => {
+      User.findById.mockResolvedValue({ _id: 'user123' });
+      User.findOne.mockResolvedValue({ _id: 'other-user', email: 'existing@test.com' });
 
-            User.aggregate
-                .mockResolvedValueOnce([{ _id: 'User', count: 90 }]) // byRole
-                .mockResolvedValueOnce([]); // monthlyGrowth
+      mockReq.params.userId = 'user123';
+      mockReq.body = { email: 'existing@test.com' };
 
-            User.find.mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    sort: jest.fn().mockReturnValue({
-                        limit: jest.fn().mockReturnValue({
-                            lean: jest.fn().mockResolvedValue([])
-                        })
-                    })
-                })
-            });
+      await userDataController.updateUser(mockReq, mockRes);
 
-            await userDataController.getUserStatistics(mockReq, mockRes);
-
-            expect(mockRes.json).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    stats: expect.objectContaining({
-                        overview: expect.any(Object)
-                    })
-                })
-            );
-        });
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Email already registered to another user',
+      });
     });
+
+    it('should validate role values', async () => {
+      User.findById.mockResolvedValue({ _id: 'user123' });
+
+      mockReq.params.userId = 'user123';
+      mockReq.body = { role: 'InvalidRole' };
+
+      await userDataController.updateUser(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Invalid role specified',
+      });
+    });
+
+    it('should not allow password update through this endpoint', async () => {
+      User.findById.mockResolvedValue({ _id: 'user123', role: 'User' });
+      User.findByIdAndUpdate.mockReturnValue({
+        select: jest.fn().mockResolvedValue({ _id: 'user123' }),
+      });
+      UserActivity.create.mockResolvedValue({});
+
+      mockReq.params.userId = 'user123';
+      mockReq.body = { password: 'newpassword', name: 'Test' };
+
+      await userDataController.updateUser(mockReq, mockRes);
+
+      // Password should be stripped from update data
+      expect(User.findByIdAndUpdate).toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteUser', () => {
+    it('should delete user successfully', async () => {
+      const mockUser = {
+        _id: 'user123',
+        name: 'Test User',
+        email: 'test@test.com',
+        role: 'User',
+      };
+
+      User.findById.mockResolvedValue(mockUser);
+      User.findByIdAndDelete.mockResolvedValue(mockUser);
+      UserActivity.deleteMany.mockResolvedValue({});
+      UserActivity.create.mockResolvedValue({});
+      sendEmailFast.mockResolvedValue({});
+
+      mockReq.params.userId = 'user123';
+
+      await userDataController.deleteUser(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+        })
+      );
+    });
+
+    it('should prevent self-deletion', async () => {
+      mockReq.user._id = 'user123';
+      mockReq.params.userId = 'user123';
+
+      await userDataController.deleteUser(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Cannot delete your own account',
+      });
+    });
+
+    it('should return 404 when user not found', async () => {
+      User.findById.mockResolvedValue(null);
+
+      mockReq.params.userId = 'nonexistent';
+
+      await userDataController.deleteUser(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(404);
+    });
+
+    it('should delete associated student profile', async () => {
+      const mockUser = {
+        _id: 'student123',
+        name: 'Student',
+        email: 'student@test.com',
+        role: 'Student',
+      };
+
+      User.findById.mockResolvedValue(mockUser);
+      User.findByIdAndDelete.mockResolvedValue(mockUser);
+      Student.deleteOne.mockResolvedValue({});
+      UserActivity.deleteMany.mockResolvedValue({});
+      UserActivity.create.mockResolvedValue({});
+      sendEmailFast.mockResolvedValue({});
+
+      mockReq.params.userId = 'student123';
+
+      await userDataController.deleteUser(mockReq, mockRes);
+
+      expect(Student.deleteOne).toHaveBeenCalledWith({ userId: mockUser._id });
+    });
+  });
+
+  describe('bulkDeleteUsers', () => {
+    it('should delete multiple users', async () => {
+      const mockUsers = [
+        { _id: 'u1', name: 'User 1', email: 'u1@test.com' },
+        { _id: 'u2', name: 'User 2', email: 'u2@test.com' },
+      ];
+
+      User.find.mockResolvedValue(mockUsers);
+      User.deleteMany.mockResolvedValue({ deletedCount: 2 });
+      Student.deleteMany.mockResolvedValue({});
+      UserActivity.deleteMany.mockResolvedValue({});
+      UserActivity.create.mockResolvedValue({});
+      sendEmailFast.mockResolvedValue({});
+
+      mockReq.body = { userIds: ['u1', 'u2'] };
+
+      await userDataController.bulkDeleteUsers(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          deletedCount: 2,
+        })
+      );
+    });
+
+    it('should return 400 for empty userIds array', async () => {
+      mockReq.body = { userIds: [] };
+
+      await userDataController.bulkDeleteUsers(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'userIds array is required',
+      });
+    });
+
+    it('should prevent self-deletion in bulk', async () => {
+      mockReq.user._id = 'admin123';
+      mockReq.body = { userIds: ['u1', 'admin123', 'u2'] };
+
+      await userDataController.bulkDeleteUsers(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Cannot delete your own account',
+      });
+    });
+  });
+
+  describe('toggleUserStatus', () => {
+    it('should activate user', async () => {
+      const mockUser = {
+        _id: 'user123',
+        name: 'Test User',
+        email: 'test@test.com',
+        isActive: true,
+      };
+
+      User.findByIdAndUpdate.mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUser),
+      });
+      UserActivity.create.mockResolvedValue({});
+      sendEmailFast.mockResolvedValue({});
+
+      mockReq.params.userId = 'user123';
+      mockReq.body = { isActive: true };
+
+      await userDataController.toggleUserStatus(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          message: 'User activated successfully',
+        })
+      );
+    });
+
+    it('should deactivate user', async () => {
+      const mockUser = {
+        _id: 'user123',
+        name: 'Test User',
+        email: 'test@test.com',
+        isActive: false,
+      };
+
+      User.findByIdAndUpdate.mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUser),
+      });
+      UserActivity.create.mockResolvedValue({});
+      sendEmailFast.mockResolvedValue({});
+
+      mockReq.params.userId = 'user123';
+      mockReq.body = { isActive: false };
+
+      await userDataController.toggleUserStatus(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          message: 'User deactivated successfully',
+        })
+      );
+    });
+
+    it('should return 400 for non-boolean isActive', async () => {
+      mockReq.params.userId = 'user123';
+      mockReq.body = { isActive: 'true' };
+
+      await userDataController.toggleUserStatus(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'isActive must be a boolean value',
+      });
+    });
+  });
+
+  describe('resetUserPassword', () => {
+    it('should reset password successfully', async () => {
+      const mockUser = {
+        _id: 'user123',
+        name: 'Test User',
+        email: 'test@test.com',
+        save: jest.fn().mockResolvedValue(true),
+      };
+
+      User.findById.mockResolvedValue(mockUser);
+      UserActivity.create.mockResolvedValue({});
+      sendEmailFast.mockResolvedValue({});
+
+      mockReq.params.userId = 'user123';
+      mockReq.body = { newPassword: 'NewPass123!' };
+
+      await userDataController.resetUserPassword(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          temporaryPassword: 'NewPass123!',
+        })
+      );
+    });
+
+    it('should return 400 for short password', async () => {
+      mockReq.params.userId = 'user123';
+      mockReq.body = { newPassword: '123' };
+
+      await userDataController.resetUserPassword(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Password must be at least 6 characters long',
+      });
+    });
+
+    it('should return 404 when user not found', async () => {
+      User.findById.mockResolvedValue(null);
+
+      mockReq.params.userId = 'nonexistent';
+      mockReq.body = { newPassword: 'ValidPass123!' };
+
+      await userDataController.resetUserPassword(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(404);
+    });
+  });
+
+  describe('getUserStatistics', () => {
+    it('should return user statistics', async () => {
+      User.countDocuments
+        .mockResolvedValueOnce(100) // total
+        .mockResolvedValueOnce(80) // active
+        .mockResolvedValueOnce(20) // inactive
+        .mockResolvedValueOnce(75) // verified
+        .mockResolvedValueOnce(25) // unverified
+        .mockResolvedValueOnce(5) // suspended
+        .mockResolvedValueOnce(10); // tempPassword
+
+      User.aggregate
+        .mockResolvedValueOnce([{ _id: 'User', count: 90 }]) // byRole
+        .mockResolvedValueOnce([]); // monthlyGrowth
+
+      User.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          sort: jest.fn().mockReturnValue({
+            limit: jest.fn().mockReturnValue({
+              lean: jest.fn().mockResolvedValue([]),
+            }),
+          }),
+        }),
+      });
+
+      await userDataController.getUserStatistics(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          stats: expect.objectContaining({
+            overview: expect.any(Object),
+          }),
+        })
+      );
+    });
+  });
 });

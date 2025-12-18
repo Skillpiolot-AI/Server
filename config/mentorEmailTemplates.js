@@ -184,11 +184,11 @@ const mentorAppointmentBookedEmail = (mentorName, userName, userEmail, appointme
               <div class="info-row">
                 <span class="info-label">Requested Date</span>
                 <span class="info-value">${new Date(appointmentDate).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })}</span>
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}</span>
               </div>
             </div>
             
@@ -213,11 +213,17 @@ const mentorAppointmentBookedEmail = (mentorName, userName, userEmail, appointme
     </body>
     </html>
   `,
-  text: `New Mentorship Appointment Request\n\nHello ${mentorName},\n\nYou have received a new appointment request from:\n\nMentee: ${userName}\nEmail: ${userEmail}\nRequested Date: ${new Date(appointmentDate).toLocaleDateString()}\n\nPlease log in to schedule this meeting:\n${FRONTEND_URL}/mentor-appointments\n\nBest regards,\nThe ${COMPANY_NAME} Team`
+  text: `New Mentorship Appointment Request\n\nHello ${mentorName},\n\nYou have received a new appointment request from:\n\nMentee: ${userName}\nEmail: ${userEmail}\nRequested Date: ${new Date(appointmentDate).toLocaleDateString()}\n\nPlease log in to schedule this meeting:\n${FRONTEND_URL}/mentor-appointments\n\nBest regards,\nThe ${COMPANY_NAME} Team`,
 });
 
 // Template: User receives scheduled meeting details
-const userMeetingScheduledEmail = (userName, mentorName, scheduledDate, scheduledTime, meetLink) => ({
+const userMeetingScheduledEmail = (
+  userName,
+  mentorName,
+  scheduledDate,
+  scheduledTime,
+  meetLink
+) => ({
   subject: `Meeting Scheduled with ${mentorName} - ${COMPANY_NAME}`,
   html: `
     <!DOCTYPE html>
@@ -248,11 +254,11 @@ const userMeetingScheduledEmail = (userName, mentorName, scheduledDate, schedule
               <div class="info-row">
                 <span class="info-label">Date</span>
                 <span class="info-value">${new Date(scheduledDate).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })}</span>
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">Time</span>
@@ -286,11 +292,17 @@ const userMeetingScheduledEmail = (userName, mentorName, scheduledDate, schedule
     </body>
     </html>
   `,
-  text: `Meeting Scheduled with ${mentorName}\n\nHello ${userName},\n\nYour mentorship session has been scheduled!\n\nMentor: ${mentorName}\nDate: ${new Date(scheduledDate).toLocaleDateString()}\nTime: ${scheduledTime}\n\nJoin Meeting: ${meetLink}\n\nReminders:\n- You'll receive reminder emails at 24h, 12h, and 1h before the meeting\n- Join 5 minutes early\n- Prepare your questions\n\nBest regards,\nThe ${COMPANY_NAME} Team`
+  text: `Meeting Scheduled with ${mentorName}\n\nHello ${userName},\n\nYour mentorship session has been scheduled!\n\nMentor: ${mentorName}\nDate: ${new Date(scheduledDate).toLocaleDateString()}\nTime: ${scheduledTime}\n\nJoin Meeting: ${meetLink}\n\nReminders:\n- You'll receive reminder emails at 24h, 12h, and 1h before the meeting\n- Join 5 minutes early\n- Prepare your questions\n\nBest regards,\nThe ${COMPANY_NAME} Team`,
 });
 
 // Template: Meeting reminder (24h, 12h, 1h before)
-const meetingReminderEmail = (userName, mentorName, scheduledDateTime, meetLink, hoursRemaining) => ({
+const meetingReminderEmail = (
+  userName,
+  mentorName,
+  scheduledDateTime,
+  meetLink,
+  hoursRemaining
+) => ({
   subject: `Reminder: Meeting with ${mentorName} in ${hoursRemaining} ${hoursRemaining === 1 ? 'hour' : 'hours'} - ${COMPANY_NAME}`,
   html: `
     <!DOCTYPE html>
@@ -322,13 +334,13 @@ const meetingReminderEmail = (userName, mentorName, scheduledDateTime, meetLink,
               <div class="info-row">
                 <span class="info-label">Date & Time</span>
                 <span class="info-value">${new Date(scheduledDateTime).toLocaleString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })}</span>
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}</span>
               </div>
             </div>
             
@@ -336,7 +348,9 @@ const meetingReminderEmail = (userName, mentorName, scheduledDateTime, meetLink,
               <a href="${meetLink}" class="btn">Join Meeting</a>
             </div>
             
-            ${hoursRemaining === 1 ? `
+            ${
+              hoursRemaining === 1
+                ? `
             <div class="important-box">
               <div class="important-title">Meeting Starts Soon</div>
               <div class="important-text">
@@ -346,7 +360,8 @@ const meetingReminderEmail = (userName, mentorName, scheduledDateTime, meetLink,
                 • You have your questions prepared
               </div>
             </div>
-            ` : `
+            `
+                : `
             <div class="important-box">
               <div class="important-title">Preparation Tips</div>
               <div class="important-text">
@@ -355,7 +370,8 @@ const meetingReminderEmail = (userName, mentorName, scheduledDateTime, meetLink,
                 • Join 5 minutes early to test your setup
               </div>
             </div>
-            `}
+            `
+            }
             
             <div class="divider"></div>
             
@@ -370,11 +386,11 @@ const meetingReminderEmail = (userName, mentorName, scheduledDateTime, meetLink,
     </body>
     </html>
   `,
-  text: `Meeting Reminder - ${hoursRemaining}h before\n\nHello ${userName},\n\nYour mentorship session with ${mentorName} starts in ${hoursRemaining} ${hoursRemaining === 1 ? 'hour' : 'hours'}.\n\nDate & Time: ${new Date(scheduledDateTime).toLocaleString()}\n\nJoin Meeting: ${meetLink}\n\nBest regards,\nThe ${COMPANY_NAME} Team`
+  text: `Meeting Reminder - ${hoursRemaining}h before\n\nHello ${userName},\n\nYour mentorship session with ${mentorName} starts in ${hoursRemaining} ${hoursRemaining === 1 ? 'hour' : 'hours'}.\n\nDate & Time: ${new Date(scheduledDateTime).toLocaleString()}\n\nJoin Meeting: ${meetLink}\n\nBest regards,\nThe ${COMPANY_NAME} Team`,
 });
 
 module.exports = {
   mentorAppointmentBookedEmail,
   userMeetingScheduledEmail,
-  meetingReminderEmail
+  meetingReminderEmail,
 };

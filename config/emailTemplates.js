@@ -3,7 +3,7 @@
  * Complete email template system with all user management scenarios
  */
 
-const FRONTEND_URL = process.env.FRONTEND_URL ;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 const LOGO = '✈️ SKILL-PILOT';
 const TAGLINE = 'Navigate Your Career Journey';
 const SUPPORT_EMAIL = 'support@skillpilot.com';
@@ -438,12 +438,16 @@ const accountDeletedEmail = (name, reason = null) => {
       <p>Dear ${name},</p>
       <p>We're writing to inform you that your account with ${COMPANY_NAME} has been deleted by our administrative team.</p>
 
-      ${reason ? `
+      ${
+        reason
+          ? `
         <div style="background: #fef2f2; border: 2px solid #fecaca; padding: 20px; border-radius: 12px; margin: 25px 0;">
           <p style="margin: 0; font-weight: 600; color: #991b1b; margin-bottom: 8px;">Reason for deletion:</p>
           <p style="margin: 0; color: #7f1d1d;">${reason}</p>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <div class="alert alert-info">
         <p style="color: #1e40af; margin: 0;">
@@ -489,7 +493,11 @@ const accountUnverifiedEmail = (name, username, verificationLink) => {
 
   const textContent = `Account Verification Required\n\nHello ${name},\n\nYour ${COMPANY_NAME} account (${username}) requires email verification.\n\nVerify your account: ${verificationLink}\n\nThis link expires in 24 hours.\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(`🔐 Account Verification Required - ${COMPANY_NAME}`, htmlContent, textContent);
+  return createEmailTemplate(
+    `🔐 Account Verification Required - ${COMPANY_NAME}`,
+    htmlContent,
+    textContent
+  );
 };
 
 const roleChangedEmail = (name, oldRole, newRole) => {
@@ -528,7 +536,11 @@ const roleChangedEmail = (name, oldRole, newRole) => {
 
   const textContent = `Role Updated\n\nHello ${name},\n\nYour role in ${COMPANY_NAME} has been updated!\n\nPrevious Role: ${oldRole}\nNew Role: ${newRole}\n\nAccess your dashboard: ${FRONTEND_URL}/login\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(`Role Updated: ${newRole} Access Granted - ${COMPANY_NAME}`, htmlContent, textContent);
+  return createEmailTemplate(
+    `Role Updated: ${newRole} Access Granted - ${COMPANY_NAME}`,
+    htmlContent,
+    textContent
+  );
 };
 
 const accountDeactivatedEmail = (name, reason = null) => {
@@ -543,12 +555,16 @@ const accountDeactivatedEmail = (name, reason = null) => {
       <p>Dear ${name},</p>
       <p>Your ${COMPANY_NAME} account has been deactivated by our administrative team.</p>
 
-      ${reason ? `
+      ${
+        reason
+          ? `
         <div style="background: #fef3c7; border: 2px solid #fde68a; padding: 20px; border-radius: 12px; margin: 25px 0;">
           <p style="margin: 0; font-weight: 600; color: #92400e; margin-bottom: 8px;">Reason:</p>
           <p style="margin: 0; color: #78350f;">${reason}</p>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <div class="alert alert-info">
         <p style="color: #1e40af; margin: 0;">
@@ -567,7 +583,7 @@ const accountDeactivatedEmail = (name, reason = null) => {
   return createEmailTemplate(`Account Deactivated - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
-const accountReactivatedEmail = (name) => {
+const accountReactivatedEmail = name => {
   const htmlContent = `
     ${Header()}
     <div class="content">
@@ -590,7 +606,11 @@ const accountReactivatedEmail = (name) => {
 
   const textContent = `Welcome Back!\n\nHello ${name},\n\nYour ${COMPANY_NAME} account has been reactivated!\n\nLogin now: ${FRONTEND_URL}/login\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(`✅ Account Reactivated - Welcome Back to ${COMPANY_NAME}!`, htmlContent, textContent);
+  return createEmailTemplate(
+    `✅ Account Reactivated - Welcome Back to ${COMPANY_NAME}!`,
+    htmlContent,
+    textContent
+  );
 };
 
 const tempPasswordReminderEmail = (name, daysRemaining) => {
@@ -624,7 +644,11 @@ const tempPasswordReminderEmail = (name, daysRemaining) => {
 
   const textContent = `Security Reminder\n\nHello ${name},\n\nYou're still using a temporary password for your ${COMPANY_NAME} account.\n\nDays since account creation: ${daysRemaining} days\n\nChange password: ${FRONTEND_URL}/login\n\nStay secure,\n${COMPANY_NAME} Security Team`;
 
-  return createEmailTemplate(`⚠️ Reminder: Change Your Temporary Password - ${COMPANY_NAME}`, htmlContent, textContent);
+  return createEmailTemplate(
+    `⚠️ Reminder: Change Your Temporary Password - ${COMPANY_NAME}`,
+    htmlContent,
+    textContent
+  );
 };
 
 const googleWelcomeTemplate = (name, username) => ({
@@ -743,7 +767,7 @@ Get Started: ${process.env.FRONTEND_URL || 'http://localhost:5173'}
 Need help? Contact us at support@sparkcareer.com
 
 © 2025 Spark Career Guidance. All rights reserved.
-  `
+  `,
 });
 
 // ============================================================================
@@ -775,5 +799,5 @@ module.exports = {
   LOGO,
   TAGLINE,
   SUPPORT_EMAIL,
-  COMPANY_NAME
+  COMPANY_NAME,
 };

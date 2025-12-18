@@ -29,14 +29,14 @@ async function verifyGoogleToken(token) {
         picture: payload.picture,
         givenName: payload.given_name,
         familyName: payload.family_name,
-        locale: payload.locale
-      }
+        locale: payload.locale,
+      },
     };
   } catch (error) {
     console.error('Error verifying Google token:', error);
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
@@ -44,5 +44,5 @@ async function verifyGoogleToken(token) {
 module.exports = {
   verifyGoogleToken,
   GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET
+  GOOGLE_CLIENT_SECRET,
 };

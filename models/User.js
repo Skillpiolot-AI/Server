@@ -1,5 +1,3 @@
-
-
 // const mongoose = require('mongoose');
 
 // const UserSchema = new mongoose.Schema({
@@ -553,7 +551,6 @@
 
 // module.exports = mongoose.model('User', UserSchema);
 
-
 // models/User.js - Enhanced with Google OAuth Support
 
 const mongoose = require('mongoose');
@@ -563,7 +560,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true
+    trim: true,
   },
   imageUrl: {
     type: String,
@@ -595,17 +592,19 @@ const UserSchema = new mongoose.Schema({
     type: String,
     sparse: true, // Allows multiple null values but enforces uniqueness for non-null
     unique: true,
-    index: true
+    index: true,
   },
   authProvider: {
     type: String,
     enum: ['local', 'google'],
-    default: 'local'
+    default: 'local',
   },
   // ============================================
-  companiesJoined: [{
-    type: String,
-  }],
+  companiesJoined: [
+    {
+      type: String,
+    },
+  ],
   experience: {
     type: Number,
     min: 1,
@@ -623,12 +622,12 @@ const UserSchema = new mongoose.Schema({
     ref: 'University',
     required: function () {
       return ['UniAdmin', 'UniTeach', 'Student'].includes(this.role);
-    }
+    },
   },
   registrationNumber: {
     type: String,
     trim: true,
-    sparse: true
+    sparse: true,
   },
 
   // Student-specific fields
@@ -637,19 +636,21 @@ const UserSchema = new mongoose.Schema({
     ref: 'Student',
     required: function () {
       return this.role === 'Student';
-    }
+    },
   },
 
-  appointments: [{
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+  appointments: [
+    {
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+      date: {
+        type: Date,
+        required: true,
+      },
     },
-    date: {
-      type: Date,
-      required: true
-    }
-  }],
+  ],
   newsletter: {
     type: Boolean,
     default: false,
@@ -663,178 +664,191 @@ const UserSchema = new mongoose.Schema({
   mentorStatus: {
     type: String,
     enum: ['pending', 'approved', 'rejected', 'temp', 'verified'],
-    default: 'pending'
+    default: 'pending',
   },
   mentorVerification: {
     emailVerified: {
       type: Boolean,
-      default: false
+      default: false,
     },
     emailVerifiedAt: Date,
     phoneVerified: {
       type: Boolean,
-      default: false
+      default: false,
     },
     phoneVerifiedAt: Date,
     documentVerified: {
       type: Boolean,
-      default: false
+      default: false,
     },
     documentVerifiedAt: Date,
-    verificationNotes: String
+    verificationNotes: String,
   },
   mentorProfile: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'MentorProfile'
+    ref: 'MentorProfile',
   },
   applicationId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Application'
+    ref: 'Application',
   },
   mentorBadge: {
     type: String,
     enum: ['unverified', 'verified', 'premium', 'star'],
-    default: 'unverified'
+    default: 'unverified',
   },
   totalPlacements: {
     type: Number,
-    default: 0
+    default: 0,
   },
   mentorRating: {
     type: Number,
-    default: 0
+    default: 0,
   },
   totalReviews: {
     type: Number,
-    default: 0
+    default: 0,
   },
   // ================================================
 
   // University admin permissions
-  universityPermissions: [{
-    permission: {
-      type: String,
-      enum: ['manage_teachers', 'manage_students', 'view_reports', 'manage_courses', 'manage_library', 'manage_fees']
+  universityPermissions: [
+    {
+      permission: {
+        type: String,
+        enum: [
+          'manage_teachers',
+          'manage_students',
+          'view_reports',
+          'manage_courses',
+          'manage_library',
+          'manage_fees',
+        ],
+      },
+      granted: {
+        type: Boolean,
+        default: false,
+      },
     },
-    granted: {
-      type: Boolean,
-      default: false
-    }
-  }],
+  ],
 
   // Account status
   isActive: {
     type: Boolean,
-    default: true // Will be set to false for unverified users
+    default: true, // Will be set to false for unverified users
   },
   isVerified: {
     type: Boolean,
-    default: false // Email verification required for all users
+    default: false, // Email verification required for all users
   },
 
   // Enhanced suspension system
   isSuspended: {
     type: Boolean,
-    default: false
+    default: false,
   },
   suspensionDetails: {
     reason: {
       type: String,
-      trim: true
+      trim: true,
     },
     suspendedAt: {
-      type: Date
+      type: Date,
     },
     suspendedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
     },
     suspendedByName: {
       type: String,
-      trim: true
+      trim: true,
     },
     until: {
-      type: Date
+      type: Date,
     },
     autoUnsuspend: {
       type: Boolean,
-      default: true
+      default: true,
     },
     severity: {
       type: String,
       enum: ['minor', 'moderate', 'severe'],
-      default: 'minor'
-    }
+      default: 'minor',
+    },
   },
 
   // Login tracking
   lastLogin: {
-    type: Date
+    type: Date,
   },
   currentSession: {
     sessionId: String,
     startTime: Date,
     lastActivity: Date,
     ipAddress: String,
-    userAgent: String
+    userAgent: String,
   },
   loginAttempts: {
     type: Number,
-    default: 0
+    default: 0,
   },
   lockUntil: {
-    type: Date
+    type: Date,
   },
-  loginHistory: [{
-    timestamp: Date,
-    ipAddress: String,
-    userAgent: String,
-    success: Boolean,
-    location: {
-      country: String,
-      region: String,
-      city: String,
-      latitude: Number,
-      longitude: Number
-    }
-  }],
+  loginHistory: [
+    {
+      timestamp: Date,
+      ipAddress: String,
+      userAgent: String,
+      success: Boolean,
+      location: {
+        country: String,
+        region: String,
+        city: String,
+        latitude: Number,
+        longitude: Number,
+      },
+    },
+  ],
 
   // Security settings
   securitySettings: {
     twoFactorEnabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     emailNotifications: {
       type: Boolean,
-      default: true
+      default: true,
     },
     loginAlerts: {
       type: Boolean,
-      default: true
+      default: true,
     },
     allowMultipleSessions: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
 
   // Password management
-  passwordHistory: [{
-    hashedPassword: String,
-    changedAt: Date
-  }],
+  passwordHistory: [
+    {
+      hashedPassword: String,
+      changedAt: Date,
+    },
+  ],
   passwordLastChanged: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   mustChangePassword: {
     type: Boolean,
-    default: false
+    default: false,
   },
   temporaryPassword: {
     type: Boolean,
-    default: false
+    default: false,
   },
 
   createdAt: {
@@ -845,19 +859,21 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  notes: [{
-    content: String,
-    createdAt: { type: Date, default: Date.now },
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+  notes: [
+    {
+      content: String,
+      createdAt: { type: Date, default: Date.now },
+      createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+      category: {
+        type: String,
+        enum: ['admin', 'security', 'academic', 'disciplinary'],
+        default: 'admin',
+      },
     },
-    category: {
-      type: String,
-      enum: ['admin', 'security', 'academic', 'disciplinary'],
-      default: 'admin'
-    }
-  }]
+  ],
 });
 
 // Indexes for better performance
@@ -891,10 +907,7 @@ UserSchema.virtual('isSuspensionActive').get(function () {
 
 // Virtual for checking if user can login
 UserSchema.virtual('canLogin').get(function () {
-  return this.isActive &&
-    this.isVerified &&
-    !this.isLocked &&
-    !this.isSuspensionActive;
+  return this.isActive && this.isVerified && !this.isLocked && !this.isSuspensionActive;
 });
 
 // ✅ Virtual to check if it's a Google account
@@ -907,11 +920,13 @@ UserSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
 
   // Auto-unsuspend if suspension has expired
-  if (this.isSuspended &&
+  if (
+    this.isSuspended &&
     this.suspensionDetails &&
     this.suspensionDetails.until &&
     this.suspensionDetails.autoUnsuspend &&
-    new Date() > this.suspensionDetails.until) {
+    new Date() > this.suspensionDetails.until
+  ) {
     this.isSuspended = false;
     this.suspensionDetails = {};
   }
@@ -924,7 +939,7 @@ UserSchema.methods.incLoginAttempts = function () {
   if (this.lockUntil && this.lockUntil < Date.now()) {
     return this.updateOne({
       $unset: { lockUntil: 1 },
-      $set: { loginAttempts: 1 }
+      $set: { loginAttempts: 1 },
     });
   }
 
@@ -932,7 +947,7 @@ UserSchema.methods.incLoginAttempts = function () {
 
   // Lock account after 5 attempts for 2 hours
   if (this.loginAttempts + 1 >= 5 && !this.isLocked) {
-    updates.$set = { lockUntil: Date.now() + (2 * 60 * 60 * 1000) };
+    updates.$set = { lockUntil: Date.now() + 2 * 60 * 60 * 1000 };
   }
 
   return this.updateOne(updates);
@@ -941,12 +956,18 @@ UserSchema.methods.incLoginAttempts = function () {
 // Method to reset login attempts
 UserSchema.methods.resetLoginAttempts = function () {
   return this.updateOne({
-    $unset: { loginAttempts: 1, lockUntil: 1 }
+    $unset: { loginAttempts: 1, lockUntil: 1 },
   });
 };
 
 // Enhanced suspension methods
-UserSchema.methods.suspendUser = function (days, reason, suspendedBy, suspendedByName, severity = 'minor') {
+UserSchema.methods.suspendUser = function (
+  days,
+  reason,
+  suspendedBy,
+  suspendedByName,
+  severity = 'minor'
+) {
   const suspensionEndDate = new Date();
   suspensionEndDate.setDate(suspensionEndDate.getDate() + days);
 
@@ -958,7 +979,7 @@ UserSchema.methods.suspendUser = function (days, reason, suspendedBy, suspendedB
     suspendedByName: suspendedByName,
     until: suspensionEndDate,
     autoUnsuspend: true,
-    severity: severity
+    severity: severity,
   };
 
   return this.save();
@@ -977,7 +998,7 @@ UserSchema.methods.startSession = function (sessionId, ipAddress, userAgent) {
     startTime: new Date(),
     lastActivity: new Date(),
     ipAddress: ipAddress,
-    userAgent: userAgent
+    userAgent: userAgent,
   };
 
   this.lastLogin = new Date();
@@ -1003,7 +1024,7 @@ UserSchema.methods.changePassword = function (newHashedPassword) {
   if (this.password) {
     this.passwordHistory.push({
       hashedPassword: this.password,
-      changedAt: new Date()
+      changedAt: new Date(),
     });
 
     // Keep only last 5 passwords
@@ -1062,7 +1083,7 @@ UserSchema.methods.addNote = function (content, createdBy, category = 'admin') {
     content: content,
     createdBy: createdBy,
     category: category,
-    createdAt: new Date()
+    createdAt: new Date(),
   });
   return this.save();
 };
@@ -1084,7 +1105,7 @@ UserSchema.statics.findStudentsByUniversity = function (universityId) {
   return this.find({
     universityId,
     role: 'Student',
-    isActive: true
+    isActive: true,
   }).populate('studentProfile');
 };
 
@@ -1097,7 +1118,7 @@ UserSchema.statics.findByAuthProvider = function (provider) {
 UserSchema.statics.findGoogleUsers = function () {
   return this.find({
     authProvider: 'google',
-    googleId: { $exists: true, $ne: null }
+    googleId: { $exists: true, $ne: null },
   });
 };
 
@@ -1108,7 +1129,7 @@ UserSchema.statics.getActiveSessionsCount = function (universityId = null) {
 
   const query = {
     'currentSession.lastActivity': { $gte: cutoffTime },
-    'currentSession.sessionId': { $exists: true }
+    'currentSession.sessionId': { $exists: true },
   };
 
   if (universityId) {
@@ -1133,11 +1154,11 @@ UserSchema.statics.cleanExpiredSuspensions = function () {
     {
       isSuspended: true,
       'suspensionDetails.until': { $lt: new Date() },
-      'suspensionDetails.autoUnsuspend': true
+      'suspensionDetails.autoUnsuspend': true,
     },
     {
       $set: { isSuspended: false },
-      $unset: { suspensionDetails: 1 }
+      $unset: { suspensionDetails: 1 },
     }
   );
 };
@@ -1146,7 +1167,7 @@ UserSchema.statics.cleanExpiredSuspensions = function () {
 UserSchema.statics.findUnverifiedUsers = function (daysOld = null) {
   const query = {
     isVerified: false,
-    isActive: false
+    isActive: false,
   };
 
   if (daysOld) {
@@ -1171,22 +1192,22 @@ UserSchema.statics.getUniversityUserStats = function (universityId) {
             $cond: [
               { $and: [{ $eq: ['$isActive', true] }, { $ne: ['$isSuspended', true] }] },
               1,
-              0
-            ]
-          }
+              0,
+            ],
+          },
         },
         suspended: {
           $sum: {
-            $cond: [{ $eq: ['$isSuspended', true] }, 1, 0]
-          }
+            $cond: [{ $eq: ['$isSuspended', true] }, 1, 0],
+          },
         },
         inactive: {
           $sum: {
-            $cond: [{ $eq: ['$isActive', false] }, 1, 0]
-          }
-        }
-      }
-    }
+            $cond: [{ $eq: ['$isActive', false] }, 1, 0],
+          },
+        },
+      },
+    },
   ]);
 };
 
@@ -1198,16 +1219,16 @@ UserSchema.statics.getAuthStats = function () {
         _id: '$authProvider',
         total: { $sum: 1 },
         verified: {
-          $sum: { $cond: [{ $eq: ['$isVerified', true] }, 1, 0] }
+          $sum: { $cond: [{ $eq: ['$isVerified', true] }, 1, 0] },
         },
         unverified: {
-          $sum: { $cond: [{ $eq: ['$isVerified', false] }, 1, 0] }
+          $sum: { $cond: [{ $eq: ['$isVerified', false] }, 1, 0] },
         },
         active: {
-          $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
-        }
-      }
-    }
+          $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] },
+        },
+      },
+    },
   ]);
 };
 

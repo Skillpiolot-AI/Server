@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Update = require('../models/Update');
-const {verifyToken} = require('../middleware/auth'); // Your verifyToken middleware
+const { verifyToken } = require('../middleware/auth'); // Your verifyToken middleware
 
 // GET /api/updates - Get all updates (filtered by user role)
 router.get('/', verifyToken, async (req, res) => {
@@ -14,7 +14,7 @@ router.get('/', verifyToken, async (req, res) => {
     // Build query based on user role
     const query = {
       isActive: true,
-      allowedRoles: { $in: [userRole] }
+      allowedRoles: { $in: [userRole] },
     };
 
     const updates = await Update.find(query)
@@ -34,15 +34,15 @@ router.get('/', verifyToken, async (req, res) => {
         totalPages,
         totalUpdates: total,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     console.error('Error fetching updates:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching updates',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -54,7 +54,7 @@ router.get('/admin', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Access denied. Admin role required.'
+        message: 'Access denied. Admin role required.',
       });
     }
 
@@ -71,7 +71,7 @@ router.get('/admin', verifyToken, async (req, res) => {
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
+        { description: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -100,15 +100,15 @@ router.get('/admin', verifyToken, async (req, res) => {
         totalPages,
         totalUpdates: total,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     console.error('Error fetching admin updates:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching updates',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -121,7 +121,7 @@ router.get('/stats/dashboard', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Access denied. Admin role required.'
+        message: 'Access denied. Admin role required.',
       });
     }
 
@@ -134,17 +134,17 @@ router.get('/stats/dashboard', verifyToken, async (req, res) => {
           priorityBreakdown: {
             $push: {
               priority: '$priority',
-              count: 1
-            }
+              count: 1,
+            },
           },
           typeBreakdown: {
             $push: {
               type: '$updateType',
-              count: 1
-            }
-          }
-        }
-      }
+              count: 1,
+            },
+          },
+        },
+      },
     ]);
 
     // Get recent updates
@@ -161,17 +161,17 @@ router.get('/stats/dashboard', verifyToken, async (req, res) => {
           totalUpdates: 0,
           activeUpdates: 0,
           priorityBreakdown: [],
-          typeBreakdown: []
+          typeBreakdown: [],
         },
-        recentUpdates
-      }
+        recentUpdates,
+      },
     });
   } catch (error) {
     console.error('Error fetching update stats:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching statistics',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -180,13 +180,15 @@ router.get('/stats/dashboard', verifyToken, async (req, res) => {
 // MOVED THIS AFTER /stats/dashboard ROUTE
 router.get('/:id', verifyToken, async (req, res) => {
   try {
-    const update = await Update.findById(req.params.id)
-      .populate('createdBy', 'name username email');
+    const update = await Update.findById(req.params.id).populate(
+      'createdBy',
+      'name username email'
+    );
 
     if (!update) {
       return res.status(404).json({
         success: false,
-        message: 'Update not found'
+        message: 'Update not found',
       });
     }
 
@@ -195,20 +197,20 @@ router.get('/:id', verifyToken, async (req, res) => {
       return res.status(403).json({
         success: false,
         message: 'You do not have permission to view this update',
-        locked: true
+        locked: true,
       });
     }
 
     res.json({
       success: true,
-      data: update
+      data: update,
     });
   } catch (error) {
     console.error('Error fetching update:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching update',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -220,7 +222,7 @@ router.post('/', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Access denied. Admin role required.'
+        message: 'Access denied. Admin role required.',
       });
     }
 
@@ -232,14 +234,14 @@ router.post('/', verifyToken, async (req, res) => {
       issueDescription,
       version,
       priority,
-      updateType
+      updateType,
     } = req.body;
 
     // Validation
     if (!title || !description || !allowedRoles || !redirectUrl || !updateType) {
       return res.status(400).json({
         success: false,
-        message: 'Title, description, allowed roles, redirect URL, and update type are required'
+        message: 'Title, description, allowed roles, redirect URL, and update type are required',
       });
     }
 
@@ -248,7 +250,7 @@ router.post('/', verifyToken, async (req, res) => {
     if (!Array.isArray(allowedRoles) || !allowedRoles.every(role => validRoles.includes(role))) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid roles specified'
+        message: 'Invalid roles specified',
       });
     }
 
@@ -261,7 +263,7 @@ router.post('/', verifyToken, async (req, res) => {
       version: version || '1.0.0',
       priority: priority || 'Medium',
       updateType,
-      createdBy: req.user.id
+      createdBy: req.user.id,
     });
 
     await update.save();
@@ -272,14 +274,14 @@ router.post('/', verifyToken, async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Update created successfully',
-      data: update
+      data: update,
     });
   } catch (error) {
     console.error('Error creating update:', error);
     res.status(500).json({
       success: false,
       message: 'Error creating update',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -291,7 +293,7 @@ router.put('/:id', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Access denied. Admin role required.'
+        message: 'Access denied. Admin role required.',
       });
     }
 
@@ -300,7 +302,7 @@ router.put('/:id', verifyToken, async (req, res) => {
     if (!update) {
       return res.status(404).json({
         success: false,
-        message: 'Update not found'
+        message: 'Update not found',
       });
     }
 
@@ -313,7 +315,7 @@ router.put('/:id', verifyToken, async (req, res) => {
       version,
       priority,
       updateType,
-      isActive
+      isActive,
     } = req.body;
 
     // Update fields
@@ -324,7 +326,7 @@ router.put('/:id', verifyToken, async (req, res) => {
       if (!Array.isArray(allowedRoles) || !allowedRoles.every(role => validRoles.includes(role))) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid roles specified'
+          message: 'Invalid roles specified',
         });
       }
       update.allowedRoles = allowedRoles;
@@ -344,14 +346,14 @@ router.put('/:id', verifyToken, async (req, res) => {
     res.json({
       success: true,
       message: 'Update updated successfully',
-      data: update
+      data: update,
     });
   } catch (error) {
     console.error('Error updating update:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating update',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -363,7 +365,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Access denied. Admin role required.'
+        message: 'Access denied. Admin role required.',
       });
     }
 
@@ -372,7 +374,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
     if (!update) {
       return res.status(404).json({
         success: false,
-        message: 'Update not found'
+        message: 'Update not found',
       });
     }
 
@@ -380,14 +382,14 @@ router.delete('/:id', verifyToken, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Update deleted successfully'
+      message: 'Update deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting update:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting update',
-      error: error.message
+      error: error.message,
     });
   }
 });

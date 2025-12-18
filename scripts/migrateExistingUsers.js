@@ -21,12 +21,12 @@ const connectDB = async () => {
 
     console.log('🔌 Connecting to MongoDB...');
     console.log('URI:', MONGO_URI.substring(0, 20) + '...');
-    
+
     await mongoose.connect(MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    
+
     console.log('✅ MongoDB Connected Successfully\n');
   } catch (err) {
     console.error('❌ MongoDB Connection Error:', err.message);
@@ -41,10 +41,7 @@ const autoVerifyExistingUsers = async () => {
 
     // Find all users who are not verified
     const unverifiedUsers = await User.find({
-      $or: [
-        { isVerified: { $exists: false } },
-        { isVerified: false }
-      ]
+      $or: [{ isVerified: { $exists: false } }, { isVerified: false }],
     });
 
     console.log(`📊 Found ${unverifiedUsers.length} unverified users\n`);
@@ -61,14 +58,14 @@ const autoVerifyExistingUsers = async () => {
       try {
         // Auto-verify existing users
         user.isVerified = true;
-        
+
         // Ensure account is active
         if (!user.isActive) {
           user.isActive = true;
         }
 
         await user.save();
-        
+
         console.log(`✅ Auto-verified: ${user.email} (${user.username})`);
         successCount++;
       } catch (error) {
@@ -78,11 +75,10 @@ const autoVerifyExistingUsers = async () => {
     }
 
     console.log('\n' + '='.repeat(50));
-    console.log(`📊 Migration Complete:`);
+    console.log('📊 Migration Complete:');
     console.log(`   ✅ Successfully verified: ${successCount}`);
     console.log(`   ❌ Errors: ${errorCount}`);
     console.log('='.repeat(50) + '\n');
-
   } catch (error) {
     console.error('❌ Migration error:', error);
   }
@@ -94,10 +90,7 @@ const sendVerificationToExistingUsers = async () => {
     console.log('\n📧 Sending verification emails to existing unverified users...\n');
 
     const unverifiedUsers = await User.find({
-      $or: [
-        { isVerified: { $exists: false } },
-        { isVerified: false }
-      ]
+      $or: [{ isVerified: { $exists: false } }, { isVerified: false }],
     });
 
     console.log(`📊 Found ${unverifiedUsers.length} users requiring verification\n`);
@@ -136,7 +129,6 @@ const sendVerificationToExistingUsers = async () => {
 
         // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 500));
-
       } catch (error) {
         console.error(`❌ Failed to send email to ${user.email}:`, error.message);
         errors++;
@@ -144,18 +136,17 @@ const sendVerificationToExistingUsers = async () => {
     }
 
     console.log('\n' + '='.repeat(50));
-    console.log(`📊 Email Campaign Complete:`);
+    console.log('📊 Email Campaign Complete:');
     console.log(`   ✅ Emails sent: ${emailsSent}`);
     console.log(`   ❌ Errors: ${errors}`);
     console.log('='.repeat(50) + '\n');
-
   } catch (error) {
     console.error('❌ Email campaign error:', error);
   }
 };
 
 // Option 3: Manual verification for specific users
-const verifySpecificUsers = async (emailsOrUsernames) => {
+const verifySpecificUsers = async emailsOrUsernames => {
   try {
     console.log('\n🔍 Verifying specific users...\n');
 
@@ -167,10 +158,7 @@ const verifySpecificUsers = async (emailsOrUsernames) => {
     for (const identifier of emailsOrUsernames) {
       try {
         const user = await User.findOne({
-          $or: [
-            { email: identifier.toLowerCase() },
-            { username: identifier }
-          ]
+          $or: [{ email: identifier.toLowerCase() }, { username: identifier }],
         });
 
         if (!user) {
@@ -202,10 +190,7 @@ const checkVerificationStatus = async () => {
     const totalUsers = await User.countDocuments();
     const verifiedUsers = await User.countDocuments({ isVerified: true });
     const unverifiedUsers = await User.countDocuments({
-      $or: [
-        { isVerified: { $exists: false } },
-        { isVerified: false }
-      ]
+      $or: [{ isVerified: { $exists: false } }, { isVerified: false }],
     });
 
     console.log('='.repeat(50));
@@ -217,18 +202,16 @@ const checkVerificationStatus = async () => {
     if (unverifiedUsers > 0) {
       console.log('Unverified users:');
       const unverified = await User.find({
-        $or: [
-          { isVerified: { $exists: false } },
-          { isVerified: false }
-        ]
+        $or: [{ isVerified: { $exists: false } }, { isVerified: false }],
       }).select('username email createdAt');
 
       unverified.forEach(user => {
-        console.log(`  - ${user.email} (${user.username}) - Created: ${user.createdAt.toLocaleDateString()}`);
+        console.log(
+          `  - ${user.email} (${user.username}) - Created: ${user.createdAt.toLocaleDateString()}`
+        );
       });
       console.log('');
     }
-
   } catch (error) {
     console.error('❌ Error checking status:', error);
   }
@@ -256,18 +239,21 @@ const run = async () => {
       await sendVerificationToExistingUsers();
       break;
 
-    case 'manual':
+    case 'manual': {
       console.log('🔧 Mode: MANUAL VERIFICATION\n');
       // Add specific emails/usernames here
       const usersToVerify = process.argv.slice(3);
-      
+
       if (usersToVerify.length === 0) {
-        console.log('⚠️  Usage: node migrateExistingUsers.js manual email1@example.com username1 email2@example.com');
+        console.log(
+          '⚠️  Usage: node migrateExistingUsers.js manual email1@example.com username1 email2@example.com'
+        );
         console.log('⚠️  No users specified. Exiting...\n');
       } else {
         await verifySpecificUsers(usersToVerify);
       }
       break;
+    }
 
     case 'status':
       console.log('🔧 Mode: CHECK STATUS\n');
@@ -289,13 +275,13 @@ const run = async () => {
 
   console.log('✅ Migration script completed');
   console.log('🔒 You can now close this window\n');
-  
+
   await mongoose.connection.close();
   process.exit(0);
 };
 
 // Handle errors
-process.on('unhandledRejection', (error) => {
+process.on('unhandledRejection', error => {
   console.error('❌ Unhandled error:', error);
   process.exit(1);
 });

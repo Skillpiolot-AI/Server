@@ -44,14 +44,14 @@ exports.submitApplication = async (req, res) => {
       education,
       certifications,
       socialLinks,
-      curriculum
+      curriculum,
     } = req.body;
 
     // Validate required fields
     if (!name || !email || !phone || !jobTitle || !experience) {
       return res.status(400).json({
         error: 'Missing required fields',
-        required: ['name', 'email', 'phone', 'jobTitle', 'experience']
+        required: ['name', 'email', 'phone', 'jobTitle', 'experience'],
       });
     }
 
@@ -61,18 +61,18 @@ exports.submitApplication = async (req, res) => {
       return res.status(400).json({
         error: 'You already have a pending application',
         trackingId: duplicate.trackingId,
-        status: duplicate.status
+        status: duplicate.status,
       });
     }
 
     // Check if email is already registered as a mentor
     const existingMentor = await User.findOne({
       email: email.toLowerCase(),
-      role: 'Mentor'
+      role: 'Mentor',
     });
     if (existingMentor) {
       return res.status(400).json({
-        error: 'This email is already registered as a mentor'
+        error: 'This email is already registered as a mentor',
       });
     }
 
@@ -102,7 +102,7 @@ exports.submitApplication = async (req, res) => {
       education: education || [],
       certifications: certifications || [],
       socialLinks: socialLinks || {},
-      curriculum: curriculum || { available: false }
+      curriculum: curriculum || { available: false },
     });
 
     const savedApplication = await newApplication.save();
@@ -135,24 +135,26 @@ exports.submitApplication = async (req, res) => {
           </div>
         </div>
       `,
-      text: `Hello ${name}!\n\nYour mentor application has been received.\n\nTracking ID: ${savedApplication.trackingId}\n\nWe will review it and get back to you within 3-5 business days.\n\nBest regards,\nThe Skill-Pilot Team`
-    }).then(() => {
-      console.log('✅ Application confirmation email sent');
-    }).catch((emailError) => {
-      console.error('Failed to send confirmation email:', emailError);
-    });
+      text: `Hello ${name}!\n\nYour mentor application has been received.\n\nTracking ID: ${savedApplication.trackingId}\n\nWe will review it and get back to you within 3-5 business days.\n\nBest regards,\nThe Skill-Pilot Team`,
+    })
+      .then(() => {
+        console.log('✅ Application confirmation email sent');
+      })
+      .catch(emailError => {
+        console.error('Failed to send confirmation email:', emailError);
+      });
 
     res.status(201).json({
       message: 'Application submitted successfully',
       trackingId: savedApplication.trackingId,
       applicationId: savedApplication._id,
-      status: savedApplication.status
+      status: savedApplication.status,
     });
   } catch (error) {
     console.error('Error submitting application:', error);
     res.status(500).json({
       error: 'An error occurred while submitting the application',
-      details: error.message
+      details: error.message,
     });
   }
 };
@@ -164,8 +166,9 @@ exports.submitApplication = async (req, res) => {
 exports.getApplicationByTrackingId = async (req, res) => {
   try {
     const { trackingId } = req.params;
-    const application = await Application.findOne({ trackingId })
-      .select('trackingId status submittedAt rejectionReason moreInfoRequest name email');
+    const application = await Application.findOne({ trackingId }).select(
+      'trackingId status submittedAt rejectionReason moreInfoRequest name email'
+    );
 
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
@@ -177,10 +180,13 @@ exports.getApplicationByTrackingId = async (req, res) => {
       status: application.status,
       submittedAt: application.submittedAt,
       rejectionReason: application.status === 'Rejected' ? application.rejectionReason : undefined,
-      moreInfoRequest: application.status === 'More Info Requested' ? {
-        requestDetails: application.moreInfoRequest?.requestDetails,
-        requestedAt: application.moreInfoRequest?.requestedAt
-      } : undefined
+      moreInfoRequest:
+        application.status === 'More Info Requested'
+          ? {
+              requestDetails: application.moreInfoRequest?.requestDetails,
+              requestedAt: application.moreInfoRequest?.requestedAt,
+            }
+          : undefined,
     });
   } catch (error) {
     console.error('Error fetching application:', error);
@@ -199,12 +205,12 @@ exports.respondToInfoRequest = async (req, res) => {
 
     const application = await Application.findOne({
       trackingId,
-      status: 'More Info Requested'
+      status: 'More Info Requested',
     });
 
     if (!application) {
       return res.status(404).json({
-        error: 'Application not found or no info request pending'
+        error: 'Application not found or no info request pending',
       });
     }
 
@@ -212,7 +218,7 @@ exports.respondToInfoRequest = async (req, res) => {
 
     res.status(200).json({
       message: 'Response submitted successfully',
-      status: 'Under Review'
+      status: 'Under Review',
     });
   } catch (error) {
     console.error('Error responding to info request:', error);
@@ -230,13 +236,7 @@ exports.respondToInfoRequest = async (req, res) => {
  */
 exports.getApplications = async (req, res) => {
   try {
-    const {
-      status,
-      page = 1,
-      limit = 20,
-      sortBy = 'submittedAt',
-      sortOrder = 'desc'
-    } = req.query;
+    const { status, page = 1, limit = 20, sortBy = 'submittedAt', sortOrder = 'desc' } = req.query;
 
     const query = {};
     if (status) {
@@ -253,7 +253,7 @@ exports.getApplications = async (req, res) => {
         .limit(parseInt(limit))
         .populate('reviewedBy', 'name email'),
       Application.countDocuments(query),
-      Application.getStats()
+      Application.getStats(),
     ]);
 
     res.status(200).json({
@@ -262,9 +262,9 @@ exports.getApplications = async (req, res) => {
         total,
         page: parseInt(page),
         limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit))
+        pages: Math.ceil(total / parseInt(limit)),
       },
-      stats
+      stats,
     });
   } catch (error) {
     console.error('Error fetching applications:', error);
@@ -319,8 +319,8 @@ exports.approveApplication = async (req, res) => {
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     // Generate unique username
-    const baseUsername = application.name.toLowerCase().replace(/\s+/g, '.') +
-      Math.floor(Math.random() * 1000);
+    const baseUsername =
+      application.name.toLowerCase().replace(/\s+/g, '.') + Math.floor(Math.random() * 1000);
 
     // Create User with Mentor role
     const newMentor = new User({
@@ -342,8 +342,8 @@ exports.approveApplication = async (req, res) => {
       mentorVerification: {
         emailVerified: false,
         phoneVerified: false,
-        documentVerified: false
-      }
+        documentVerified: false,
+      },
     });
 
     const savedMentor = await newMentor.save();
@@ -366,11 +366,11 @@ exports.approveApplication = async (req, res) => {
       pricingPlans: [
         { duration: '1 Month', price: application.pricing?.monthlyPrice || 0 },
         { duration: '3 Months', price: application.pricing?.threeMonthPrice || 0 },
-        { duration: '6 Months', price: application.pricing?.sixMonthPrice || 0 }
+        { duration: '6 Months', price: application.pricing?.sixMonthPrice || 0 },
       ].filter(p => p.price > 0),
       trialSession: {
         available: application.pricing?.trialAvailable || false,
-        price: application.pricing?.trialPrice || 0
+        price: application.pricing?.trialPrice || 0,
       },
       availabilitySlots: application.availabilitySlots,
       referralsInTopCompanies: application.referralsInTopCompanies,
@@ -380,7 +380,7 @@ exports.approveApplication = async (req, res) => {
       education: application.education,
       certifications: application.certifications,
       isVisible: false, // Hidden until verified
-      featured: false
+      featured: false,
     });
 
     const savedProfile = await mentorProfile.save();
@@ -407,12 +407,7 @@ exports.approveApplication = async (req, res) => {
     );
 
     // Create OTP for phone verification
-    const phoneOTP = await OTP.createOTP(
-      application.email,
-      'two_factor',
-      null,
-      null
-    );
+    const phoneOTP = await OTP.createOTP(application.email, 'two_factor', null, null);
 
     // Send approval email with credentials
     const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${emailToken.token}`;
@@ -465,12 +460,14 @@ exports.approveApplication = async (req, res) => {
           </div>
         </div>
       `,
-      text: `Congratulations ${application.name}!\n\nYour mentor application has been APPROVED!\n\nUsername: ${baseUsername}\nTemporary Password: ${tempPassword}\n\nVerify your email: ${verificationLink}\nPhone OTP: ${phoneOTP.otp}\n\nBest regards,\nThe Skill-Pilot Team`
-    }).then(() => {
-      console.log('✅ Approval email sent');
-    }).catch((emailError) => {
-      console.error('Failed to send approval email:', emailError);
-    });
+      text: `Congratulations ${application.name}!\n\nYour mentor application has been APPROVED!\n\nUsername: ${baseUsername}\nTemporary Password: ${tempPassword}\n\nVerify your email: ${verificationLink}\nPhone OTP: ${phoneOTP.otp}\n\nBest regards,\nThe Skill-Pilot Team`,
+    })
+      .then(() => {
+        console.log('✅ Approval email sent');
+      })
+      .catch(emailError => {
+        console.error('Failed to send approval email:', emailError);
+      });
 
     res.status(200).json({
       message: 'Application approved and mentor account created',
@@ -479,14 +476,14 @@ exports.approveApplication = async (req, res) => {
       application: {
         id: application._id,
         status: application.status,
-        reviewedAt: application.reviewedAt
-      }
+        reviewedAt: application.reviewedAt,
+      },
     });
   } catch (error) {
     console.error('Error approving application:', error);
     res.status(500).json({
       error: 'An error occurred while approving the application',
-      details: error.message
+      details: error.message,
     });
   }
 };
@@ -549,20 +546,22 @@ exports.rejectApplication = async (req, res) => {
           </div>
         </div>
       `,
-      text: `Hello ${application.name},\n\nYour mentor application was not approved at this time.\n\nReason: ${rejectionReason}\n\nYou may reapply after addressing the feedback.\n\nBest regards,\nThe Skill-Pilot Team`
-    }).then(() => {
-      console.log('✅ Rejection email sent');
-    }).catch((emailError) => {
-      console.error('Failed to send rejection email:', emailError);
-    });
+      text: `Hello ${application.name},\n\nYour mentor application was not approved at this time.\n\nReason: ${rejectionReason}\n\nYou may reapply after addressing the feedback.\n\nBest regards,\nThe Skill-Pilot Team`,
+    })
+      .then(() => {
+        console.log('✅ Rejection email sent');
+      })
+      .catch(emailError => {
+        console.error('Failed to send rejection email:', emailError);
+      });
 
     res.status(200).json({
       message: 'Application rejected',
       application: {
         id: application._id,
         status: application.status,
-        rejectionReason: application.rejectionReason
-      }
+        rejectionReason: application.rejectionReason,
+      },
     });
   } catch (error) {
     console.error('Error rejecting application:', error);
@@ -622,16 +621,18 @@ exports.requestMoreInfo = async (req, res) => {
           </div>
         </div>
       `,
-      text: `Hello ${application.name},\n\nWe need additional information for your application (${application.trackingId}).\n\nRequest: ${requestDetails}\n\nBest regards,\nThe Skill-Pilot Team`
-    }).then(() => {
-      console.log('✅ Info request email sent');
-    }).catch((emailError) => {
-      console.error('Failed to send info request email:', emailError);
-    });
+      text: `Hello ${application.name},\n\nWe need additional information for your application (${application.trackingId}).\n\nRequest: ${requestDetails}\n\nBest regards,\nThe Skill-Pilot Team`,
+    })
+      .then(() => {
+        console.log('✅ Info request email sent');
+      })
+      .catch(emailError => {
+        console.error('Failed to send info request email:', emailError);
+      });
 
     res.status(200).json({
       message: 'More info requested from applicant',
-      status: 'More Info Requested'
+      status: 'More Info Requested',
     });
   } catch (error) {
     console.error('Error requesting more info:', error);
@@ -672,7 +673,7 @@ exports.updateApplicationStatus = async (req, res) => {
 
     res.status(200).json({
       message: 'Application status updated successfully',
-      application: updatedApplication
+      application: updatedApplication,
     });
   } catch (error) {
     console.error('Error updating application status:', error);
@@ -730,7 +731,7 @@ exports.sendVerificationEmail = async (req, res) => {
             </div>
           </div>
         `,
-        text: `Hello ${mentor.name},\n\nPlease verify your email: ${verificationLink}\n\nBest regards,\nThe Skill-Pilot Team`
+        text: `Hello ${mentor.name},\n\nPlease verify your email: ${verificationLink}\n\nBest regards,\nThe Skill-Pilot Team`,
       });
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError);
@@ -738,7 +739,7 @@ exports.sendVerificationEmail = async (req, res) => {
     }
 
     res.status(200).json({
-      message: 'Verification email sent successfully'
+      message: 'Verification email sent successfully',
     });
   } catch (error) {
     console.error('Error sending verification email:', error);
@@ -786,7 +787,7 @@ exports.verifyMentorEmail = async (req, res) => {
 
     res.status(200).json({
       message: 'Email verified successfully',
-      isFullyVerified: mentor?.mentorStatus === 'verified'
+      isFullyVerified: mentor?.mentorStatus === 'verified',
     });
   } catch (error) {
     console.error('Error verifying email:', error);
@@ -812,12 +813,7 @@ exports.sendPhoneOTP = async (req, res) => {
     }
 
     // Create OTP
-    const otpDoc = await OTP.createOTP(
-      mentor.email,
-      'two_factor',
-      null,
-      null
-    );
+    const otpDoc = await OTP.createOTP(mentor.email, 'two_factor', null, null);
 
     // In production, integrate with SMS gateway (Twilio, MSG91, etc.)
     // For now, we'll send via email
@@ -840,7 +836,7 @@ exports.sendPhoneOTP = async (req, res) => {
             </div>
           </div>
         `,
-        text: `Hello ${mentor.name},\n\nYour phone verification OTP is: ${otpDoc.otp}\n\nThis OTP will expire in 10 minutes.\n\nBest regards,\nThe Skill-Pilot Team`
+        text: `Hello ${mentor.name},\n\nYour phone verification OTP is: ${otpDoc.otp}\n\nThis OTP will expire in 10 minutes.\n\nBest regards,\nThe Skill-Pilot Team`,
       });
     } catch (emailError) {
       console.error('Failed to send OTP:', emailError);
@@ -849,7 +845,7 @@ exports.sendPhoneOTP = async (req, res) => {
 
     res.status(200).json({
       message: 'OTP sent successfully',
-      phone: mentor.phoneNumber?.replace(/(\d{2})(\d+)(\d{2})/, '$1****$3')
+      phone: mentor.phoneNumber?.replace(/(\d{2})(\d+)(\d{2})/, '$1****$3'),
     });
   } catch (error) {
     console.error('Error sending phone OTP:', error);
@@ -901,7 +897,7 @@ exports.verifyPhoneOTP = async (req, res) => {
 
     res.status(200).json({
       message: 'Phone verified successfully',
-      isFullyVerified: mentor.mentorStatus === 'verified'
+      isFullyVerified: mentor.mentorStatus === 'verified',
     });
   } catch (error) {
     console.error('Error verifying phone OTP:', error);
@@ -917,8 +913,9 @@ exports.getVerificationStatus = async (req, res) => {
   try {
     const { mentorId } = req.params;
 
-    const mentor = await User.findOne({ _id: mentorId, role: 'Mentor' })
-      .select('name email mentorStatus mentorBadge mentorVerification');
+    const mentor = await User.findOne({ _id: mentorId, role: 'Mentor' }).select(
+      'name email mentorStatus mentorBadge mentorVerification'
+    );
 
     if (!mentor) {
       return res.status(404).json({ error: 'Mentor not found' });
@@ -932,18 +929,18 @@ exports.getVerificationStatus = async (req, res) => {
       verification: {
         email: {
           verified: mentor.mentorVerification?.emailVerified || false,
-          verifiedAt: mentor.mentorVerification?.emailVerifiedAt
+          verifiedAt: mentor.mentorVerification?.emailVerifiedAt,
         },
         phone: {
           verified: mentor.mentorVerification?.phoneVerified || false,
-          verifiedAt: mentor.mentorVerification?.phoneVerifiedAt
+          verifiedAt: mentor.mentorVerification?.phoneVerifiedAt,
         },
         document: {
           verified: mentor.mentorVerification?.documentVerified || false,
-          verifiedAt: mentor.mentorVerification?.documentVerifiedAt
-        }
+          verifiedAt: mentor.mentorVerification?.documentVerifiedAt,
+        },
       },
-      isFullyVerified: mentor.mentorStatus === 'verified'
+      isFullyVerified: mentor.mentorStatus === 'verified',
     });
   } catch (error) {
     console.error('Error getting verification status:', error);
@@ -965,9 +962,9 @@ exports.getApplicationStats = async (req, res) => {
       {
         $group: {
           _id: '$mentorStatus',
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ]);
 
     const mentorStatusCounts = {
@@ -975,7 +972,7 @@ exports.getApplicationStats = async (req, res) => {
       approved: 0,
       rejected: 0,
       temp: 0,
-      verified: 0
+      verified: 0,
     };
     mentorStats.forEach(s => {
       if (s._id) mentorStatusCounts[s._id] = s.count;
@@ -983,7 +980,7 @@ exports.getApplicationStats = async (req, res) => {
 
     res.status(200).json({
       applications: stats,
-      mentors: mentorStatusCounts
+      mentors: mentorStatusCounts,
     });
   } catch (error) {
     console.error('Error getting stats:', error);

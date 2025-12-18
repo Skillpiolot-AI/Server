@@ -10,7 +10,7 @@ const logActivity = async (userId, activityType, details = {}) => {
       details,
       ipAddress: details.ipAddress,
       userAgent: details.userAgent,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   } catch (error) {
     console.error('Activity logging error:', error);

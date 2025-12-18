@@ -27,7 +27,11 @@ router.post('/strengths', async (req, res) => {
 router.put('/strengths/:id', async (req, res) => {
   try {
     const { name } = req.body;
-    const updatedStrength = await Strength.findByIdAndUpdate(req.params.id, { name }, { new: true });
+    const updatedStrength = await Strength.findByIdAndUpdate(
+      req.params.id,
+      { name },
+      { new: true }
+    );
     res.json(updatedStrength);
   } catch (error) {
     res.status(500).json({ message: 'Failed to update strength' });

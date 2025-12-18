@@ -4,65 +4,69 @@ const UniversitySchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   url: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   location: {
     state: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
     city: {
       type: String,
       required: true,
-      trim: true
-    }
+      trim: true,
+    },
   },
   accessMethod: {
     type: String,
     enum: ['registration', 'gmail'],
-    required: true
+    required: true,
   },
-  registrationNumbers: [{
-    type: String,
-    trim: true
-  }],
-  emails: [{
-    type: String,
-    lowercase: true,
-    trim: true
-  }],
+  registrationNumbers: [
+    {
+      type: String,
+      trim: true,
+    },
+  ],
+  emails: [
+    {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
+  ],
   passwordMethod: {
     type: String,
     enum: ['manual', 'auto'],
-    required: true
+    required: true,
   },
   defaultPassword: {
     type: String,
-    trim: true
+    trim: true,
   },
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Index for better query performance

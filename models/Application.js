@@ -4,25 +4,25 @@ const mongoose = require('mongoose');
 const EducationSchema = new mongoose.Schema({
   degree: {
     type: String,
-    required: true
+    required: true,
   },
   field: String,
   institution: {
     type: String,
-    required: true
+    required: true,
   },
-  year: Number
+  year: Number,
 });
 
 // Certification schema
 const CertificationSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   issuer: String,
   year: Number,
-  credentialUrl: String
+  credentialUrl: String,
 });
 
 // Availability slot schema
@@ -30,10 +30,10 @@ const AvailabilitySlotSchema = new mongoose.Schema({
   day: {
     type: String,
     enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    required: true
+    required: true,
   },
   startTime: String, // Format: "09:00"
-  endTime: String    // Format: "17:00"
+  endTime: String, // Format: "17:00"
 });
 
 // Main Application Schema - Enhanced for Mentor Applications
@@ -42,70 +42,80 @@ const ApplicationSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   email: {
     type: String,
     required: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
   phone: {
     type: String,
-    required: true
+    required: true,
   },
 
   // ===== PROFESSIONAL INFO =====
   jobTitle: {
     type: String,
-    required: true
+    required: true,
   },
   currentCompany: {
-    type: String
+    type: String,
   },
-  companiesWorked: [{
-    type: String
-  }],
+  companiesWorked: [
+    {
+      type: String,
+    },
+  ],
   experience: {
     type: Number,
     required: true,
     min: 1,
-    max: 30
+    max: 30,
   },
 
   // ===== PROFILE INFO =====
   profileImage: {
     type: String,
-    default: ''
+    default: '',
   },
   bio: {
     type: String,
-    maxlength: 1000
+    maxlength: 1000,
   },
   tagline: {
     type: String,
-    maxlength: 200
+    maxlength: 200,
   },
 
   // ===== EXPERTISE & SKILLS =====
-  expertise: [{
-    type: String,
-    trim: true
-  }], // Java, Python, System Design, DSA, etc.
+  expertise: [
+    {
+      type: String,
+      trim: true,
+    },
+  ], // Java, Python, System Design, DSA, etc.
 
-  targetingDomains: [{
-    type: String,
-    trim: true
-  }], // Backend Developer, Frontend, DevOps, etc.
+  targetingDomains: [
+    {
+      type: String,
+      trim: true,
+    },
+  ], // Backend Developer, Frontend, DevOps, etc.
 
-  targetAudience: [{
-    type: String,
-    enum: ['Fresher', 'Working Professional', 'Student', 'Career Switch']
-  }],
+  targetAudience: [
+    {
+      type: String,
+      enum: ['Fresher', 'Working Professional', 'Student', 'Career Switch'],
+    },
+  ],
 
-  languages: [{
-    type: String
-  }], // English, Hindi, Telugu, etc.
+  languages: [
+    {
+      type: String,
+    },
+  ], // English, Hindi, Telugu, etc.
 
   // ===== LOCATION =====
   location: {
@@ -113,8 +123,8 @@ const ApplicationSchema = new mongoose.Schema({
     state: String,
     country: {
       type: String,
-      default: 'India'
-    }
+      default: 'India',
+    },
   },
 
   // ===== SESSION CONFIGURATION =====
@@ -122,11 +132,11 @@ const ApplicationSchema = new mongoose.Schema({
     type: Number,
     min: 1,
     max: 10,
-    default: 1
+    default: 1,
   },
   sessionDuration: {
     type: Number, // in minutes
-    default: 60
+    default: 60,
   },
   availabilitySlots: [AvailabilitySlotSchema],
 
@@ -134,50 +144,52 @@ const ApplicationSchema = new mongoose.Schema({
   pricingType: {
     type: String,
     enum: ['free', 'paid', 'freemium'],
-    default: 'paid'
+    default: 'paid',
   },
   pricing: {
     monthlyPrice: {
       type: Number,
-      default: 0
+      default: 0,
     },
     threeMonthPrice: {
       type: Number,
-      default: 0
+      default: 0,
     },
     sixMonthPrice: {
       type: Number,
-      default: 0
+      default: 0,
     },
     hourlyRate: {
       type: Number,
-      default: 0
+      default: 0,
     },
     trialAvailable: {
       type: Boolean,
-      default: false
+      default: false,
     },
     trialPrice: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
 
   // ===== SECTOR TYPE =====
   sectorType: {
     type: String,
     enum: ['private', 'government', 'combined', 'startup', 'freelance'],
-    default: 'private'
+    default: 'private',
   },
 
   // ===== REFERRALS & COMPANIES =====
   referralsInTopCompanies: {
     type: Boolean,
-    default: false
+    default: false,
   },
-  topCompanyReferrals: [{
-    type: String
-  }], // Google, Microsoft, Amazon, etc.
+  topCompanyReferrals: [
+    {
+      type: String,
+    },
+  ], // Google, Microsoft, Amazon, etc.
 
   // ===== EDUCATION & CERTIFICATIONS =====
   education: [EducationSchema],
@@ -190,79 +202,81 @@ const ApplicationSchema = new mongoose.Schema({
     github: String,
     medium: String,
     portfolio: String,
-    youtube: String
+    youtube: String,
   },
 
   // ===== CURRICULUM =====
   curriculum: {
     available: {
       type: Boolean,
-      default: false
+      default: false,
     },
     description: String,
-    topics: [{
-      type: String
-    }]
+    topics: [
+      {
+        type: String,
+      },
+    ],
   },
 
   // ===== APPLICATION STATUS =====
   status: {
     type: String,
     enum: ['Pending', 'Under Review', 'Approved', 'Rejected', 'More Info Requested'],
-    default: 'Pending'
+    default: 'Pending',
   },
 
   // ===== TRACKING =====
   trackingId: {
     type: String,
     unique: true,
-    required: true
+    required: true,
   },
   submittedAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
 
   // ===== ADMIN ACTIONS =====
   reviewedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   },
   reviewedAt: {
-    type: Date
+    type: Date,
   },
   adminNotes: {
-    type: String
+    type: String,
   },
   rejectionReason: {
-    type: String
+    type: String,
   },
   moreInfoRequest: {
     requestedAt: Date,
     requestDetails: String,
     responseReceived: {
       type: Boolean,
-      default: false
+      default: false,
     },
     response: String,
-    respondedAt: Date
+    respondedAt: Date,
   },
 
   // ===== MENTOR ACCOUNT LINK =====
   mentorUserId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   },
   mentorProfileId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'MentorProfile'
+    ref: 'MentorProfile',
   },
 
   // ===== TIMESTAMPS =====
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // ===== INDEXES =====
@@ -319,9 +333,9 @@ ApplicationSchema.statics.getStats = async function () {
     {
       $group: {
         _id: '$status',
-        count: { $sum: 1 }
-      }
-    }
+        count: { $sum: 1 },
+      },
+    },
   ]);
 
   const result = {
@@ -330,7 +344,7 @@ ApplicationSchema.statics.getStats = async function () {
     'Under Review': 0,
     Approved: 0,
     Rejected: 0,
-    'More Info Requested': 0
+    'More Info Requested': 0,
   };
 
   stats.forEach(s => {
@@ -344,11 +358,8 @@ ApplicationSchema.statics.getStats = async function () {
 // Check for duplicate applications
 ApplicationSchema.statics.checkDuplicate = async function (email, phone) {
   const existing = await this.findOne({
-    $or: [
-      { email: email.toLowerCase() },
-      { phone }
-    ],
-    status: { $in: ['Pending', 'Under Review', 'More Info Requested'] }
+    $or: [{ email: email.toLowerCase() }, { phone }],
+    status: { $in: ['Pending', 'Under Review', 'More Info Requested'] },
   });
   return existing;
 };
@@ -378,7 +389,7 @@ ApplicationSchema.methods.requestMoreInfo = async function (adminId, details) {
   this.moreInfoRequest = {
     requestedAt: new Date(),
     requestDetails: details,
-    responseReceived: false
+    responseReceived: false,
   };
   this.reviewedBy = adminId;
   return this.save();

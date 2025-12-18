@@ -1,4 +1,3 @@
-
 // routes/authRoutes.js
 const express = require('express');
 const User = require('../models/User');
@@ -27,13 +26,11 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 // ==================== HELPER FUNCTIONS ====================
 
 // Get location from IP
-const getLocationFromIP = async (ipAddress) => {
+const getLocationFromIP = async ipAddress => {
   try {
     const access_key = '0feba35c19bde92e41da33cbc28912aa'; // replace with your key
 
-    const response = await axios.get(
-      `https://api.ipapi.com/${ipAddress}?access_key=${access_key}`
-    );
+    const response = await axios.get(`https://api.ipapi.com/${ipAddress}?access_key=${access_key}`);
 
     const data = response.data;
 
@@ -47,9 +44,8 @@ const getLocationFromIP = async (ipAddress) => {
       timezone: data.timezone,
       callingCode: data.location?.calling_code || 'Unknown',
       isEU: data.location?.is_eu || false,
-      ip: data.ip
+      ip: data.ip,
     };
-
   } catch (error) {
     console.error('IP location fetch error:', error.message);
 
@@ -57,14 +53,13 @@ const getLocationFromIP = async (ipAddress) => {
       country: 'Unknown',
       region: 'Unknown',
       city: 'Unknown',
-      ip: ipAddress
+      ip: ipAddress,
     };
   }
 };
 
-
 // Parse user agent
-const parseUserAgent = (userAgent) => {
+const parseUserAgent = userAgent => {
   const ua = userAgent || '';
 
   let device = 'Desktop';
@@ -98,8 +93,8 @@ const isLocationSuspicious = async (user, currentIP, currentLocation) => {
   const ipMatch = recentLogins.some(login => login.ipAddress === currentIP);
   if (ipMatch) return false;
 
-  const countryMatch = recentLogins.some(login =>
-    login.location?.country === currentLocation.country
+  const countryMatch = recentLogins.some(
+    login => login.location?.country === currentLocation.country
   );
 
   if (!countryMatch && currentLocation.country !== 'Unknown') {
@@ -127,7 +122,7 @@ const logUserActivity = async (user, activityType, details, req) => {
           activityType,
           details,
           ipAddress,
-          userAgent
+          userAgent,
         });
       }
     } else {
@@ -137,7 +132,7 @@ const logUserActivity = async (user, activityType, details, req) => {
         activityType,
         details,
         ipAddress,
-        userAgent
+        userAgent,
       });
     }
   } catch (error) {
@@ -149,7 +144,16 @@ const logUserActivity = async (user, activityType, details, req) => {
 
 // Signup
 router.post('/signup', async (req, res) => {
-  const { username, name, email, password, confirmPassword, newsletter, subscription, role = 'User' } = req.body;
+  const {
+    username,
+    name,
+    email,
+    password,
+    confirmPassword,
+    newsletter,
+    subscription,
+    role = 'User',
+  } = req.body;
 
   console.log('\n📝 Signup Request');
   console.log('Email:', email);
@@ -161,17 +165,17 @@ router.post('/signup', async (req, res) => {
 
   try {
     const existingUser = await User.findOne({
-      $or: [{ email: email.toLowerCase() }, { username }]
+      $or: [{ email: email.toLowerCase() }, { username }],
     });
 
     if (existingUser) {
       if (existingUser.email === email.toLowerCase()) {
         return res.status(400).json({
-          message: 'Email already registered. Please login or use forgot password.'
+          message: 'Email already registered. Please login or use forgot password.',
         });
       }
       return res.status(400).json({
-        message: 'Username already taken. Please choose another.'
+        message: 'Username already taken. Please choose another.',
       });
     }
 
@@ -194,7 +198,7 @@ router.post('/signup', async (req, res) => {
       newsletter,
       subscription,
       isVerified: false,
-      isActive: false
+      isActive: false,
     });
 
     await newUser.save();
@@ -218,11 +222,16 @@ router.post('/signup', async (req, res) => {
     const { verificationEmailTemplate } = require('../config/mailHelper');
 
     // Log activity immediately
-    await logUserActivity(newUser, 'signup', {
-      signupMethod: 'direct',
-      signupTime: new Date(),
-      emailQueued: true
-    }, req);
+    await logUserActivity(
+      newUser,
+      'signup',
+      {
+        signupMethod: 'direct',
+        signupTime: new Date(),
+        emailQueued: true,
+      },
+      req
+    );
 
     // Send response IMMEDIATELY - don't wait for email
     res.status(201).json({
@@ -233,21 +242,20 @@ router.post('/signup', async (req, res) => {
         username: newUser.username,
         name: newUser.name,
         email: newUser.email,
-        role: newUser.role
+        role: newUser.role,
       },
-      requiresVerification: true
+      requiresVerification: true,
     });
 
     // Send email in background (non-blocking)
-    sendEmailFast(
-      email,
-      verificationEmailTemplate(name, verificationLink, username)
-    ).then(() => {
-      console.log('✅ Verification email sent successfully');
-    }).catch((emailError) => {
-      console.error('❌ Failed to send verification email:', emailError);
-      // Note: User is already created, they can request resend
-    });
+    sendEmailFast(email, verificationEmailTemplate(name, verificationLink, username))
+      .then(() => {
+        console.log('✅ Verification email sent successfully');
+      })
+      .catch(emailError => {
+        console.error('❌ Failed to send verification email:', emailError);
+        // Note: User is already created, they can request resend
+      });
   } catch (error) {
     console.error('❌ Signup error:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
@@ -265,7 +273,7 @@ router.post('/verify-email', async (req, res) => {
     if (!token) {
       return res.status(400).json({
         success: false,
-        message: 'Verification token is required'
+        message: 'Verification token is required',
       });
     }
 
@@ -274,7 +282,7 @@ router.post('/verify-email', async (req, res) => {
     if (!verification) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid verification token'
+        message: 'Invalid verification token',
       });
     }
 
@@ -284,7 +292,7 @@ router.post('/verify-email', async (req, res) => {
       return res.status(400).json({
         success: false,
         message: result.message,
-        email: verification.email
+        email: verification.email,
       });
     }
 
@@ -293,7 +301,7 @@ router.post('/verify-email', async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -305,29 +313,31 @@ router.post('/verify-email', async (req, res) => {
 
     try {
       const { verificationSuccessTemplate } = require('../config/mailHelper');
-      await sendEmailFast(
-        user.email,
-        verificationSuccessTemplate(user.name)
-      );
+      await sendEmailFast(user.email, verificationSuccessTemplate(user.name));
     } catch (emailError) {
       console.error('Failed to send success email:', emailError);
     }
 
-    await logUserActivity(user, 'email_verified', {
-      verificationTime: new Date()
-    }, req);
+    await logUserActivity(
+      user,
+      'email_verified',
+      {
+        verificationTime: new Date(),
+      },
+      req
+    );
 
     res.json({
       success: true,
       message: 'Email verified successfully! You can now login.',
-      email: user.email
+      email: user.email,
     });
   } catch (error) {
     console.error('❌ Email verification error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during verification',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -345,20 +355,20 @@ router.post('/resend-verification', async (req, res) => {
     if (!user) {
       return res.status(200).json({
         success: true,
-        message: 'If an account exists, a verification email will be sent.'
+        message: 'If an account exists, a verification email will be sent.',
       });
     }
 
     if (user.isVerified) {
       return res.status(400).json({
         success: false,
-        message: 'Email is already verified. Please login.'
+        message: 'Email is already verified. Please login.',
       });
     }
 
     await EmailVerification.deleteMany({
       userId: user._id,
-      isVerified: false
+      isVerified: false,
     });
 
     const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
@@ -383,14 +393,14 @@ router.post('/resend-verification', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Verification email sent! Please check your inbox.'
+      message: 'Verification email sent! Please check your inbox.',
     });
   } catch (error) {
     console.error('❌ Resend verification error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to resend verification email',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -404,46 +414,48 @@ router.post('/login', async (req, res) => {
 
   try {
     const user = await User.findOne({
-      $or: [
-        { username },
-        { email: username.toLowerCase() },
-        { registrationNumber: username }
-      ]
+      $or: [{ username }, { email: username.toLowerCase() }, { registrationNumber: username }],
     }).populate('universityId', 'name url location isActive');
 
     if (!user) {
       return res.status(404).json({
         message: 'No account found with these credentials. Please sign up first.',
-        errorCode: 'USER_NOT_FOUND'
+        errorCode: 'USER_NOT_FOUND',
       });
     }
 
     if (!user.isVerified) {
       console.log('⚠️ Email not verified');
       return res.status(403).json({
-        message: 'Please verify your email before logging in. Check your inbox for the verification link.',
+        message:
+          'Please verify your email before logging in. Check your inbox for the verification link.',
         errorCode: 'EMAIL_NOT_VERIFIED',
-        email: user.email
+        email: user.email,
       });
     }
 
     if (user.isLocked) {
-      await logUserActivity(user, 'login_attempt', {
-        success: false,
-        reason: 'account_locked',
-        attemptTime: new Date()
-      }, req);
+      await logUserActivity(
+        user,
+        'login_attempt',
+        {
+          success: false,
+          reason: 'account_locked',
+          attemptTime: new Date(),
+        },
+        req
+      );
 
       return res.status(423).json({
         message: 'Account is temporarily locked. Please try forgot password.',
-        errorCode: 'ACCOUNT_LOCKED'
+        errorCode: 'ACCOUNT_LOCKED',
       });
     }
 
     if (user.isSuspensionActive) {
-      const message = user.suspensionDetails?.until ?
-        `Account suspended until ${new Date(user.suspensionDetails.until).toLocaleDateString()}` :
-        'Account is suspended';
+      const message = user.suspensionDetails?.until
+        ? `Account suspended until ${new Date(user.suspensionDetails.until).toLocaleDateString()}`
+        : 'Account is suspended';
 
       return res.status(403).json({ message, errorCode: 'ACCOUNT_SUSPENDED' });
     }
@@ -451,7 +463,7 @@ router.post('/login', async (req, res) => {
     if (!user.isActive) {
       return res.status(403).json({
         message: 'Account is deactivated. Contact administrator.',
-        errorCode: 'ACCOUNT_INACTIVE'
+        errorCode: 'ACCOUNT_INACTIVE',
       });
     }
 
@@ -459,18 +471,24 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       await user.incLoginAttempts();
 
-      await logUserActivity(user, 'login_attempt', {
-        success: false,
-        reason: 'invalid_password',
-        attemptTime: new Date()
-      }, req);
+      await logUserActivity(
+        user,
+        'login_attempt',
+        {
+          success: false,
+          reason: 'invalid_password',
+          attemptTime: new Date(),
+        },
+        req
+      );
 
       const remainingAttempts = 5 - (user.loginAttempts + 1);
       return res.status(400).json({
-        message: remainingAttempts > 0
-          ? `Incorrect password. ${remainingAttempts} attempts remaining.`
-          : 'Account will be locked after next failed attempt.',
-        errorCode: 'INVALID_PASSWORD'
+        message:
+          remainingAttempts > 0
+            ? `Incorrect password. ${remainingAttempts} attempts remaining.`
+            : 'Account will be locked after next failed attempt.',
+        errorCode: 'INVALID_PASSWORD',
       });
     }
 
@@ -511,17 +529,22 @@ router.post('/login', async (req, res) => {
 
         console.log('✅ Suspicious login email sent');
 
-        await logUserActivity(user, 'suspicious_login_detected', {
-          location,
-          deviceInfo,
-          emailSent: true,
-          verificationRequired: true
-        }, req);
+        await logUserActivity(
+          user,
+          'suspicious_login_detected',
+          {
+            location,
+            deviceInfo,
+            emailSent: true,
+            verificationRequired: true,
+          },
+          req
+        );
 
         return res.status(403).json({
           message: 'Unusual login detected. Please check your email to verify this login.',
           errorCode: 'LOCATION_VERIFICATION_REQUIRED',
-          requiresVerification: true
+          requiresVerification: true,
         });
       } catch (emailError) {
         console.error('❌ Failed to send suspicious login email:', emailError);
@@ -532,7 +555,7 @@ router.post('/login', async (req, res) => {
       {
         id: user._id,
         role: user.role,
-        universityId: user.universityId?._id
+        universityId: user.universityId?._id,
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -546,7 +569,7 @@ router.post('/login', async (req, res) => {
       ipAddress,
       userAgent,
       success: true,
-      location
+      location,
     });
 
     if (user.loginHistory.length > 20) {
@@ -555,12 +578,17 @@ router.post('/login', async (req, res) => {
 
     await user.save();
 
-    await logUserActivity(user, 'login', {
-      success: true,
-      location,
-      deviceInfo,
-      sessionId
-    }, req);
+    await logUserActivity(
+      user,
+      'login',
+      {
+        success: true,
+        location,
+        deviceInfo,
+        sessionId,
+      },
+      req
+    );
 
     console.log('✅ Login successful');
 
@@ -575,8 +603,8 @@ router.post('/login', async (req, res) => {
         role: user.role,
         universityId: user.universityId?._id,
         universityName: user.universityId?.name,
-        lastLogin: user.lastLogin
-      }
+        lastLogin: user.lastLogin,
+      },
     });
   } catch (error) {
     console.error('❌ Login error:', error);
@@ -596,10 +624,15 @@ router.post('/logout', async (req, res) => {
       if (user) {
         await user.endSession();
 
-        await logUserActivity(user, 'logout', {
-          logoutTime: new Date(),
-          sessionId: user.currentSession?.sessionId
-        }, req);
+        await logUserActivity(
+          user,
+          'logout',
+          {
+            logoutTime: new Date(),
+            sessionId: user.currentSession?.sessionId,
+          },
+          req
+        );
       }
     }
 
@@ -624,7 +657,7 @@ router.post('/forgot-password', async (req, res) => {
       console.log('❌ No email provided');
       return res.status(400).json({
         message: 'Email is required',
-        success: false
+        success: false,
       });
     }
 
@@ -636,7 +669,7 @@ router.post('/forgot-password', async (req, res) => {
       console.log('⚠️ User not found, but sending success response');
       return res.status(200).json({
         message: 'If an account exists with this email, you will receive a password reset code.',
-        success: true
+        success: true,
       });
     }
 
@@ -644,7 +677,7 @@ router.post('/forgot-password', async (req, res) => {
       console.log('❌ User account is not active');
       return res.status(403).json({
         message: 'Account is deactivated. Please contact administrator.',
-        success: false
+        success: false,
       });
     }
 
@@ -665,15 +698,20 @@ router.post('/forgot-password', async (req, res) => {
 
       console.log('✅ Email sent successfully!');
 
-      await logUserActivity(user, 'password_reset_requested', {
-        requestTime: new Date(),
-        ipAddress,
-        otpSent: true
-      }, req);
+      await logUserActivity(
+        user,
+        'password_reset_requested',
+        {
+          requestTime: new Date(),
+          ipAddress,
+          otpSent: true,
+        },
+        req
+      );
 
       res.json({
         message: 'Password reset code sent to your email. Please check your inbox.',
-        success: true
+        success: true,
       });
     } catch (emailError) {
       console.error('❌ Error sending OTP email:', emailError);
@@ -681,7 +719,7 @@ router.post('/forgot-password', async (req, res) => {
       res.status(500).json({
         message: 'Failed to send reset code. Please try again later.',
         success: false,
-        error: emailError.message
+        error: emailError.message,
       });
     }
   } catch (error) {
@@ -690,7 +728,7 @@ router.post('/forgot-password', async (req, res) => {
     res.status(500).json({
       message: 'Server error. Please try again later.',
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -707,7 +745,7 @@ router.post('/verify-otp', async (req, res) => {
     if (!email || !otp) {
       return res.status(400).json({
         message: 'Email and OTP are required',
-        success: false
+        success: false,
       });
     }
 
@@ -717,7 +755,7 @@ router.post('/verify-otp', async (req, res) => {
       console.log('❌ User not found');
       return res.status(404).json({
         message: 'User not found',
-        success: false
+        success: false,
       });
     }
 
@@ -727,18 +765,23 @@ router.post('/verify-otp', async (req, res) => {
       console.log('❌ No valid OTP found');
       return res.status(400).json({
         message: 'No valid OTP found. Please request a new one.',
-        success: false
+        success: false,
       });
     }
 
     const verificationResult = await otpDoc.verifyOTP(otp);
 
     if (!verificationResult.success) {
-      await logUserActivity(user, 'otp_verification_failed', {
-        attemptTime: new Date(),
-        attemptsRemaining: otpDoc.maxAttempts - otpDoc.attempts,
-        reason: verificationResult.message
-      }, req);
+      await logUserActivity(
+        user,
+        'otp_verification_failed',
+        {
+          attemptTime: new Date(),
+          attemptsRemaining: otpDoc.maxAttempts - otpDoc.attempts,
+          reason: verificationResult.message,
+        },
+        req
+      );
 
       return res.status(400).json(verificationResult);
     }
@@ -747,7 +790,7 @@ router.post('/verify-otp', async (req, res) => {
       {
         id: user._id,
         email: user.email,
-        purpose: 'password_reset'
+        purpose: 'password_reset',
       },
       JWT_SECRET,
       { expiresIn: '15m' }
@@ -755,14 +798,19 @@ router.post('/verify-otp', async (req, res) => {
 
     console.log('✅ Reset token generated');
 
-    await logUserActivity(user, 'otp_verified', {
-      verificationTime: new Date()
-    }, req);
+    await logUserActivity(
+      user,
+      'otp_verified',
+      {
+        verificationTime: new Date(),
+      },
+      req
+    );
 
     res.json({
       message: 'OTP verified successfully',
       success: true,
-      resetToken
+      resetToken,
     });
   } catch (error) {
     console.error('❌ OTP verification error:', error);
@@ -770,7 +818,7 @@ router.post('/verify-otp', async (req, res) => {
     res.status(500).json({
       message: 'Server error. Please try again.',
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -783,14 +831,14 @@ router.post('/reset-password', async (req, res) => {
     if (newPassword !== confirmPassword) {
       return res.status(400).json({
         message: 'Passwords do not match',
-        success: false
+        success: false,
       });
     }
 
     if (newPassword.length < 6) {
       return res.status(400).json({
         message: 'Password must be at least 6 characters long',
-        success: false
+        success: false,
       });
     }
 
@@ -800,14 +848,14 @@ router.post('/reset-password', async (req, res) => {
     } catch (error) {
       return res.status(401).json({
         message: 'Invalid or expired reset token. Please request a new one.',
-        success: false
+        success: false,
       });
     }
 
     if (decoded.purpose !== 'password_reset') {
       return res.status(401).json({
         message: 'Invalid reset token',
-        success: false
+        success: false,
       });
     }
 
@@ -816,7 +864,7 @@ router.post('/reset-password', async (req, res) => {
     if (!user) {
       return res.status(404).json({
         message: 'User not found',
-        success: false
+        success: false,
       });
     }
 
@@ -825,7 +873,7 @@ router.post('/reset-password', async (req, res) => {
       if (isSameAsOld) {
         return res.status(400).json({
           message: 'Cannot reuse recent passwords. Please choose a different password.',
-          success: false
+          success: false,
         });
       }
     }
@@ -835,27 +883,29 @@ router.post('/reset-password', async (req, res) => {
     await user.changePassword(hashedPassword);
 
     try {
-      await sendEmailFast(
-        user.email,
-        otpEmailTemplates.passwordResetSuccess(user.name)
-      );
+      await sendEmailFast(user.email, otpEmailTemplates.passwordResetSuccess(user.name));
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError);
     }
 
-    await logUserActivity(user, 'password_reset_completed', {
-      resetTime: new Date()
-    }, req);
+    await logUserActivity(
+      user,
+      'password_reset_completed',
+      {
+        resetTime: new Date(),
+      },
+      req
+    );
 
     res.json({
       message: 'Password reset successfully. You can now login with your new password.',
-      success: true
+      success: true,
     });
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({
       message: 'Server error. Please try again.',
-      success: false
+      success: false,
     });
   }
 });
@@ -873,7 +923,7 @@ router.post('/resend-otp', async (req, res) => {
     if (!user) {
       return res.status(200).json({
         message: 'If an account exists with this email, a new code will be sent.',
-        success: true
+        success: true,
       });
     }
 
@@ -885,27 +935,29 @@ router.post('/resend-otp', async (req, res) => {
     console.log('✅ New OTP created:', otpDoc.otp);
 
     try {
-      await sendEmailFast(
-        email,
-        otpEmailTemplates.otpEmail(user.name, otpDoc.otp, 10)
-      );
+      await sendEmailFast(email, otpEmailTemplates.otpEmail(user.name, otpDoc.otp, 10));
 
       console.log('✅ Email sent successfully');
 
-      await logUserActivity(user, 'otp_resent', {
-        resendTime: new Date()
-      }, req);
+      await logUserActivity(
+        user,
+        'otp_resent',
+        {
+          resendTime: new Date(),
+        },
+        req
+      );
 
       res.json({
         message: 'New code sent to your email',
-        success: true
+        success: true,
       });
     } catch (emailError) {
       console.error('❌ Error resending OTP:', emailError);
       res.status(500).json({
         message: 'Failed to send code. Please try again.',
         success: false,
-        error: emailError.message
+        error: emailError.message,
       });
     }
   } catch (error) {
@@ -913,7 +965,7 @@ router.post('/resend-otp', async (req, res) => {
     res.status(500).json({
       message: 'Server error. Please try again.',
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -932,11 +984,16 @@ router.post('/change-password', async (req, res) => {
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-      await logUserActivity(user, 'password_change_attempt', {
-        success: false,
-        reason: 'invalid_current_password',
-        attemptTime: new Date()
-      }, req);
+      await logUserActivity(
+        user,
+        'password_change_attempt',
+        {
+          success: false,
+          reason: 'invalid_current_password',
+          attemptTime: new Date(),
+        },
+        req
+      );
 
       return res.status(400).json({ message: 'Current password is incorrect' });
     }
@@ -951,16 +1008,21 @@ router.post('/change-password', async (req, res) => {
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     await user.changePassword(hashedNewPassword);
 
-    await logUserActivity(user, 'password_change', {
-      success: true,
-      changeTime: new Date()
-    }, req);
+    await logUserActivity(
+      user,
+      'password_change',
+      {
+        success: true,
+        changeTime: new Date(),
+      },
+      req
+    );
 
     const newToken = jwt.sign(
       {
         id: user._id,
         role: user.role,
-        universityId: user.universityId
+        universityId: user.universityId,
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -969,7 +1031,7 @@ router.post('/change-password', async (req, res) => {
     res.json({
       success: true,
       message: 'Password changed successfully',
-      token: newToken
+      token: newToken,
     });
   } catch (error) {
     console.error('Password change error:', error);
@@ -989,14 +1051,14 @@ router.get('/login-verification/:token', async (req, res) => {
     if (!verification) {
       return res.status(404).json({
         success: false,
-        message: 'Verification not found'
+        message: 'Verification not found',
       });
     }
 
     if (verification.expiresAt < new Date()) {
       return res.status(400).json({
         success: false,
-        message: 'Verification link has expired'
+        message: 'Verification link has expired',
       });
     }
 
@@ -1006,14 +1068,14 @@ router.get('/login-verification/:token', async (req, res) => {
         location: verification.location,
         ipAddress: verification.ipAddress,
         deviceInfo: verification.deviceInfo,
-        createdAt: verification.createdAt
-      }
+        createdAt: verification.createdAt,
+      },
     });
   } catch (error) {
     console.error('Error fetching verification:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });
@@ -1030,7 +1092,7 @@ router.post('/verify-login', async (req, res) => {
     if (!verification) {
       return res.status(404).json({
         success: false,
-        message: 'Verification not found'
+        message: 'Verification not found',
       });
     }
 
@@ -1039,29 +1101,34 @@ router.post('/verify-login', async (req, res) => {
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: result.message
+        message: result.message,
       });
     }
 
     const user = await User.findById(verification.userId);
     if (user) {
-      await logUserActivity(user, 'login_verified', {
-        verificationTime: new Date(),
-        location: verification.location
-      }, req);
+      await logUserActivity(
+        user,
+        'login_verified',
+        {
+          verificationTime: new Date(),
+          location: verification.location,
+        },
+        req
+      );
     }
 
     console.log('✅ Login verified successfully');
 
     res.json({
       success: true,
-      message: 'Login verified successfully. You can now log in.'
+      message: 'Login verified successfully. You can now log in.',
     });
   } catch (error) {
     console.error('Error verifying login:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });
@@ -1078,7 +1145,7 @@ router.post('/deny-login', async (req, res) => {
     if (!verification) {
       return res.status(404).json({
         success: false,
-        message: 'Verification not found'
+        message: 'Verification not found',
       });
     }
 
@@ -1087,30 +1154,35 @@ router.post('/deny-login', async (req, res) => {
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: result.message
+        message: result.message,
       });
     }
 
     const user = await User.findById(verification.userId);
     if (user) {
-      await logUserActivity(user, 'login_denied', {
-        denialTime: new Date(),
-        location: verification.location,
-        reason: 'user_denied'
-      }, req);
+      await logUserActivity(
+        user,
+        'login_denied',
+        {
+          denialTime: new Date(),
+          location: verification.location,
+          reason: 'user_denied',
+        },
+        req
+      );
     }
 
     console.log('✅ Login denied successfully');
 
     res.json({
       success: true,
-      message: 'Login attempt blocked. Please change your password.'
+      message: 'Login attempt blocked. Please change your password.',
     });
   } catch (error) {
     console.error('Error denying login:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });
@@ -1141,20 +1213,20 @@ const verifyToken = (req, res, next) => {
 
       if (user.isLocked) {
         return res.status(423).json({
-          message: 'Account is temporarily locked. Please try again later.'
+          message: 'Account is temporarily locked. Please try again later.',
         });
       }
 
       if (!user.isActive) {
         return res.status(403).json({
-          message: 'Account has been deactivated. Please contact administrator.'
+          message: 'Account has been deactivated. Please contact administrator.',
         });
       }
 
       if (user.isSuspensionActive) {
-        const message = user.suspensionDetails?.until ?
-          `Account is suspended until ${new Date(user.suspensionDetails.until).toLocaleDateString()}` :
-          'Account is suspended';
+        const message = user.suspensionDetails?.until
+          ? `Account is suspended until ${new Date(user.suspensionDetails.until).toLocaleDateString()}`
+          : 'Account is suspended';
 
         return res.status(403).json({ message });
       }
@@ -1162,17 +1234,20 @@ const verifyToken = (req, res, next) => {
       if (['UniAdmin', 'UniTeach', 'Student'].includes(user.role) && user.universityId) {
         if (!user.universityId.isActive) {
           return res.status(403).json({
-            message: 'Your university access has been deactivated.'
+            message: 'Your university access has been deactivated.',
           });
         }
       }
 
       await user.updateActivity();
 
-      if ((user.mustChangePassword || user.temporaryPassword) && !req.path.includes('change-password')) {
+      if (
+        (user.mustChangePassword || user.temporaryPassword) &&
+        !req.path.includes('change-password')
+      ) {
         return res.status(200).json({
           mustChangePassword: true,
-          message: 'Password change required before accessing the system.'
+          message: 'Password change required before accessing the system.',
         });
       }
 
@@ -1209,7 +1284,7 @@ router.get('/me', verifyToken, async (req, res) => {
       lastLogin: user.lastLogin,
       isActive: user.isActive,
       isSuspended: user.isSuspended,
-      mustChangePassword: user.mustChangePassword
+      mustChangePassword: user.mustChangePassword,
     };
 
     if (user.role === 'Student') {
@@ -1221,14 +1296,19 @@ router.get('/me', verifyToken, async (req, res) => {
           year: studentProfile.year,
           course: studentProfile.course,
           rollNumber: studentProfile.rollNumber,
-          academicStatus: studentProfile.academicStatus
+          academicStatus: studentProfile.academicStatus,
         };
       }
     }
 
-    await logUserActivity(user, 'profile_access', {
-      accessTime: new Date()
-    }, req);
+    await logUserActivity(
+      user,
+      'profile_access',
+      {
+        accessTime: new Date(),
+      },
+      req
+    );
 
     res.json(responseData);
   } catch (error) {
@@ -1245,7 +1325,7 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Admin access required'
+        message: 'Admin access required',
       });
     }
 
@@ -1260,7 +1340,7 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
     if (!name || !username || !email || !password || !role) {
       return res.status(400).json({
         success: false,
-        message: 'All fields are required'
+        message: 'All fields are required',
       });
     }
 
@@ -1268,7 +1348,7 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email format'
+        message: 'Invalid email format',
       });
     }
 
@@ -1276,27 +1356,24 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
     if (!validRoles.includes(role)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid role specified'
+        message: 'Invalid role specified',
       });
     }
 
     const existingUser = await User.findOne({
-      $or: [
-        { email: email.toLowerCase() },
-        { username }
-      ]
+      $or: [{ email: email.toLowerCase() }, { username }],
     });
 
     if (existingUser) {
       if (existingUser.email === email.toLowerCase()) {
         return res.status(400).json({
           success: false,
-          message: 'Email already registered'
+          message: 'Email already registered',
         });
       }
       return res.status(400).json({
         success: false,
-        message: 'Username already taken'
+        message: 'Username already taken',
       });
     }
 
@@ -1311,7 +1388,7 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
       isVerified: isVerified || false,
       isActive: isVerified || false,
       newsletter: false,
-      subscription: false
+      subscription: false,
     });
 
     await newUser.save();
@@ -1348,7 +1425,14 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
 
         await sendEmailFast(
           email,
-          adminEmailTemplates.adminCreatedVerification(name, username, email, password, role, verificationLink)
+          adminEmailTemplates.adminCreatedVerification(
+            name,
+            username,
+            email,
+            password,
+            role,
+            verificationLink
+          )
         );
         emailSent = true;
         console.log('✅ Verification email sent');
@@ -1358,14 +1442,19 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
       }
     }
 
-    await logUserActivity(req.user, 'user_created', {
-      createdUserId: newUser._id,
-      createdUserEmail: email,
-      createdUserRole: role,
-      isPreVerified: isVerified,
-      emailSent,
-      creationTime: new Date()
-    }, req);
+    await logUserActivity(
+      req.user,
+      'user_created',
+      {
+        createdUserId: newUser._id,
+        createdUserEmail: email,
+        createdUserRole: role,
+        isPreVerified: isVerified,
+        emailSent,
+        creationTime: new Date(),
+      },
+      req
+    );
 
     res.status(201).json({
       success: true,
@@ -1376,17 +1465,17 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
-        isVerified: newUser.isVerified
+        isVerified: newUser.isVerified,
       },
       emailSent,
-      emailError
+      emailError,
     });
   } catch (error) {
     console.error('❌ Error creating user:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while creating user',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -1398,7 +1487,7 @@ router.post('/admin/test-email', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Admin access required'
+        message: 'Admin access required',
       });
     }
 
@@ -1454,7 +1543,7 @@ router.post('/admin/test-email', verifyToken, async (req, res) => {
         </body>
         </html>
       `,
-      text: `TEST EMAIL\n\nTemplate: ${isVerified ? 'Welcome' : 'Verification'}\nSent to: ${testEmail}\nDate: ${new Date().toLocaleString()}\n\nSample Data:\nName: ${name}\nUsername: ${username}\nEmail: ${email}\nRole: ${role}\nPassword: ${password}\n\nThis is a test email preview.`
+      text: `TEST EMAIL\n\nTemplate: ${isVerified ? 'Welcome' : 'Verification'}\nSent to: ${testEmail}\nDate: ${new Date().toLocaleString()}\n\nSample Data:\nName: ${name}\nUsername: ${username}\nEmail: ${email}\nRole: ${role}\nPassword: ${password}\n\nThis is a test email preview.`,
     };
 
     // ✅ FIXED: Use sendEmailFast instead of sendEmail
@@ -1462,23 +1551,28 @@ router.post('/admin/test-email', verifyToken, async (req, res) => {
 
     console.log('✅ Test email sent successfully');
 
-    await logUserActivity(req.user, 'test_email_sent', {
-      testEmail,
-      templateType: isVerified ? 'welcome' : 'verification',
-      sentTime: new Date()
-    }, req);
+    await logUserActivity(
+      req.user,
+      'test_email_sent',
+      {
+        testEmail,
+        templateType: isVerified ? 'welcome' : 'verification',
+        sentTime: new Date(),
+      },
+      req
+    );
 
     res.json({
       success: true,
       message: `Test email sent successfully to ${testEmail}`,
-      templateType: isVerified ? 'welcome' : 'verification'
+      templateType: isVerified ? 'welcome' : 'verification',
     });
   } catch (error) {
     console.error('❌ Error sending test email:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to send test email',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -1488,7 +1582,7 @@ router.get('/admin/users', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Admin access required'
+        message: 'Admin access required',
       });
     }
 
@@ -1502,7 +1596,7 @@ router.get('/admin/users', verifyToken, async (req, res) => {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
         { username: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
+        { email: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -1519,13 +1613,13 @@ router.get('/admin/users', verifyToken, async (req, res) => {
       users,
       totalPages: Math.ceil(count / limit),
       currentPage: page,
-      totalUsers: count
+      totalUsers: count,
     });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });
@@ -1536,15 +1630,12 @@ router.get('/admin/unverified-users', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Admin access required'
+        message: 'Admin access required',
       });
     }
 
     const unverifiedUsers = await User.find({
-      $or: [
-        { isVerified: { $exists: false } },
-        { isVerified: false }
-      ]
+      $or: [{ isVerified: { $exists: false } }, { isVerified: false }],
     })
       .select('username name email role createdAt isActive')
       .sort({ createdAt: -1 })
@@ -1553,13 +1644,13 @@ router.get('/admin/unverified-users', verifyToken, async (req, res) => {
     res.json({
       success: true,
       count: unverifiedUsers.length,
-      users: unverifiedUsers
+      users: unverifiedUsers,
     });
   } catch (error) {
     console.error('Error fetching unverified users:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });
@@ -1570,7 +1661,7 @@ router.post('/admin/verify-user/:userId', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Admin access required'
+        message: 'Admin access required',
       });
     }
 
@@ -1580,7 +1671,7 @@ router.post('/admin/verify-user/:userId', verifyToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -1588,11 +1679,16 @@ router.post('/admin/verify-user/:userId', verifyToken, async (req, res) => {
     user.isActive = true;
     await user.save();
 
-    await logUserActivity(user, 'manually_verified', {
-      verifiedBy: req.user._id,
-      verifiedByName: req.user.name,
-      verificationTime: new Date()
-    }, req);
+    await logUserActivity(
+      user,
+      'manually_verified',
+      {
+        verifiedBy: req.user._id,
+        verifiedByName: req.user.name,
+        verificationTime: new Date(),
+      },
+      req
+    );
 
     console.log(`✅ Admin ${req.user.email} manually verified user: ${user.email}`);
 
@@ -1604,14 +1700,14 @@ router.post('/admin/verify-user/:userId', verifyToken, async (req, res) => {
         email: user.email,
         username: user.username,
         isVerified: user.isVerified,
-        isActive: user.isActive
-      }
+        isActive: user.isActive,
+      },
     });
   } catch (error) {
     console.error('Error manually verifying user:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });
@@ -1622,7 +1718,7 @@ router.post('/admin/bulk-verify-users', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Admin access required'
+        message: 'Admin access required',
       });
     }
 
@@ -1631,7 +1727,7 @@ router.post('/admin/bulk-verify-users', verifyToken, async (req, res) => {
     if (!Array.isArray(userIds) || userIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'userIds array is required'
+        message: 'userIds array is required',
       });
     }
 
@@ -1640,8 +1736,8 @@ router.post('/admin/bulk-verify-users', verifyToken, async (req, res) => {
       {
         $set: {
           isVerified: true,
-          isActive: true
-        }
+          isActive: true,
+        },
       }
     );
 
@@ -1650,13 +1746,13 @@ router.post('/admin/bulk-verify-users', verifyToken, async (req, res) => {
     res.json({
       success: true,
       message: `Successfully verified ${result.modifiedCount} users`,
-      modifiedCount: result.modifiedCount
+      modifiedCount: result.modifiedCount,
     });
   } catch (error) {
     console.error('Error bulk verifying users:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });
@@ -1667,7 +1763,7 @@ router.post('/admin/resend-verification/:userId', verifyToken, async (req, res) 
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Admin access required'
+        message: 'Admin access required',
       });
     }
 
@@ -1677,20 +1773,20 @@ router.post('/admin/resend-verification/:userId', verifyToken, async (req, res) 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
     if (user.isVerified) {
       return res.status(400).json({
         success: false,
-        message: 'User is already verified'
+        message: 'User is already verified',
       });
     }
 
     await EmailVerification.deleteMany({
       userId: user._id,
-      isVerified: false
+      isVerified: false,
     });
 
     const verification = await EmailVerification.createVerificationToken(
@@ -1712,14 +1808,14 @@ router.post('/admin/resend-verification/:userId', verifyToken, async (req, res) 
 
     res.json({
       success: true,
-      message: 'Verification email resent successfully'
+      message: 'Verification email resent successfully',
     });
   } catch (error) {
     console.error('Error resending verification:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to resend verification email',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -1730,37 +1826,36 @@ router.post('/admin/auto-verify-all', verifyToken, async (req, res) => {
     if (req.user.role !== 'Admin') {
       return res.status(403).json({
         success: false,
-        message: 'Admin access required'
+        message: 'Admin access required',
       });
     }
 
     const result = await User.updateMany(
       {
-        $or: [
-          { isVerified: { $exists: false } },
-          { isVerified: false }
-        ]
+        $or: [{ isVerified: { $exists: false } }, { isVerified: false }],
       },
       {
         $set: {
           isVerified: true,
-          isActive: true
-        }
+          isActive: true,
+        },
       }
     );
 
-    console.log(`✅ Admin ${req.user.email} auto-verified ALL unverified users (${result.modifiedCount})`);
+    console.log(
+      `✅ Admin ${req.user.email} auto-verified ALL unverified users (${result.modifiedCount})`
+    );
 
     res.json({
       success: true,
       message: `Successfully auto-verified ${result.modifiedCount} users`,
-      modifiedCount: result.modifiedCount
+      modifiedCount: result.modifiedCount,
     });
   } catch (error) {
     console.error('Error auto-verifying users:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });
@@ -1781,7 +1876,7 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
       success: true,
       portalAccess: student.portalAccess,
       isSuspended: student.isSuspended,
-      suspensionDetails: student.suspensionDetails
+      suspensionDetails: student.suspensionDetails,
     });
   } catch (error) {
     console.error('Error fetching portal access:', error);
@@ -1790,7 +1885,6 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
 });
 
 // router.post('/google', async (req, res) => {
-
 
 //   const { credential } = req.body;
 
@@ -2064,7 +2158,6 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
 //     });
 //   }
 // });
-
 
 // router.post('/google', async (req, res) => {
 //   const { credential } = req.body;
@@ -2397,7 +2490,6 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
 //   }
 // });
 
-
 /**
  * Link Google account to existing user
  * POST /api/auth/link-google
@@ -2503,7 +2595,7 @@ router.post('/google', async (req, res) => {
     if (!credential) {
       return res.status(400).json({
         success: false,
-        message: 'Google credential is required'
+        message: 'Google credential is required',
       });
     }
 
@@ -2515,7 +2607,7 @@ router.post('/google', async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid Google token',
-        error: verificationResult.error
+        error: verificationResult.error,
       });
     }
 
@@ -2524,10 +2616,7 @@ router.post('/google', async (req, res) => {
 
     // Check if user exists by email or Google ID
     let user = await User.findOne({
-      $or: [
-        { email: googleData.email.toLowerCase() },
-        { googleId: googleData.googleId }
-      ]
+      $or: [{ email: googleData.email.toLowerCase() }, { googleId: googleData.googleId }],
     }).populate('universityId', 'name url location isActive');
 
     const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
@@ -2552,38 +2641,44 @@ router.post('/google', async (req, res) => {
 
         return res.status(403).json({
           success: false,
-          message: 'Please verify your email before logging in. Check your inbox for the verification link.',
+          message:
+            'Please verify your email before logging in. Check your inbox for the verification link.',
           errorCode: 'EMAIL_NOT_VERIFIED',
           email: user.email,
-          requiresVerification: true
+          requiresVerification: true,
         });
       }
 
       // Check account status
       if (user.isLocked) {
-        await logUserActivity(user, 'login_attempt', {
-          success: false,
-          reason: 'account_locked',
-          method: 'google_oauth',
-          attemptTime: new Date()
-        }, req);
+        await logUserActivity(
+          user,
+          'login_attempt',
+          {
+            success: false,
+            reason: 'account_locked',
+            method: 'google_oauth',
+            attemptTime: new Date(),
+          },
+          req
+        );
 
         return res.status(423).json({
           success: false,
           message: 'Account is temporarily locked. Please contact support.',
-          errorCode: 'ACCOUNT_LOCKED'
+          errorCode: 'ACCOUNT_LOCKED',
         });
       }
 
       if (user.isSuspensionActive) {
-        const message = user.suspensionDetails?.until ?
-          `Account suspended until ${new Date(user.suspensionDetails.until).toLocaleDateString()}` :
-          'Account is suspended';
+        const message = user.suspensionDetails?.until
+          ? `Account suspended until ${new Date(user.suspensionDetails.until).toLocaleDateString()}`
+          : 'Account is suspended';
 
         return res.status(403).json({
           success: false,
           message,
-          errorCode: 'ACCOUNT_SUSPENDED'
+          errorCode: 'ACCOUNT_SUSPENDED',
         });
       }
 
@@ -2591,7 +2686,7 @@ router.post('/google', async (req, res) => {
         return res.status(403).json({
           success: false,
           message: 'Account is deactivated. Contact administrator.',
-          errorCode: 'ACCOUNT_INACTIVE'
+          errorCode: 'ACCOUNT_INACTIVE',
         });
       }
 
@@ -2626,19 +2721,24 @@ router.post('/google', async (req, res) => {
 
           console.log('✅ Suspicious login email sent');
 
-          await logUserActivity(user, 'suspicious_login_detected', {
-            location,
-            deviceInfo,
-            method: 'google_oauth',
-            emailSent: true,
-            verificationRequired: true
-          }, req);
+          await logUserActivity(
+            user,
+            'suspicious_login_detected',
+            {
+              location,
+              deviceInfo,
+              method: 'google_oauth',
+              emailSent: true,
+              verificationRequired: true,
+            },
+            req
+          );
 
           return res.status(403).json({
             success: false,
             message: 'Unusual login detected. Please check your email to verify this login.',
             errorCode: 'LOCATION_VERIFICATION_REQUIRED',
-            requiresVerification: true
+            requiresVerification: true,
           });
         } catch (emailError) {
           console.error('❌ Failed to send suspicious login email:', emailError);
@@ -2652,13 +2752,18 @@ router.post('/google', async (req, res) => {
       }
 
       // Log successful login
-      await logUserActivity(user, 'login', {
-        success: true,
-        method: 'google_oauth',
-        location,
-        deviceInfo,
-        loginTime: new Date()
-      }, req);
+      await logUserActivity(
+        user,
+        'login',
+        {
+          success: true,
+          method: 'google_oauth',
+          location,
+          deviceInfo,
+          loginTime: new Date(),
+        },
+        req
+      );
     }
 
     // NEW USER - Return Google data for profile completion
@@ -2666,7 +2771,10 @@ router.post('/google', async (req, res) => {
       console.log('📝 New Google user - needs profile completion');
 
       // Generate suggested usernames
-      const baseUsername = googleData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      const baseUsername = googleData.email
+        .split('@')[0]
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
       const suggestedUsernames = [];
 
       // Check if base username is available
@@ -2692,10 +2800,10 @@ router.post('/google', async (req, res) => {
           email: googleData.email,
           name: googleData.name,
           picture: googleData.picture,
-          emailVerified: googleData.emailVerified
+          emailVerified: googleData.emailVerified,
         },
         suggestedUsernames,
-        message: 'Please complete your profile to continue'
+        message: 'Please complete your profile to continue',
       });
     }
 
@@ -2704,7 +2812,7 @@ router.post('/google', async (req, res) => {
       {
         id: user._id,
         role: user.role,
-        universityId: user.universityId?._id
+        universityId: user.universityId?._id,
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -2718,7 +2826,7 @@ router.post('/google', async (req, res) => {
       ipAddress,
       userAgent,
       success: true,
-      location
+      location,
     });
 
     if (user.loginHistory.length > 20) {
@@ -2743,17 +2851,16 @@ router.post('/google', async (req, res) => {
         universityId: user.universityId?._id,
         universityName: user.universityId?.name,
         lastLogin: user.lastLogin,
-        authProvider: 'google'
+        authProvider: 'google',
       },
-      message: 'Login successful!'
+      message: 'Login successful!',
     });
-
   } catch (error) {
     console.error('❌ Google OAuth error:', error);
     res.status(500).json({
       success: false,
       message: 'Server Error',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -2771,7 +2878,7 @@ router.post('/google/complete-profile', async (req, res) => {
     if (!googleData || !googleData.googleId || !googleData.email || !username) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: googleData and username are required'
+        message: 'Missing required fields: googleData and username are required',
       });
     }
 
@@ -2779,14 +2886,14 @@ router.post('/google/complete-profile', async (req, res) => {
     if (username.length < 3) {
       return res.status(400).json({
         success: false,
-        message: 'Username must be at least 3 characters long'
+        message: 'Username must be at least 3 characters long',
       });
     }
 
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
       return res.status(400).json({
         success: false,
-        message: 'Username can only contain letters, numbers, and underscores'
+        message: 'Username can only contain letters, numbers, and underscores',
       });
     }
 
@@ -2795,8 +2902,8 @@ router.post('/google/complete-profile', async (req, res) => {
       $or: [
         { email: googleData.email.toLowerCase() },
         { username: username },
-        { googleId: googleData.googleId }
-      ]
+        { googleId: googleData.googleId },
+      ],
     });
 
     if (existingUser) {
@@ -2804,13 +2911,13 @@ router.post('/google/complete-profile', async (req, res) => {
         return res.status(400).json({
           success: false,
           message: 'Username already taken. Please choose another.',
-          field: 'username'
+          field: 'username',
         });
       }
 
       return res.status(400).json({
         success: false,
-        message: 'An account with this email already exists. Please login instead.'
+        message: 'An account with this email already exists. Please login instead.',
       });
     }
 
@@ -2824,10 +2931,10 @@ router.post('/google/complete-profile', async (req, res) => {
       password: await bcrypt.hash(uuidv4(), 10), // Random password (won't be used)
       role: 'User',
       isVerified: true, // ✅ Google emails are pre-verified
-      isActive: true,   // ✅ Activate immediately
+      isActive: true, // ✅ Activate immediately
       newsletter: newsletter,
       subscription: subscription,
-      authProvider: 'google'
+      authProvider: 'google',
     });
 
     await newUser.save();
@@ -2837,19 +2944,21 @@ router.post('/google/complete-profile', async (req, res) => {
     const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
     const userAgent = req.get('User-Agent') || 'Unknown';
 
-    await logUserActivity(newUser, 'signup', {
-      signupMethod: 'google_oauth',
-      signupTime: new Date(),
-      googleVerified: googleData.emailVerified
-    }, req);
+    await logUserActivity(
+      newUser,
+      'signup',
+      {
+        signupMethod: 'google_oauth',
+        signupTime: new Date(),
+        googleVerified: googleData.emailVerified,
+      },
+      req
+    );
 
     // Send welcome email
     try {
       const { googleWelcomeTemplate } = require('../config/emailTemplates');
-      await sendEmailFast(
-        newUser.email,
-        googleWelcomeTemplate(newUser.name, username)
-      );
+      await sendEmailFast(newUser.email, googleWelcomeTemplate(newUser.name, username));
       console.log('✅ Welcome email sent');
     } catch (emailError) {
       console.error('⚠️ Failed to send welcome email:', emailError);
@@ -2859,7 +2968,7 @@ router.post('/google/complete-profile', async (req, res) => {
     const token = jwt.sign(
       {
         id: newUser._id,
-        role: newUser.role
+        role: newUser.role,
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -2883,17 +2992,16 @@ router.post('/google/complete-profile', async (req, res) => {
         role: newUser.role,
         imageUrl: newUser.imageUrl,
         isVerified: true,
-        authProvider: 'google'
+        authProvider: 'google',
       },
-      message: 'Account created successfully! Welcome aboard!'
+      message: 'Account created successfully! Welcome aboard!',
     });
-
   } catch (error) {
     console.error('❌ Google profile completion error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during profile completion',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -2906,7 +3014,7 @@ router.post('/check-username', async (req, res) => {
     if (!username) {
       return res.status(400).json({
         success: false,
-        message: 'Username is required'
+        message: 'Username is required',
       });
     }
 
@@ -2914,7 +3022,7 @@ router.post('/check-username', async (req, res) => {
       return res.json({
         success: true,
         available: false,
-        message: 'Username must be at least 3 characters'
+        message: 'Username must be at least 3 characters',
       });
     }
 
@@ -2922,7 +3030,7 @@ router.post('/check-username', async (req, res) => {
       return res.json({
         success: true,
         available: false,
-        message: 'Username can only contain letters, numbers, and underscores'
+        message: 'Username can only contain letters, numbers, and underscores',
       });
     }
 
@@ -2931,13 +3039,13 @@ router.post('/check-username', async (req, res) => {
     res.json({
       success: true,
       available: !existingUser,
-      message: existingUser ? 'Username is already taken' : 'Username is available'
+      message: existingUser ? 'Username is already taken' : 'Username is available',
     });
   } catch (error) {
     console.error('Error checking username:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
     });
   }
 });
@@ -2951,7 +3059,7 @@ router.post('/link-google', verifyToken, async (req, res) => {
     if (!credential) {
       return res.status(400).json({
         success: false,
-        message: 'Google credential is required'
+        message: 'Google credential is required',
       });
     }
 
@@ -2962,7 +3070,7 @@ router.post('/link-google', verifyToken, async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid Google token',
-        error: verificationResult.error
+        error: verificationResult.error,
       });
     }
 
@@ -2971,13 +3079,13 @@ router.post('/link-google', verifyToken, async (req, res) => {
     // Check if Google account is already linked to another user
     const existingGoogleUser = await User.findOne({
       googleId: googleData.googleId,
-      _id: { $ne: req.user._id }
+      _id: { $ne: req.user._id },
     });
 
     if (existingGoogleUser) {
       return res.status(400).json({
         success: false,
-        message: 'This Google account is already linked to another user'
+        message: 'This Google account is already linked to another user',
       });
     }
 
@@ -2985,7 +3093,7 @@ router.post('/link-google', verifyToken, async (req, res) => {
     if (googleData.email.toLowerCase() !== req.user.email.toLowerCase()) {
       return res.status(400).json({
         success: false,
-        message: 'Google account email does not match your account email'
+        message: 'Google account email does not match your account email',
       });
     }
 
@@ -3005,9 +3113,14 @@ router.post('/link-google', verifyToken, async (req, res) => {
 
     await req.user.save();
 
-    await logUserActivity(req.user, 'google_account_linked', {
-      linkedTime: new Date()
-    }, req);
+    await logUserActivity(
+      req.user,
+      'google_account_linked',
+      {
+        linkedTime: new Date(),
+      },
+      req
+    );
 
     console.log('✅ Google account linked successfully');
 
@@ -3019,20 +3132,18 @@ router.post('/link-google', verifyToken, async (req, res) => {
         email: req.user.email,
         googleId: req.user.googleId,
         imageUrl: req.user.imageUrl,
-        isVerified: req.user.isVerified
-      }
+        isVerified: req.user.isVerified,
+      },
     });
-
   } catch (error) {
     console.error('❌ Link Google account error:', error);
     res.status(500).json({
       success: false,
       message: 'Server Error',
-      error: error.message
+      error: error.message,
     });
   }
 });
-
 
 /**
  * Unlink Google account
@@ -3085,7 +3196,7 @@ router.post('/unlink-google', verifyToken, async (req, res) => {
     if (!req.user.googleId) {
       return res.status(400).json({
         success: false,
-        message: 'Google account is not linked'
+        message: 'Google account is not linked',
       });
     }
 
@@ -3093,7 +3204,7 @@ router.post('/unlink-google', verifyToken, async (req, res) => {
     if (req.user.authProvider === 'google' && !req.user.password) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot unlink Google account. Please set a password first.'
+        message: 'Cannot unlink Google account. Please set a password first.',
       });
     }
 
@@ -3101,23 +3212,27 @@ router.post('/unlink-google', verifyToken, async (req, res) => {
     req.user.authProvider = 'local';
     await req.user.save();
 
-    await logUserActivity(req.user, 'google_account_unlinked', {
-      unlinkedTime: new Date()
-    }, req);
+    await logUserActivity(
+      req.user,
+      'google_account_unlinked',
+      {
+        unlinkedTime: new Date(),
+      },
+      req
+    );
 
     console.log('✅ Google account unlinked');
 
     res.json({
       success: true,
-      message: 'Google account unlinked successfully'
+      message: 'Google account unlinked successfully',
     });
-
   } catch (error) {
     console.error('❌ Unlink Google account error:', error);
     res.status(500).json({
       success: false,
       message: 'Server Error',
-      error: error.message
+      error: error.message,
     });
   }
 });
