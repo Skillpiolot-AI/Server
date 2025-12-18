@@ -1,5 +1,9 @@
 # 💼 Career Guidance Engine - Backend Server
 
+[![CI Pipeline](https://github.com/ujjwaljha1/Mentorship-server/actions/workflows/ci.yml/badge.svg)](https://github.com/ujjwaljha1/Mentorship-server/actions/workflows/ci.yml)
+[![Test Suite](https://github.com/ujjwaljha1/Mentorship-server/actions/workflows/test.yml/badge.svg)](https://github.com/ujjwaljha1/Mentorship-server/actions/workflows/test.yml)
+[![PR Checks](https://github.com/ujjwaljha1/Mentorship-server/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/ujjwaljha1/Mentorship-server/actions/workflows/pr-checks.yml)
+
 **Repository:** [Mentorship-server](https://github.com/ujjwaljha1/Mentorship-server.git)
 
 A comprehensive Node.js backend server powering an intelligent career guidance and mentorship platform. Built with Express.js, MongoDB, and enhanced with Google's Gemini AI to deliver personalized career recommendations and mentorship experiences.

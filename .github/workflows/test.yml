@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '0 0 * * 0' # Weekly on Sunday
 
+env:
+  NODE_VERSION: '18'
+
 jobs:
   test:
     name: Run Tests
@@ -17,19 +20,28 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        node-version: [16.x, 18.x, 20.x]
+        node-version: [18.x, 20.x, 22.x]
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+          
+      # Cache MongoDB binaries for faster test execution
+      - name: Cache MongoDB binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            mongodb-binaries-${{ runner.os }}-
           
       - name: Install dependencies
         run: npm ci
@@ -47,7 +59,7 @@ jobs:
           npm test -- --json --outputFile=test-results.json || true
           
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results-${{ matrix.os }}-${{ matrix.node-version }}

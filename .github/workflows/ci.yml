@@ -7,6 +7,9 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+env:
+  NODE_VERSION: '18'
+
 jobs:
   # Job 1: Lint and Format Check
   lint:
@@ -15,12 +18,12 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           
       - name: Install dependencies
@@ -42,17 +45,26 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [16.x, 18.x, 20.x]
+        node-version: [18.x, 20.x, 22.x]
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+          
+      # Cache MongoDB binaries for faster test execution
+      - name: Cache MongoDB binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            mongodb-binaries-${{ runner.os }}-
           
       - name: Install dependencies
         run: npm ci
@@ -70,14 +82,14 @@ jobs:
           MONGODB_URI: memory
           
       - name: Upload unit test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: unit-test-results-${{ matrix.node-version }}
           path: test-results/
           
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.node-version == '18.x'
         with:
           name: coverage-reports
@@ -102,12 +114,12 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           
       - name: Install dependencies
@@ -126,7 +138,7 @@ jobs:
           FRONTEND_URL: http://localhost:5173
           
       - name: Upload integration test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: integration-test-results
@@ -140,18 +152,28 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          
+      # Cache MongoDB binaries
+      - name: Cache MongoDB binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            mongodb-binaries-${{ runner.os }}-
           
       - name: Install dependencies
         run: npm ci
         
       - name: Run all tests with coverage
+        id: coverage
         run: npm run test:coverage
         env:
           NODE_ENV: test
@@ -159,18 +181,43 @@ jobs:
           MONGODB_URI: memory
           
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: ./coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
           
       - name: Coverage report summary
         run: |
-          echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          cat coverage/coverage-summary.txt >> $GITHUB_STEP_SUMMARY || echo "Coverage summary not available" >> $GITHUB_STEP_SUMMARY
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat coverage/coverage-summary.json | jq -r '.total | "Lines: \(.lines.pct)% | Statements: \(.statements.pct)% | Branches: \(.branches.pct)% | Functions: \(.functions.pct)%"' >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Coverage summary not available" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # Add PR comment with test results
+      - name: Comment PR with Coverage
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          header: coverage
+          message: |
+            ## 📊 Test Coverage Report
+            
+            | Metric | Coverage |
+            |--------|----------|
+            | Lines | ${{ steps.coverage.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |
+            | Statements | See Codecov for details |
+            | Branches | See Codecov for details |
+            | Functions | See Codecov for details |
+            
+            [View full coverage report on Codecov](https://codecov.io/gh/${{ github.repository }})
 
   # Job 5: Security Audit
   security:
@@ -179,12 +226,12 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           
       - name: Run npm audit
@@ -203,12 +250,12 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           
       - name: Install dependencies
