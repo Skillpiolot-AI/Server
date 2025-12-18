@@ -104,7 +104,12 @@ exports.getAllMentors = async (req, res) => {
     const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
 
     // Check if free mentorship is active
+    const settings = await SystemSettings.getSettings();
     const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
+    const campaign = isFreeMentorship ? {
+      name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
+      endDate: settings.globalFreeMentorship.endDate,
+    } : null;
 
     const [mentors, total] = await Promise.all([
       MentorProfile.find(query)
@@ -182,6 +187,7 @@ exports.getAllMentors = async (req, res) => {
         cities: allCities.filter(Boolean),
       },
       isFreeMentorship,
+      campaign,
     });
   } catch (error) {
     console.error('Error fetching mentors:', error);

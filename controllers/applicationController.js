@@ -183,9 +183,9 @@ exports.getApplicationByTrackingId = async (req, res) => {
       moreInfoRequest:
         application.status === 'More Info Requested'
           ? {
-              requestDetails: application.moreInfoRequest?.requestDetails,
-              requestedAt: application.moreInfoRequest?.requestedAt,
-            }
+            requestDetails: application.moreInfoRequest?.requestDetails,
+            requestedAt: application.moreInfoRequest?.requestedAt,
+          }
           : undefined,
     });
   } catch (error) {
@@ -334,15 +334,15 @@ exports.approveApplication = async (req, res) => {
       experience: application.experience,
       role: 'Mentor',
       imageUrl: application.profileImage,
-      isVerified: false,
+      isVerified: true,
       isActive: true,
-      mentorStatus: 'temp', // Temp mentor until verification
-      mentorBadge: 'unverified',
+      mentorStatus: 'verified', // Verified upon admin approval
+      mentorBadge: 'verified',
       applicationId: application._id,
       mentorVerification: {
-        emailVerified: false,
-        phoneVerified: false,
-        documentVerified: false,
+        emailVerified: true,
+        phoneVerified: true,
+        documentVerified: true,
       },
     });
 
@@ -379,7 +379,7 @@ exports.approveApplication = async (req, res) => {
       socialLinks: application.socialLinks,
       education: application.education,
       certifications: application.certifications,
-      isVisible: false, // Hidden until verified
+      isVisible: true, // Visible immediately upon approval
       featured: false,
     });
 
