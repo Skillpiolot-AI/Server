@@ -9,7 +9,6 @@ const SystemSettingsSchema = new mongoose.Schema({
     required: true,
   },
 
-
   // Global free mentorship toggle
   globalFreeMentorship: {
     enabled: {
@@ -103,7 +102,6 @@ const SystemSettingsSchema = new mongoose.Schema({
   },
 });
 
-
 // Pre-save middleware
 SystemSettingsSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
@@ -112,7 +110,6 @@ SystemSettingsSchema.pre('save', function (next) {
 
 // Explicit unique index
 SystemSettingsSchema.index({ key: 1 }, { unique: true });
-
 
 // Static: Get or create default settings
 SystemSettingsSchema.statics.getSettings = async function () {

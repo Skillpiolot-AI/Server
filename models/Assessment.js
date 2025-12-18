@@ -53,7 +53,6 @@ const assessmentSchema = new mongoose.Schema(
           holland_codes: [String],
         },
       ],
-
     },
     // Track improvement from previous assessment
     previousAssessmentId: {

@@ -7,7 +7,6 @@ const ProfileSchema = new mongoose.Schema({
     required: true,
   },
 
-
   // ============ PERSONAL INFORMATION ============
   firstName: {
     type: String,
@@ -350,6 +349,5 @@ ProfileSchema.pre('save', function (next) {
 
 // Index for faster queries
 ProfileSchema.index({ user: 1 }, { unique: true });
-
 
 module.exports = mongoose.model('Profile', ProfileSchema);

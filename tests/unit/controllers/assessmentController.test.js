@@ -14,7 +14,6 @@ jest.mock('../../../models/Assessment', () => {
   return mockModel;
 });
 
-
 jest.mock('../../../models/Career', () => ({
   find: jest.fn(),
 }));

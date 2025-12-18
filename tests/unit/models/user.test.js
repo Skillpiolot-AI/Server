@@ -76,7 +76,6 @@ describe('User Model Tests', () => {
           until: new Date(Date.now() + 86400000), // 1 day from now
           reason: 'Test suspension',
         },
-
       });
 
       expect(user.isSuspensionActive).toBe(true);
