@@ -217,3 +217,44 @@ exports.requireUniversityAccess = (req, res, next) => {
 
   next();
 };
+
+// Alias for adminOnly (for compatibility)
+exports.isAdmin = exports.adminOnly;
+
+// Mentor only access
+exports.isMentor = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required.'
+    });
+  }
+
+  if (req.user.role !== 'Mentor') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Mentor role required.'
+    });
+  }
+
+  next();
+};
+
+// Mentor or Admin access
+exports.isMentorOrAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required.'
+    });
+  }
+
+  if (!['Mentor', 'Admin'].includes(req.user.role)) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Mentor or Admin role required.'
+    });
+  }
+
+  next();
+};

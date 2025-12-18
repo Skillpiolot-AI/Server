@@ -5,8 +5,8 @@ const connectDB = require('./db');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const compression = require('compression'); 
-const helmet = require('helmet'); 
+const compression = require('compression');
+const helmet = require('helmet');
 require('dotenv').config();
 
 // Import routes
@@ -32,9 +32,11 @@ const userDataRoutes = require('./routes/userDataRoutes');
 const interestRoutes = require('./routes/interestRoutes');
 const bulkMentorRoutes = require('./routes/bulkMentorRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 // Import scheduled jobs
 const tempPasswordReminder = require('./jobs/tempPasswordReminder');
+const bookingReminders = require('./jobs/bookingReminders');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -51,23 +53,23 @@ app.use(helmet({
 }));
 
 // 3. Optimized CORS configuration
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*',
-  credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-};
+// const corsOptions = {
+//   origin: process.env.FRONTEND_URL || '*',
+//   credentials: true,
+//   optionsSuccessStatus: 200,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// };
 app.use(cors());
 
 // 4. Increase JSON payload limit with streaming
-app.use(express.json({ 
+app.use(express.json({
   limit: '10mb',
   strict: true
 }));
-app.use(express.urlencoded({ 
-  extended: true, 
-  limit: '10mb' 
+app.use(express.urlencoded({
+  extended: true,
+  limit: '10mb'
 }));
 
 // 5. Static file caching
@@ -100,7 +102,7 @@ app.use('/api/careers', careerRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/job', Title);
 app.use('/api/job', collegesRoutes);
-app.use('/api', applicationRoutes);
+app.use('/api/applications', applicationRoutes);
 app.use('/api/job', interestRoutes);
 app.use('/api', mentorRoutes);
 app.use('/api', recommendationRoutes);
@@ -123,6 +125,9 @@ app.use('/api', bulkMentorRoutes);// Add this with your other route imports
 
 // Add this with your other routes
 app.use('/api/chatbot', chatbotRoutes);
+
+// Booking routes
+app.use('/api/bookings', bookingRoutes);
 
 // ==================== CACHED JOB INFO ENDPOINT ====================
 let jobDataCache = null;
@@ -154,7 +159,7 @@ app.get('/api/job-info/:jobTitle', (req, res) => {
     try {
       jobDataCache = JSON.parse(data);
       cacheTime = Date.now();
-      
+
       const job = jobDataCache.find(j => j.jobTitle === jobTitle);
       if (job) {
         res.json(job);
@@ -223,7 +228,7 @@ const startServer = async () => {
   try {
     // Connect to database
     await connectDB();
-    
+
     app.listen(PORT, () => {
       console.log(`\n🚀 Server running on port ${PORT}`);
       console.log(`📅 Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -234,6 +239,7 @@ const startServer = async () => {
       // Initialize scheduled jobs
       console.log('\n⏰ Initializing scheduled jobs...');
       tempPasswordReminder.scheduleReminders();
+      bookingReminders.scheduleReminders();
 
       console.log('\n✅ Server initialization complete!\n');
     });

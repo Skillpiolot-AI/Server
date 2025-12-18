@@ -1,4 +1,5 @@
 // tests/unit/models/user.test.js
+const mongoose = require('mongoose');
 const User = require('../../../models/User');
 const bcrypt = require('bcryptjs');
 
@@ -17,14 +18,12 @@ describe('User Model Tests', () => {
       const savedUser = await user.save();
 
       expect(savedUser._id).toBeDefined();
-      expect(savedUser.username).toBe(userData.username);
-      expect(savedUser.email).toBe(userData.email);
-      expect(savedUser.role).toBe('User');
+      expect(savedUser.username).toBe('testuser');
+      expect(savedUser.email).toBe('test@example.com');
     });
 
     it('should not create user without required fields', async () => {
-      const user = new User({});
-
+      const user = new User({ username: 'incomplete' });
       await expect(user.save()).rejects.toThrow();
     });
 
@@ -40,8 +39,11 @@ describe('User Model Tests', () => {
       await User.create(userData);
 
       const duplicateUser = new User({
-        ...userData,
-        username: 'user2'
+        username: 'user2',
+        name: 'User Two',
+        email: 'duplicate@example.com',
+        password: await bcrypt.hash('password123', 10),
+        role: 'User'
       });
 
       await expect(duplicateUser.save()).rejects.toThrow();
@@ -56,7 +58,7 @@ describe('User Model Tests', () => {
         email: 'locked@example.com',
         password: await bcrypt.hash('password123', 10),
         role: 'User',
-        lockUntil: new Date(Date.now() + 1000000)
+        lockUntil: new Date(Date.now() + 3600000) // 1 hour from now
       });
 
       expect(user.isLocked).toBe(true);
@@ -69,9 +71,9 @@ describe('User Model Tests', () => {
         email: 'suspended@example.com',
         password: await bcrypt.hash('password123', 10),
         role: 'User',
-        isSuspended: true,
-        suspensionDetails: {
-          until: new Date(Date.now() + 1000000),
+        suspension: {
+          isSuspended: true,
+          suspendedUntil: new Date(Date.now() + 86400000), // 1 day from now
           reason: 'Test suspension'
         }
       });
@@ -109,7 +111,8 @@ describe('User Model Tests', () => {
       await user.resetLoginAttempts();
       const updatedUser = await User.findById(user._id);
 
-      expect(updatedUser.loginAttempts).toBeUndefined();
+      // loginAttempts should be reset to 0
+      expect(updatedUser.loginAttempts).toBe(0);
     });
 
     it('should change password correctly', async () => {

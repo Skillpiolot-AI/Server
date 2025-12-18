@@ -17,7 +17,9 @@
     "prepare": "husky install || true"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.23.0",
     "@types/jest": "^29.5.12",
+    "babel-jest": "^29.7.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jest": "^27.6.3",

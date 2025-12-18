@@ -621,7 +621,7 @@ const UserSchema = new mongoose.Schema({
   universityId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'University',
-    required: function() {
+    required: function () {
       return ['UniAdmin', 'UniTeach', 'Student'].includes(this.role);
     }
   },
@@ -635,7 +635,7 @@ const UserSchema = new mongoose.Schema({
   studentProfile: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
-    required: function() {
+    required: function () {
       return this.role === 'Student';
     }
   },
@@ -658,6 +658,57 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+
+  // ============ MENTOR-SPECIFIC FIELDS ============
+  mentorStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected', 'temp', 'verified'],
+    default: 'pending'
+  },
+  mentorVerification: {
+    emailVerified: {
+      type: Boolean,
+      default: false
+    },
+    emailVerifiedAt: Date,
+    phoneVerified: {
+      type: Boolean,
+      default: false
+    },
+    phoneVerifiedAt: Date,
+    documentVerified: {
+      type: Boolean,
+      default: false
+    },
+    documentVerifiedAt: Date,
+    verificationNotes: String
+  },
+  mentorProfile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'MentorProfile'
+  },
+  applicationId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Application'
+  },
+  mentorBadge: {
+    type: String,
+    enum: ['unverified', 'verified', 'premium', 'star'],
+    default: 'unverified'
+  },
+  totalPlacements: {
+    type: Number,
+    default: 0
+  },
+  mentorRating: {
+    type: Number,
+    default: 0
+  },
+  totalReviews: {
+    type: Number,
+    default: 0
+  },
+  // ================================================
 
   // University admin permissions
   universityPermissions: [{
@@ -825,12 +876,12 @@ UserSchema.index({ 'currentSession.sessionId': 1 });
 UserSchema.index({ authProvider: 1 }); // ✅ Index for auth provider
 
 // Virtual for account lock status
-UserSchema.virtual('isLocked').get(function() {
+UserSchema.virtual('isLocked').get(function () {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
 // Virtual for suspension status
-UserSchema.virtual('isSuspensionActive').get(function() {
+UserSchema.virtual('isSuspensionActive').get(function () {
   if (!this.isSuspended) return false;
   if (this.suspensionDetails && this.suspensionDetails.until) {
     return new Date() <= this.suspensionDetails.until;
@@ -839,28 +890,28 @@ UserSchema.virtual('isSuspensionActive').get(function() {
 });
 
 // Virtual for checking if user can login
-UserSchema.virtual('canLogin').get(function() {
+UserSchema.virtual('canLogin').get(function () {
   return this.isActive &&
-         this.isVerified &&
-         !this.isLocked &&
-         !this.isSuspensionActive;
+    this.isVerified &&
+    !this.isLocked &&
+    !this.isSuspensionActive;
 });
 
 // ✅ Virtual to check if it's a Google account
-UserSchema.virtual('isGoogleAccount').get(function() {
+UserSchema.virtual('isGoogleAccount').get(function () {
   return this.authProvider === 'google' && !!this.googleId;
 });
 
 // Pre-save middleware
-UserSchema.pre('save', function(next) {
+UserSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
 
   // Auto-unsuspend if suspension has expired
   if (this.isSuspended &&
-      this.suspensionDetails &&
-      this.suspensionDetails.until &&
-      this.suspensionDetails.autoUnsuspend &&
-      new Date() > this.suspensionDetails.until) {
+    this.suspensionDetails &&
+    this.suspensionDetails.until &&
+    this.suspensionDetails.autoUnsuspend &&
+    new Date() > this.suspensionDetails.until) {
     this.isSuspended = false;
     this.suspensionDetails = {};
   }
@@ -869,7 +920,7 @@ UserSchema.pre('save', function(next) {
 });
 
 // Method to increment login attempts
-UserSchema.methods.incLoginAttempts = function() {
+UserSchema.methods.incLoginAttempts = function () {
   if (this.lockUntil && this.lockUntil < Date.now()) {
     return this.updateOne({
       $unset: { lockUntil: 1 },
@@ -888,14 +939,14 @@ UserSchema.methods.incLoginAttempts = function() {
 };
 
 // Method to reset login attempts
-UserSchema.methods.resetLoginAttempts = function() {
+UserSchema.methods.resetLoginAttempts = function () {
   return this.updateOne({
     $unset: { loginAttempts: 1, lockUntil: 1 }
   });
 };
 
 // Enhanced suspension methods
-UserSchema.methods.suspendUser = function(days, reason, suspendedBy, suspendedByName, severity = 'minor') {
+UserSchema.methods.suspendUser = function (days, reason, suspendedBy, suspendedByName, severity = 'minor') {
   const suspensionEndDate = new Date();
   suspensionEndDate.setDate(suspensionEndDate.getDate() + days);
 
@@ -913,14 +964,14 @@ UserSchema.methods.suspendUser = function(days, reason, suspendedBy, suspendedBy
   return this.save();
 };
 
-UserSchema.methods.unsuspendUser = function() {
+UserSchema.methods.unsuspendUser = function () {
   this.isSuspended = false;
   this.suspensionDetails = {};
   return this.save();
 };
 
 // Session management methods
-UserSchema.methods.startSession = function(sessionId, ipAddress, userAgent) {
+UserSchema.methods.startSession = function (sessionId, ipAddress, userAgent) {
   this.currentSession = {
     sessionId: sessionId,
     startTime: new Date(),
@@ -934,12 +985,12 @@ UserSchema.methods.startSession = function(sessionId, ipAddress, userAgent) {
   return this.save();
 };
 
-UserSchema.methods.endSession = function() {
+UserSchema.methods.endSession = function () {
   this.currentSession = {};
   return this.save();
 };
 
-UserSchema.methods.updateActivity = function() {
+UserSchema.methods.updateActivity = function () {
   if (this.currentSession && this.currentSession.sessionId) {
     this.currentSession.lastActivity = new Date();
     return this.save();
@@ -947,7 +998,7 @@ UserSchema.methods.updateActivity = function() {
 };
 
 // Password management methods
-UserSchema.methods.changePassword = function(newHashedPassword) {
+UserSchema.methods.changePassword = function (newHashedPassword) {
   // Store old password in history
   if (this.password) {
     this.passwordHistory.push({
@@ -969,7 +1020,7 @@ UserSchema.methods.changePassword = function(newHashedPassword) {
   return this.save();
 };
 
-UserSchema.methods.setTemporaryPassword = function(tempHashedPassword) {
+UserSchema.methods.setTemporaryPassword = function (tempHashedPassword) {
   this.password = tempHashedPassword;
   this.temporaryPassword = true;
   this.mustChangePassword = true;
@@ -977,7 +1028,7 @@ UserSchema.methods.setTemporaryPassword = function(tempHashedPassword) {
 };
 
 // Method to check if user has specific university permission
-UserSchema.methods.hasUniversityPermission = function(permission) {
+UserSchema.methods.hasUniversityPermission = function (permission) {
   if (!['UniAdmin', 'Admin'].includes(this.role)) return false;
   if (this.role === 'Admin') return true;
 
@@ -986,7 +1037,7 @@ UserSchema.methods.hasUniversityPermission = function(permission) {
 };
 
 // Method to grant university permission
-UserSchema.methods.grantUniversityPermission = function(permission) {
+UserSchema.methods.grantUniversityPermission = function (permission) {
   const existingPerm = this.universityPermissions.find(p => p.permission === permission);
   if (existingPerm) {
     existingPerm.granted = true;
@@ -997,7 +1048,7 @@ UserSchema.methods.grantUniversityPermission = function(permission) {
 };
 
 // Method to revoke university permission
-UserSchema.methods.revokeUniversityPermission = function(permission) {
+UserSchema.methods.revokeUniversityPermission = function (permission) {
   const existingPerm = this.universityPermissions.find(p => p.permission === permission);
   if (existingPerm) {
     existingPerm.granted = false;
@@ -1006,7 +1057,7 @@ UserSchema.methods.revokeUniversityPermission = function(permission) {
 };
 
 // Add note to user
-UserSchema.methods.addNote = function(content, createdBy, category = 'admin') {
+UserSchema.methods.addNote = function (content, createdBy, category = 'admin') {
   this.notes.push({
     content: content,
     createdBy: createdBy,
@@ -1017,19 +1068,19 @@ UserSchema.methods.addNote = function(content, createdBy, category = 'admin') {
 };
 
 // Static method to find users by role
-UserSchema.statics.findByRole = function(role) {
+UserSchema.statics.findByRole = function (role) {
   return this.find({ role, isActive: true });
 };
 
 // Static method to find university users
-UserSchema.statics.findUniversityUsers = function(universityId, role = null) {
+UserSchema.statics.findUniversityUsers = function (universityId, role = null) {
   const query = { universityId, isActive: true };
   if (role) query.role = role;
   return this.find(query);
 };
 
 // Static method to find students by university
-UserSchema.statics.findStudentsByUniversity = function(universityId) {
+UserSchema.statics.findStudentsByUniversity = function (universityId) {
   return this.find({
     universityId,
     role: 'Student',
@@ -1038,12 +1089,12 @@ UserSchema.statics.findStudentsByUniversity = function(universityId) {
 };
 
 // ✅ Static method to find users by auth provider
-UserSchema.statics.findByAuthProvider = function(provider) {
+UserSchema.statics.findByAuthProvider = function (provider) {
   return this.find({ authProvider: provider });
 };
 
 // ✅ Static method to find Google users
-UserSchema.statics.findGoogleUsers = function() {
+UserSchema.statics.findGoogleUsers = function () {
   return this.find({
     authProvider: 'google',
     googleId: { $exists: true, $ne: null }
@@ -1051,7 +1102,7 @@ UserSchema.statics.findGoogleUsers = function() {
 };
 
 // Static method to get active sessions count
-UserSchema.statics.getActiveSessionsCount = function(universityId = null) {
+UserSchema.statics.getActiveSessionsCount = function (universityId = null) {
   const cutoffTime = new Date();
   cutoffTime.setMinutes(cutoffTime.getMinutes() - 30);
 
@@ -1068,7 +1119,7 @@ UserSchema.statics.getActiveSessionsCount = function(universityId = null) {
 };
 
 // Static method to find suspended users
-UserSchema.statics.findSuspendedUsers = function(universityId = null) {
+UserSchema.statics.findSuspendedUsers = function (universityId = null) {
   const query = { isSuspended: true };
   if (universityId) {
     query.universityId = universityId;
@@ -1077,7 +1128,7 @@ UserSchema.statics.findSuspendedUsers = function(universityId = null) {
 };
 
 // Static method to clean expired suspensions
-UserSchema.statics.cleanExpiredSuspensions = function() {
+UserSchema.statics.cleanExpiredSuspensions = function () {
   return this.updateMany(
     {
       isSuspended: true,
@@ -1092,7 +1143,7 @@ UserSchema.statics.cleanExpiredSuspensions = function() {
 };
 
 // ✅ Static method to find unverified users
-UserSchema.statics.findUnverifiedUsers = function(daysOld = null) {
+UserSchema.statics.findUnverifiedUsers = function (daysOld = null) {
   const query = {
     isVerified: false,
     isActive: false
@@ -1108,7 +1159,7 @@ UserSchema.statics.findUnverifiedUsers = function(daysOld = null) {
 };
 
 // Static method to get university user statistics
-UserSchema.statics.getUniversityUserStats = function(universityId) {
+UserSchema.statics.getUniversityUserStats = function (universityId) {
   return this.aggregate([
     { $match: { universityId: mongoose.Types.ObjectId(universityId) } },
     {
@@ -1140,7 +1191,7 @@ UserSchema.statics.getUniversityUserStats = function(universityId) {
 };
 
 // ✅ Static method to get authentication statistics
-UserSchema.statics.getAuthStats = function() {
+UserSchema.statics.getAuthStats = function () {
   return this.aggregate([
     {
       $group: {

@@ -40,7 +40,6 @@ exports.registerMentor = async (req, res) => {
 
     await newMentor.save();
 
-    // ... rest of the function ...
   } catch (error) {
     console.error('Error during mentor registration:', error);
     res.status(500).json({ message: 'Server Error' });
@@ -49,13 +48,138 @@ exports.registerMentor = async (req, res) => {
 
 exports.getAllMentors = async (req, res) => {
   try {
-    const mentors = await User.find({ role: 'Mentor' }).select('-password');
-    res.json(mentors);
+    const MentorProfile = require('../models/MentorProfile');
+    const SystemSettings = require('../models/SystemSettings');
+
+    const {
+      expertise,
+      domain,
+      minRating,
+      maxPrice,
+      city,
+      language,
+      menteeType,
+      featured,
+      page = 1,
+      limit = 20,
+      sortBy = 'averageRating',
+      sortOrder = 'desc'
+    } = req.query;
+
+    // Build query for MentorProfile
+    const query = { isVisible: true };
+
+    if (expertise) {
+      query.expertise = { $in: Array.isArray(expertise) ? expertise : [expertise] };
+    }
+    if (domain) {
+      query.targetingDomains = { $in: Array.isArray(domain) ? domain : [domain] };
+    }
+    if (minRating) {
+      query.averageRating = { $gte: parseFloat(minRating) };
+    }
+    if (maxPrice) {
+      query['pricingPlans.price'] = { $lte: parseFloat(maxPrice) };
+    }
+    if (city) {
+      query['location.city'] = new RegExp(city, 'i');
+    }
+    if (language) {
+      query.languages = { $in: Array.isArray(language) ? language : [language] };
+    }
+    if (menteeType) {
+      query.preferredMenteeType = menteeType;
+    }
+    if (featured === 'true') {
+      query.featured = true;
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+
+    // Check if free mentorship is active
+    const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
+
+    const [mentors, total] = await Promise.all([
+      MentorProfile.find(query)
+        .sort(sort)
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate('userId', 'name email imageUrl mentorStatus mentorBadge jobTitle experience companiesJoined'),
+      MentorProfile.countDocuments(query)
+    ]);
+
+    // Get unique filter options
+    const [allExpertise, allDomains, allLanguages, allCities] = await Promise.all([
+      MentorProfile.distinct('expertise', { isVisible: true }),
+      MentorProfile.distinct('targetingDomains', { isVisible: true }),
+      MentorProfile.distinct('languages', { isVisible: true }),
+      MentorProfile.distinct('location.city', { isVisible: true })
+    ]);
+
+    res.json({
+      mentors: mentors.map(mentor => ({
+        id: mentor._id,
+        mentorProfileId: mentor._id,
+        userId: mentor.userId?._id,
+        // User info
+        name: mentor.displayName || mentor.userId?.name,
+        email: mentor.userId?.email,
+        profileImage: mentor.profileImage || mentor.userId?.imageUrl,
+        jobTitle: mentor.userId?.jobTitle,
+        experience: mentor.userId?.experience,
+        companiesWorked: mentor.userId?.companiesJoined,
+        badge: mentor.userId?.mentorBadge,
+        status: mentor.userId?.mentorStatus,
+        // Profile info
+        tagline: mentor.tagline,
+        bio: mentor.bio,
+        location: mentor.location,
+        expertise: mentor.expertise,
+        targetingDomains: mentor.targetingDomains,
+        preferredMenteeType: mentor.preferredMenteeType,
+        languages: mentor.languages,
+        // Stats
+        averageRating: mentor.averageRating,
+        totalReviews: mentor.totalReviews,
+        totalMentees: mentor.totalMentees,
+        totalPlacements: mentor.totalPlacements,
+        // Session info
+        sessionsPerWeek: mentor.sessionsPerWeek,
+        sessionDuration: mentor.sessionDuration,
+        availabilitySlots: mentor.availabilitySlots,
+        // Pricing (override if global free is active)
+        isFree: isFreeMentorship || mentor.pricingType === 'free',
+        pricingType: isFreeMentorship ? 'free' : mentor.pricingType,
+        pricingPlans: isFreeMentorship ? [] : mentor.pricingPlans,
+        trialSession: mentor.trialSession,
+        // Features
+        referralsInTopCompanies: mentor.referralsInTopCompanies,
+        topCompanies: mentor.topCompanies,
+        curriculum: mentor.curriculum,
+        socialLinks: mentor.socialLinks,
+        featured: mentor.featured
+      })),
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / parseInt(limit))
+      },
+      filters: {
+        expertise: allExpertise.filter(Boolean),
+        domains: allDomains.filter(Boolean),
+        languages: allLanguages.filter(Boolean),
+        cities: allCities.filter(Boolean)
+      },
+      isFreeMentorship
+    });
   } catch (error) {
     console.error('Error fetching mentors:', error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
+
 
 exports.updateMentor = async (req, res) => {
   try {
