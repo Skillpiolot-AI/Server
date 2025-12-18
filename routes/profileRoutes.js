@@ -42,7 +42,9 @@ const upload = multer({
 router.get('/me', verifyToken, async (req, res) => {
   try {
     let profile = await Profile.findOne({ user: req.user._id });
-    const user = await User.findById(req.user._id).select('name username email imageUrl newsletter');
+    const user = await User.findById(req.user._id).select(
+      'name username email imageUrl newsletter'
+    );
 
     if (!profile) {
       // Create empty profile if doesn't exist
@@ -110,7 +112,8 @@ router.put('/personal', verifyToken, async (req, res) => {
     // Also update user's name if firstName/lastName provided
     if (firstName || lastName) {
       const user = await User.findById(req.user._id);
-      const newName = `${firstName || profile.firstName || ''} ${lastName || profile.lastName || ''}`.trim();
+      const newName =
+        `${firstName || profile.firstName || ''} ${lastName || profile.lastName || ''}`.trim();
       if (newName) {
         user.name = newName;
         await user.save();
@@ -150,7 +153,11 @@ router.put('/education/tenth', verifyToken, async (req, res) => {
 
     await profile.save();
 
-    res.json({ success: true, message: '10th grade details updated', tenthGrade: profile.tenthGrade });
+    res.json({
+      success: true,
+      message: '10th grade details updated',
+      tenthGrade: profile.tenthGrade,
+    });
   } catch (error) {
     console.error('Error updating 10th grade:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -184,7 +191,11 @@ router.put('/education/twelfth', verifyToken, async (req, res) => {
 
     await profile.save();
 
-    res.json({ success: true, message: '12th grade details updated', twelfthGrade: profile.twelfthGrade });
+    res.json({
+      success: true,
+      message: '12th grade details updated',
+      twelfthGrade: profile.twelfthGrade,
+    });
   } catch (error) {
     console.error('Error updating 12th grade:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -229,7 +240,11 @@ router.put('/education/undergraduate', verifyToken, async (req, res) => {
 
     await profile.save();
 
-    res.json({ success: true, message: 'Undergraduate details updated', undergraduate: profile.undergraduate });
+    res.json({
+      success: true,
+      message: 'Undergraduate details updated',
+      undergraduate: profile.undergraduate,
+    });
   } catch (error) {
     console.error('Error updating undergraduate:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -274,7 +289,11 @@ router.put('/education/graduation', verifyToken, async (req, res) => {
 
     await profile.save();
 
-    res.json({ success: true, message: 'Graduation details updated', graduation: profile.graduation });
+    res.json({
+      success: true,
+      message: 'Graduation details updated',
+      graduation: profile.graduation,
+    });
   } catch (error) {
     console.error('Error updating graduation:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -467,7 +486,11 @@ router.post('/', verifyToken, async (req, res) => {
     let profile = await Profile.findOne({ user: req.user._id });
 
     if (profile) {
-      profile = await Profile.findOneAndUpdate({ user: req.user._id }, { $set: req.body }, { new: true });
+      profile = await Profile.findOneAndUpdate(
+        { user: req.user._id },
+        { $set: req.body },
+        { new: true }
+      );
     } else {
       profile = new Profile({
         user: req.user._id,

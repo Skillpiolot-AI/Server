@@ -438,15 +438,16 @@ const accountDeletedEmail = (name, reason = null) => {
       <p>Dear ${name},</p>
       <p>We're writing to inform you that your account with ${COMPANY_NAME} has been deleted by our administrative team.</p>
 
-      ${reason
-      ? `
+      ${
+        reason
+          ? `
         <div style="background: #fef2f2; border: 2px solid #fecaca; padding: 20px; border-radius: 12px; margin: 25px 0;">
           <p style="margin: 0; font-weight: 600; color: #991b1b; margin-bottom: 8px;">Reason for deletion:</p>
           <p style="margin: 0; color: #7f1d1d;">${reason}</p>
         </div>
       `
-      : ''
-    }
+          : ''
+      }
 
       <div class="alert alert-info">
         <p style="color: #1e40af; margin: 0;">
@@ -554,15 +555,16 @@ const accountDeactivatedEmail = (name, reason = null) => {
       <p>Dear ${name},</p>
       <p>Your ${COMPANY_NAME} account has been deactivated by our administrative team.</p>
 
-      ${reason
-      ? `
+      ${
+        reason
+          ? `
         <div style="background: #fef3c7; border: 2px solid #fde68a; padding: 20px; border-radius: 12px; margin: 25px 0;">
           <p style="margin: 0; font-weight: 600; color: #92400e; margin-bottom: 8px;">Reason:</p>
           <p style="margin: 0; color: #78350f;">${reason}</p>
         </div>
       `
-      : ''
-    }
+          : ''
+      }
 
       <div class="alert alert-info">
         <p style="color: #1e40af; margin: 0;">
@@ -854,7 +856,7 @@ const emailChangeConfirmationTemplate = (name, oldEmail, newEmail) => {
   );
 };
 
-const selfDeleteAccountEmail = (name) => {
+const selfDeleteAccountEmail = name => {
   const htmlContent = `
     ${Header()}
     <div class="content">
@@ -887,11 +889,7 @@ const selfDeleteAccountEmail = (name) => {
 
   const textContent = `Account Deleted\n\nDear ${name},\n\nAs per your request, your ${COMPANY_NAME} account has been permanently deleted.\n\nAll your data has been removed from our systems.\n\nIf you change your mind, you're always welcome to create a new account.\n\nThank you for being part of our journey,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(
-    `👋 Account Deleted - ${COMPANY_NAME}`,
-    htmlContent,
-    textContent
-  );
+  return createEmailTemplate(`👋 Account Deleted - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
 // ============================================================================

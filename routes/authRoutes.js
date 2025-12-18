@@ -3328,7 +3328,12 @@ router.post('/request-email-change', verifyToken, async (req, res) => {
     const userAgent = req.get('User-Agent') || 'Unknown';
 
     // Create OTP for email change
-    const otpDoc = await OTP.createOTP(newEmail.toLowerCase(), 'email_change', ipAddress, userAgent);
+    const otpDoc = await OTP.createOTP(
+      newEmail.toLowerCase(),
+      'email_change',
+      ipAddress,
+      userAgent
+    );
 
     console.log('✅ Email change OTP created:', otpDoc.otp);
 
@@ -3434,10 +3439,16 @@ router.post('/verify-email-change', verifyToken, async (req, res) => {
       const { emailChangeConfirmationTemplate } = require('../config/emailTemplates');
 
       // Send to new email
-      await sendEmailFast(user.email, emailChangeConfirmationTemplate(user.name, oldEmail, user.email));
+      await sendEmailFast(
+        user.email,
+        emailChangeConfirmationTemplate(user.name, oldEmail, user.email)
+      );
 
       // Send to old email (security notification)
-      await sendEmailFast(oldEmail, emailChangeConfirmationTemplate(user.name, oldEmail, user.email));
+      await sendEmailFast(
+        oldEmail,
+        emailChangeConfirmationTemplate(user.name, oldEmail, user.email)
+      );
 
       console.log('✅ Email change confirmation sent to both emails');
     } catch (emailError) {
