@@ -438,16 +438,15 @@ const accountDeletedEmail = (name, reason = null) => {
       <p>Dear ${name},</p>
       <p>We're writing to inform you that your account with ${COMPANY_NAME} has been deleted by our administrative team.</p>
 
-      ${
-        reason
-          ? `
+      ${reason
+      ? `
         <div style="background: #fef2f2; border: 2px solid #fecaca; padding: 20px; border-radius: 12px; margin: 25px 0;">
           <p style="margin: 0; font-weight: 600; color: #991b1b; margin-bottom: 8px;">Reason for deletion:</p>
           <p style="margin: 0; color: #7f1d1d;">${reason}</p>
         </div>
       `
-          : ''
-      }
+      : ''
+    }
 
       <div class="alert alert-info">
         <p style="color: #1e40af; margin: 0;">
@@ -555,16 +554,15 @@ const accountDeactivatedEmail = (name, reason = null) => {
       <p>Dear ${name},</p>
       <p>Your ${COMPANY_NAME} account has been deactivated by our administrative team.</p>
 
-      ${
-        reason
-          ? `
+      ${reason
+      ? `
         <div style="background: #fef3c7; border: 2px solid #fde68a; padding: 20px; border-radius: 12px; margin: 25px 0;">
           <p style="margin: 0; font-weight: 600; color: #92400e; margin-bottom: 8px;">Reason:</p>
           <p style="margin: 0; color: #78350f;">${reason}</p>
         </div>
       `
-          : ''
-      }
+      : ''
+    }
 
       <div class="alert alert-info">
         <p style="color: #1e40af; margin: 0;">
@@ -771,6 +769,132 @@ Need help? Contact us at support@sparkcareer.com
 });
 
 // ============================================================================
+// EMAIL CHANGE TEMPLATES
+// ============================================================================
+
+const emailChangeOTPTemplate = (name, otp, newEmail) => {
+  const htmlContent = `
+    ${Header()}
+    <div class="content">
+      <div class="alert alert-info">
+        <h2 style="color: #3b82f6; margin: 0 0 15px 0;">🔐 Email Change Verification</h2>
+        <p style="color: #1e40af; margin: 0;">Use the code below to verify your email change request.</p>
+      </div>
+
+      <p>Hello ${name},</p>
+      <p>You've requested to change your email address to: <strong>${newEmail}</strong></p>
+
+      <div style="background: linear-gradient(135deg, #f8f9ff 0%, #e0e7ff 100%); border: 3px solid ${colors.primary}; padding: 35px; text-align: center; margin: 30px 0; border-radius: 20px;">
+        <h2 style="color: ${colors.textDark}; margin: 0 0 20px 0;">Your Verification Code</h2>
+        <div style="background: white; padding: 20px 40px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);">
+          <span style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: ${colors.primary}; font-family: 'Courier New', monospace;">${otp}</span>
+        </div>
+        <p style="font-size: 14px; color: #64748b; margin-top: 20px;">⏰ This code expires in 10 minutes</p>
+      </div>
+
+      <div class="alert alert-warning">
+        <strong style="color: #92400e;">⚠️ Didn't request this?</strong>
+        <p style="color: #78350f; margin: 5px 0 0 0;">If you didn't request to change your email, please ignore this message and ensure your account is secure.</p>
+      </div>
+
+      <p style="margin-top: 30px;">Best regards,<br><strong>${COMPANY_NAME} Team ✈️</strong></p>
+    </div>
+    ${Footer()}
+  `;
+
+  const textContent = `Email Change Verification\n\nHello ${name},\n\nYou've requested to change your email to: ${newEmail}\n\nYour verification code: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, please ignore this message.\n\nBest regards,\n${COMPANY_NAME} Team`;
+
+  return createEmailTemplate(
+    `🔐 Email Change Verification Code - ${COMPANY_NAME}`,
+    htmlContent,
+    textContent
+  );
+};
+
+const emailChangeConfirmationTemplate = (name, oldEmail, newEmail) => {
+  const htmlContent = `
+    ${Header()}
+    <div class="content">
+      <div class="alert alert-success">
+        <h2 style="color: ${colors.success}; margin: 0 0 15px 0;">✅ Email Changed Successfully</h2>
+        <p style="color: #065f46; margin: 0;">Your email address has been updated!</p>
+      </div>
+
+      <p>Hello ${name},</p>
+      <p>Your ${COMPANY_NAME} account email has been successfully changed.</p>
+
+      <div style="background: ${colors.lightBg}; border: 3px solid ${colors.primary}; padding: 30px; border-radius: 20px; margin: 30px 0;">
+        <h3 style="color: ${colors.textDark}; margin-bottom: 20px;">Email Change Details</h3>
+        <div class="credential-row">
+          <div class="credential-label">Previous Email</div>
+          <div class="credential-value" style="text-decoration: line-through; color: #9ca3af;">${oldEmail}</div>
+        </div>
+        <div class="credential-row" style="border-left-color: ${colors.success};">
+          <div class="credential-label">New Email</div>
+          <div class="credential-value" style="color: ${colors.success};">${newEmail}</div>
+        </div>
+      </div>
+
+      <div class="alert alert-warning">
+        <strong style="color: #92400e;">⚠️ Didn't make this change?</strong>
+        <p style="color: #78350f; margin: 5px 0 0 0;">If you didn't change your email, please contact our support team immediately at <a href="mailto:${SUPPORT_EMAIL}" style="color: #92400e;">${SUPPORT_EMAIL}</a></p>
+      </div>
+
+      <p style="margin-top: 30px;">Best regards,<br><strong>${COMPANY_NAME} Team ✈️</strong></p>
+    </div>
+    ${Footer()}
+  `;
+
+  const textContent = `Email Changed Successfully\n\nHello ${name},\n\nYour ${COMPANY_NAME} account email has been changed.\n\nPrevious Email: ${oldEmail}\nNew Email: ${newEmail}\n\nIf you didn't make this change, contact support immediately at ${SUPPORT_EMAIL}\n\nBest regards,\n${COMPANY_NAME} Team`;
+
+  return createEmailTemplate(
+    `✅ Email Changed Successfully - ${COMPANY_NAME}`,
+    htmlContent,
+    textContent
+  );
+};
+
+const selfDeleteAccountEmail = (name) => {
+  const htmlContent = `
+    ${Header()}
+    <div class="content">
+      <div class="alert alert-error">
+        <h2 style="color: #dc2626; margin: 0 0 15px 0;">👋 Account Deleted</h2>
+        <p style="color: #7f1d1d; margin: 0;">Your ${COMPANY_NAME} account has been permanently deleted.</p>
+      </div>
+
+      <p>Dear ${name},</p>
+      <p>As per your request, your ${COMPANY_NAME} account has been permanently deleted. All your data has been removed from our systems.</p>
+
+      <div style="background: ${colors.lightBg}; border: 3px solid ${colors.primary}; padding: 30px; border-radius: 20px; margin: 30px 0; text-align: center;">
+        <h3 style="color: ${colors.textDark}; margin-bottom: 15px;">We're sad to see you go! 😢</h3>
+        <p style="color: #64748b;">If you change your mind, you're always welcome to create a new account.</p>
+      </div>
+
+      <div class="alert alert-info">
+        <p style="color: #1e40af; margin: 0;">
+          <strong>What happens next?</strong><br>
+          • All your profile data has been deleted<br>
+          • Your projects, certifications, and goals are removed<br>
+          • You will no longer receive emails from us
+        </p>
+      </div>
+
+      <p style="margin-top: 30px;">Thank you for being part of our journey,<br><strong>${COMPANY_NAME} Team ✈️</strong></p>
+    </div>
+    ${Footer()}
+  `;
+
+  const textContent = `Account Deleted\n\nDear ${name},\n\nAs per your request, your ${COMPANY_NAME} account has been permanently deleted.\n\nAll your data has been removed from our systems.\n\nIf you change your mind, you're always welcome to create a new account.\n\nThank you for being part of our journey,\n${COMPANY_NAME} Team`;
+
+  return createEmailTemplate(
+    `👋 Account Deleted - ${COMPANY_NAME}`,
+    htmlContent,
+    textContent
+  );
+};
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -787,6 +911,11 @@ module.exports = {
   accountReactivatedEmail,
   tempPasswordReminderEmail,
   googleWelcomeTemplate,
+
+  // Email change & account deletion templates
+  emailChangeOTPTemplate,
+  emailChangeConfirmationTemplate,
+  selfDeleteAccountEmail,
 
   // Utility exports
   colors,

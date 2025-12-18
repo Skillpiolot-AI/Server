@@ -3237,4 +3237,341 @@ router.post('/unlink-google', verifyToken, async (req, res) => {
   }
 });
 
+// ==================== NEWSLETTER TOGGLE ====================
+// PUT /api/auth/newsletter
+router.put('/newsletter', verifyToken, async (req, res) => {
+  try {
+    const { newsletter } = req.body;
+
+    if (typeof newsletter !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'Newsletter must be a boolean value',
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    user.newsletter = newsletter;
+    await user.save();
+
+    await logUserActivity(
+      user,
+      'newsletter_preference_updated',
+      {
+        newsletter,
+        updateTime: new Date(),
+      },
+      req
+    );
+
+    console.log(`✅ Newsletter preference updated to ${newsletter} for user: ${user.email}`);
+
+    res.json({
+      success: true,
+      message: newsletter ? 'Newsletter subscribed successfully' : 'Newsletter unsubscribed',
+      newsletter: user.newsletter,
+    });
+  } catch (error) {
+    console.error('Error updating newsletter preference:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+});
+
+// ==================== REQUEST EMAIL CHANGE (OTP) ====================
+// POST /api/auth/request-email-change
+router.post('/request-email-change', verifyToken, async (req, res) => {
+  const { newEmail } = req.body;
+
+  console.log('\n📧 Email Change Request');
+  console.log('Current Email:', req.user.email);
+  console.log('New Email:', newEmail);
+
+  try {
+    if (!newEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'New email is required',
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format',
+      });
+    }
+
+    // Check if new email is same as current
+    if (newEmail.toLowerCase() === req.user.email.toLowerCase()) {
+      return res.status(400).json({
+        success: false,
+        message: 'New email must be different from current email',
+      });
+    }
+
+    // Check if new email already exists
+    const existingUser = await User.findOne({ email: newEmail.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'This email is already registered to another account',
+      });
+    }
+
+    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
+    const userAgent = req.get('User-Agent') || 'Unknown';
+
+    // Create OTP for email change
+    const otpDoc = await OTP.createOTP(newEmail.toLowerCase(), 'email_change', ipAddress, userAgent);
+
+    console.log('✅ Email change OTP created:', otpDoc.otp);
+
+    // Send OTP to NEW email
+    try {
+      const { emailChangeOTPTemplate } = require('../config/emailTemplates');
+      await sendEmailFast(newEmail, emailChangeOTPTemplate(req.user.name, otpDoc.otp, newEmail));
+
+      console.log('✅ Email change OTP sent to:', newEmail);
+
+      await logUserActivity(
+        req.user,
+        'email_change_requested',
+        {
+          currentEmail: req.user.email,
+          requestedEmail: newEmail,
+          requestTime: new Date(),
+        },
+        req
+      );
+
+      res.json({
+        success: true,
+        message: 'Verification code sent to the new email address',
+      });
+    } catch (emailError) {
+      console.error('❌ Error sending email change OTP:', emailError);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send verification code. Please try again.',
+        error: emailError.message,
+      });
+    }
+  } catch (error) {
+    console.error('Error requesting email change:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+});
+
+// ==================== VERIFY EMAIL CHANGE ====================
+// POST /api/auth/verify-email-change
+router.post('/verify-email-change', verifyToken, async (req, res) => {
+  const { newEmail, otp } = req.body;
+
+  console.log('\n🔍 Verifying Email Change OTP');
+  console.log('New Email:', newEmail);
+  console.log('OTP:', otp);
+
+  try {
+    if (!newEmail || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'New email and OTP are required',
+      });
+    }
+
+    const otpDoc = await OTP.findValidOTP(newEmail.toLowerCase(), 'email_change');
+
+    if (!otpDoc) {
+      console.log('❌ No valid OTP found');
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code. Please request a new one.',
+      });
+    }
+
+    const verificationResult = await otpDoc.verifyOTP(otp);
+
+    if (!verificationResult.success) {
+      console.log('❌ OTP verification failed:', verificationResult.message);
+
+      await logUserActivity(
+        req.user,
+        'email_change_otp_failed',
+        {
+          attemptTime: new Date(),
+          attemptsRemaining: otpDoc.maxAttempts - otpDoc.attempts,
+          reason: verificationResult.message,
+        },
+        req
+      );
+
+      return res.status(400).json(verificationResult);
+    }
+
+    // OTP verified - update user email
+    const oldEmail = req.user.email;
+    const user = await User.findById(req.user._id);
+
+    user.email = newEmail.toLowerCase();
+    await user.save();
+
+    console.log('✅ Email changed successfully');
+    console.log('Old Email:', oldEmail);
+    console.log('New Email:', user.email);
+
+    // Send confirmation to BOTH old and new email
+    try {
+      const { emailChangeConfirmationTemplate } = require('../config/emailTemplates');
+
+      // Send to new email
+      await sendEmailFast(user.email, emailChangeConfirmationTemplate(user.name, oldEmail, user.email));
+
+      // Send to old email (security notification)
+      await sendEmailFast(oldEmail, emailChangeConfirmationTemplate(user.name, oldEmail, user.email));
+
+      console.log('✅ Email change confirmation sent to both emails');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send email change confirmation:', emailError);
+    }
+
+    await logUserActivity(
+      user,
+      'email_changed',
+      {
+        oldEmail,
+        newEmail: user.email,
+        changeTime: new Date(),
+      },
+      req
+    );
+
+    // Generate new token with updated email
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        universityId: user.universityId,
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      success: true,
+      message: 'Email changed successfully',
+      token, // New token with updated info
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (error) {
+    console.error('Error verifying email change:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+});
+
+// ==================== SELF-SERVICE ACCOUNT DELETION ====================
+// DELETE /api/auth/delete-account
+router.delete('/delete-account', verifyToken, async (req, res) => {
+  const { password, confirmDelete } = req.body;
+
+  console.log('\n🗑️ Account Deletion Request');
+  console.log('User:', req.user.email);
+
+  try {
+    if (confirmDelete !== 'DELETE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Please type "DELETE" to confirm account deletion',
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    // For non-Google users, verify password
+    if (user.authProvider !== 'google') {
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Password is required to delete your account',
+        });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        await logUserActivity(
+          user,
+          'account_deletion_failed',
+          {
+            reason: 'invalid_password',
+            attemptTime: new Date(),
+          },
+          req
+        );
+
+        return res.status(400).json({
+          success: false,
+          message: 'Incorrect password',
+        });
+      }
+    }
+
+    // Store user data for email before deletion
+    const userData = {
+      name: user.name,
+      email: user.email,
+    };
+
+    // Delete related data
+    const Profile = require('../models/Profile');
+    await Profile.deleteOne({ user: user._id });
+
+    // Delete user activity
+    const UserActivity = require('../models/UserActivity');
+    await UserActivity.deleteMany({ userId: user._id });
+
+    // Delete the user
+    await User.findByIdAndDelete(user._id);
+
+    console.log('✅ Account deleted:', userData.email);
+
+    // Send confirmation email
+    try {
+      const { selfDeleteAccountEmail } = require('../config/emailTemplates');
+      await sendEmailFast(userData.email, selfDeleteAccountEmail(userData.name));
+      console.log('✅ Account deletion confirmation email sent');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send account deletion email:', emailError);
+    }
+
+    res.json({
+      success: true,
+      message: 'Your account has been permanently deleted',
+    });
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+});
+
 module.exports = router;
