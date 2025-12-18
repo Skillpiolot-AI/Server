@@ -183,9 +183,9 @@ exports.getApplicationByTrackingId = async (req, res) => {
       moreInfoRequest:
         application.status === 'More Info Requested'
           ? {
-            requestDetails: application.moreInfoRequest?.requestDetails,
-            requestedAt: application.moreInfoRequest?.requestedAt,
-          }
+              requestDetails: application.moreInfoRequest?.requestDetails,
+              requestedAt: application.moreInfoRequest?.requestedAt,
+            }
           : undefined,
     });
   } catch (error) {

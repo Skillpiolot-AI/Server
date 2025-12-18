@@ -106,10 +106,12 @@ exports.getAllMentors = async (req, res) => {
     // Check if free mentorship is active
     const settings = await SystemSettings.getSettings();
     const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
-    const campaign = isFreeMentorship ? {
-      name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
-      endDate: settings.globalFreeMentorship.endDate,
-    } : null;
+    const campaign = isFreeMentorship
+      ? {
+          name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
+          endDate: settings.globalFreeMentorship.endDate,
+        }
+      : null;
 
     const [mentors, total] = await Promise.all([
       MentorProfile.find(query)
