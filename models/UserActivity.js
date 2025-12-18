@@ -6,6 +6,7 @@ const UserActivitySchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+
   sessionId: {
     type: String,
     required: true,

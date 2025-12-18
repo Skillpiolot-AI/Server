@@ -6,13 +6,15 @@ const assessmentSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      index: true,
     },
+
     // Keep userId for backwards compatibility with existing assessments
     userId: {
       type: String,
+      required: true,
       index: true,
     },
+
     answers: {
       type: Map,
       of: Number,
@@ -51,6 +53,7 @@ const assessmentSchema = new mongoose.Schema(
           holland_codes: [String],
         },
       ],
+
     },
     // Track improvement from previous assessment
     previousAssessmentId: {

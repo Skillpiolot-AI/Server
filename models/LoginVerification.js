@@ -15,8 +15,8 @@ const LoginVerificationSchema = new mongoose.Schema({
   token: {
     type: String,
     required: true,
-    unique: true,
   },
+
   location: {
     country: String,
     region: String,
@@ -69,7 +69,8 @@ const LoginVerificationSchema = new mongoose.Schema({
 
 // Indexes
 LoginVerificationSchema.index({ userId: 1, createdAt: -1 });
-LoginVerificationSchema.index({ token: 1 });
+LoginVerificationSchema.index({ token: 1 }, { unique: true });
+
 LoginVerificationSchema.index({ ipAddress: 1 });
 LoginVerificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 

@@ -1,10 +1,19 @@
 // tests/unit/controllers/assessmentController.test.js
 
 // Mock dependencies
-jest.mock('../../../models/Assessment', () => ({
-  findById: jest.fn(),
-  find: jest.fn(),
-}));
+jest.mock('../../../models/Assessment', () => {
+  const mockModel = {
+    findById: jest.fn(),
+    find: jest.fn(),
+    findOne: jest.fn(),
+    countDocuments: jest.fn(),
+    prototype: {
+      save: jest.fn().mockResolvedValue({}),
+    },
+  };
+  return mockModel;
+});
+
 
 jest.mock('../../../models/Career', () => ({
   find: jest.fn(),

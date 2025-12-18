@@ -71,11 +71,12 @@ describe('User Model Tests', () => {
         email: 'suspended@example.com',
         password: await bcrypt.hash('password123', 10),
         role: 'User',
-        suspension: {
-          isSuspended: true,
-          suspendedUntil: new Date(Date.now() + 86400000), // 1 day from now
+        isSuspended: true,
+        suspensionDetails: {
+          until: new Date(Date.now() + 86400000), // 1 day from now
           reason: 'Test suspension',
         },
+
       });
 
       expect(user.isSuspensionActive).toBe(true);

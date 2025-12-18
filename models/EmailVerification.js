@@ -6,6 +6,7 @@ const EmailVerificationSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+
   email: {
     type: String,
     required: true,
@@ -15,8 +16,8 @@ const EmailVerificationSchema = new mongoose.Schema({
   token: {
     type: String,
     required: true,
-    unique: true,
   },
+
   isVerified: {
     type: Boolean,
     default: false,
@@ -42,8 +43,10 @@ const EmailVerificationSchema = new mongoose.Schema({
 });
 
 // Index for faster queries
-EmailVerificationSchema.index({ userId: 1 });
-EmailVerificationSchema.index({ token: 1 });
+EmailVerificationSchema.index({ userId: 1 }, { unique: true });
+
+EmailVerificationSchema.index({ token: 1 }, { unique: true });
+
 EmailVerificationSchema.index({ email: 1 });
 EmailVerificationSchema.index({ expiresAt: 1 });
 
