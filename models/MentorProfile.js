@@ -200,6 +200,20 @@ const MentorProfileSchema = new mongoose.Schema({
   // Availability
   availabilitySlots: [AvailabilitySlotSchema],
 
+  // Busy Dates - specific dates when mentor is unavailable
+  busyDates: [
+    {
+      date: {
+        type: Date,
+        required: true,
+      },
+      reason: {
+        type: String,
+        maxlength: 200,
+      },
+    },
+  ],
+
   // Referrals & Companies
   referralsInTopCompanies: {
     type: Boolean,
@@ -250,7 +264,33 @@ const MentorProfileSchema = new mongoose.Schema({
     },
   ],
 
-  // Admin Review System
+  // Profile Change History for Admin Notification
+  profileChangeHistory: [
+    {
+      changedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      changes: [
+        {
+          field: String,
+          oldValue: mongoose.Schema.Types.Mixed,
+          newValue: mongoose.Schema.Types.Mixed,
+        },
+      ],
+      sessionStats: {
+        completed: Number,
+        pending: Number,
+        total: Number,
+      },
+      isReviewed: {
+        type: Boolean,
+        default: false,
+      },
+    },
+  ],
+
+  // Admin Review System (legacy - keeping for compatibility)
   isChangePending: {
     type: Boolean,
     default: false,

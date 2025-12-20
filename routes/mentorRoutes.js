@@ -27,6 +27,27 @@ router.post(
   mentorController.rejectProfileUpdate
 );
 
+// ==================== NEW: MENTOR PROFILE MANAGEMENT ROUTES ====================
+
+// Get mentor's own profile (for mentor dashboard)
+router.get('/mentors/my-profile', verifyToken, mentorController.getMyMentorProfile);
+
+// Update mentor's own profile (instant update with admin notification)
+router.put('/mentors/my-profile', verifyToken, mentorController.updateMentorProfile);
+
+// Manage busy dates
+router.post('/mentors/busy-dates', verifyToken, mentorController.updateBusyDates);
+
+// Get mentor's sessions with filters
+router.get('/mentors/my-sessions', verifyToken, mentorController.getMentorSessions);
+
+// Admin: Get mentor change history
+router.get('/mentors/admin/change-history', verifyToken, mentorController.getMentorChangeHistory);
+
+// Admin: Mark changes as reviewed
+router.post('/mentors/admin/mark-reviewed/:mentorProfileId', verifyToken, mentorController.markChangesReviewed);
+
+
 router.get('/mentors', mentorController.getMentors);
 router.post('/book-appointment', mentorController.bookAppointment);
 router.get('/mentor-appointments/:mentorId', mentorController.getMentorAppointments);

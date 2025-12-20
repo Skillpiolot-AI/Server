@@ -108,9 +108,9 @@ exports.getAllMentors = async (req, res) => {
     const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
     const campaign = isFreeMentorship
       ? {
-          name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
-          endDate: settings.globalFreeMentorship.endDate,
-        }
+        name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
+        endDate: settings.globalFreeMentorship.endDate,
+      }
       : null;
 
     const [mentors, total] = await Promise.all([
@@ -974,6 +974,379 @@ exports.getPendingProfileUpdates = async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error fetching pending profile updates:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// ==================== NEW: MENTOR PROFILE MANAGEMENT ====================
+
+// Get mentor's own profile (full details)
+exports.getMyMentorProfile = async (req, res) => {
+  try {
+    const mentorId = req.user._id;
+    const MentorProfile = require('../models/MentorProfile');
+    const MentorBooking = require('../models/MentorBooking');
+
+    const profile = await MentorProfile.findOne({ userId: mentorId }).populate(
+      'userId',
+      'name email imageUrl role mentorStatus mentorBadge'
+    );
+
+    if (!profile) {
+      return res.status(404).json({ message: 'Mentor profile not found' });
+    }
+
+    // Get session stats
+    const [completedCount, pendingCount, totalCount] = await Promise.all([
+      MentorBooking.countDocuments({ mentorId, status: 'completed' }),
+      MentorBooking.countDocuments({ mentorId, status: { $in: ['scheduled', 'pending'] } }),
+      MentorBooking.countDocuments({ mentorId }),
+    ]);
+
+    res.json({
+      profile,
+      sessionStats: {
+        completed: completedCount,
+        pending: pendingCount,
+        total: totalCount,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching mentor profile:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// Update mentor profile (instant update + admin notification)
+exports.updateMentorProfile = async (req, res) => {
+  try {
+    const mentorId = req.user._id;
+    const updateData = req.body;
+    const MentorProfile = require('../models/MentorProfile');
+    const MentorBooking = require('../models/MentorBooking');
+
+    const profile = await MentorProfile.findOne({ userId: mentorId }).populate(
+      'userId',
+      'name email'
+    );
+
+    if (!profile) {
+      return res.status(404).json({ message: 'Mentor profile not found' });
+    }
+
+    // Track changes for admin notification
+    const changes = [];
+    const allowedFields = [
+      'displayName',
+      'tagline',
+      'bio',
+      'profileImage',
+      'location',
+      'expertise',
+      'targetingDomains',
+      'preferredMenteeType',
+      'languages',
+      'sessionsPerWeek',
+      'sessionDuration',
+      'pricingType',
+      'pricingPlans',
+      'trialSession',
+      'availabilitySlots',
+      'socialLinks',
+      'curriculum',
+      'education',
+      'certifications',
+    ];
+
+    for (const field of allowedFields) {
+      if (updateData[field] !== undefined) {
+        const oldValue = profile[field];
+        const newValue = updateData[field];
+
+        // Check if value actually changed
+        if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+          changes.push({
+            field,
+            oldValue,
+            newValue,
+          });
+          profile[field] = newValue;
+        }
+      }
+    }
+
+    if (changes.length === 0) {
+      return res.json({ message: 'No changes detected', profile });
+    }
+
+    // Get session stats for admin notification
+    const [completedCount, pendingCount, totalCount] = await Promise.all([
+      MentorBooking.countDocuments({ mentorId, status: 'completed' }),
+      MentorBooking.countDocuments({ mentorId, status: { $in: ['scheduled', 'pending'] } }),
+      MentorBooking.countDocuments({ mentorId }),
+    ]);
+
+    // Add to change history
+    profile.profileChangeHistory.push({
+      changedAt: new Date(),
+      changes,
+      sessionStats: {
+        completed: completedCount,
+        pending: pendingCount,
+        total: totalCount,
+      },
+      isReviewed: false,
+    });
+
+    await profile.save();
+
+    // NOTIFY ADMINS with detailed change info
+    const admins = await User.find({ role: 'Admin' });
+
+    if (admins.length > 0) {
+      const changesHtml = changes
+        .map(
+          c => `
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e5e7eb;"><strong>${c.field}</strong></td>
+            <td style="padding: 8px; border: 1px solid #e5e7eb; color: #dc2626;">${typeof c.oldValue === 'object' ? JSON.stringify(c.oldValue) : c.oldValue || 'N/A'
+            }</td>
+            <td style="padding: 8px; border: 1px solid #e5e7eb; color: #059669;">${typeof c.newValue === 'object' ? JSON.stringify(c.newValue) : c.newValue || 'N/A'
+            }</td>
+          </tr>
+        `
+        )
+        .join('');
+
+      const emailContent = {
+        subject: `🔔 Mentor Profile Updated: ${profile.displayName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 700px;">
+            <h2 style="color: #1e40af;">Mentor Profile Update</h2>
+            <p>Mentor <strong>${profile.displayName}</strong> (${profile.userId.email}) has updated their profile.</p>
+            
+            <h3 style="margin-top: 20px;">Session Statistics</h3>
+            <ul>
+              <li>Completed Sessions: <strong>${completedCount}</strong></li>
+              <li>Pending Sessions: <strong>${pendingCount}</strong></li>
+              <li>Total Sessions: <strong>${totalCount}</strong></li>
+            </ul>
+            
+            <h3 style="margin-top: 20px;">Changes Made</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <thead>
+                <tr style="background: #f3f4f6;">
+                  <th style="padding: 8px; border: 1px solid #e5e7eb; text-align: left;">Field</th>
+                  <th style="padding: 8px; border: 1px solid #e5e7eb; text-align: left;">Previous Value</th>
+                  <th style="padding: 8px; border: 1px solid #e5e7eb; text-align: left;">New Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${changesHtml}
+              </tbody>
+            </table>
+            
+            <div style="margin-top: 20px;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/admin/mentor-review" 
+                 style="background: #1e40af; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                View in Admin Dashboard
+              </a>
+            </div>
+          </div>
+        `,
+      };
+
+      for (const admin of admins) {
+        await sendEmailFast(admin.email, emailContent);
+      }
+      console.log('✅ Admin notification sent for mentor profile update');
+    }
+
+    res.json({
+      message: 'Profile updated successfully',
+      profile,
+      changesCount: changes.length,
+    });
+  } catch (error) {
+    console.error('Error updating mentor profile:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// Update busy dates
+exports.updateBusyDates = async (req, res) => {
+  try {
+    const mentorId = req.user._id;
+    const { action, date, reason, dateId } = req.body;
+    const MentorProfile = require('../models/MentorProfile');
+
+    const profile = await MentorProfile.findOne({ userId: mentorId });
+
+    if (!profile) {
+      return res.status(404).json({ message: 'Mentor profile not found' });
+    }
+
+    if (action === 'add') {
+      if (!date) {
+        return res.status(400).json({ message: 'Date is required' });
+      }
+      profile.busyDates.push({
+        date: new Date(date),
+        reason: reason || 'Unavailable',
+      });
+    } else if (action === 'remove') {
+      if (!dateId) {
+        return res.status(400).json({ message: 'Date ID is required for removal' });
+      }
+      profile.busyDates = profile.busyDates.filter(d => d._id.toString() !== dateId);
+    } else {
+      return res.status(400).json({ message: 'Invalid action. Use "add" or "remove".' });
+    }
+
+    await profile.save();
+
+    res.json({
+      message: `Busy date ${action === 'add' ? 'added' : 'removed'} successfully`,
+      busyDates: profile.busyDates,
+    });
+  } catch (error) {
+    console.error('Error updating busy dates:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// Get mentor's sessions with filters
+exports.getMentorSessions = async (req, res) => {
+  try {
+    const mentorId = req.user._id;
+    const { status, page = 1, limit = 20 } = req.query;
+    const MentorBooking = require('../models/MentorBooking');
+
+    const query = { mentorId };
+    if (status) {
+      if (status === 'upcoming') {
+        query.status = 'scheduled';
+        query.scheduledDate = { $gte: new Date() };
+      } else if (status === 'pending') {
+        query.status = { $in: ['pending', 'scheduled'] };
+      } else {
+        query.status = status;
+      }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [sessions, total] = await Promise.all([
+      MentorBooking.find(query)
+        .populate('userId', 'name email imageUrl')
+        .sort({ scheduledDate: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      MentorBooking.countDocuments(query),
+    ]);
+
+    // Get counts for each status
+    const [completedCount, scheduledCount, pendingCount, cancelledCount] = await Promise.all([
+      MentorBooking.countDocuments({ mentorId, status: 'completed' }),
+      MentorBooking.countDocuments({ mentorId, status: 'scheduled' }),
+      MentorBooking.countDocuments({ mentorId, status: 'pending' }),
+      MentorBooking.countDocuments({ mentorId, status: 'cancelled' }),
+    ]);
+
+    res.json({
+      sessions,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+      statusCounts: {
+        completed: completedCount,
+        scheduled: scheduledCount,
+        pending: pendingCount,
+        cancelled: cancelledCount,
+        all: completedCount + scheduledCount + pendingCount + cancelledCount,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching mentor sessions:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// Get all mentors with change history for admin (replaces getPendingProfileUpdates for new flow)
+exports.getMentorChangeHistory = async (req, res) => {
+  try {
+    const MentorProfile = require('../models/MentorProfile');
+    const MentorBooking = require('../models/MentorBooking');
+
+    // Find profiles with unreviewed changes
+    const profiles = await MentorProfile.find({
+      'profileChangeHistory.isReviewed': false,
+    }).populate('userId', 'name email imageUrl createdAt mentorStatus');
+
+    const result = await Promise.all(
+      profiles.map(async profile => {
+        const unreviewedChanges = profile.profileChangeHistory.filter(ch => !ch.isReviewed);
+
+        // Get current session stats
+        const [completedCount, pendingCount] = await Promise.all([
+          MentorBooking.countDocuments({ mentorId: profile.userId._id, status: 'completed' }),
+          MentorBooking.countDocuments({
+            mentorId: profile.userId._id,
+            status: { $in: ['scheduled', 'pending'] },
+          }),
+        ]);
+
+        return {
+          _id: profile.userId._id,
+          mentorProfileId: profile._id,
+          name: profile.userId.name,
+          email: profile.userId.email,
+          imageUrl: profile.userId.imageUrl,
+          displayName: profile.displayName,
+          mentorStatus: profile.userId.mentorStatus,
+          currentSessionStats: {
+            completed: completedCount,
+            pending: pendingCount,
+          },
+          unreviewedChanges,
+          profile,
+        };
+      })
+    );
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching mentor change history:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// Mark changes as reviewed
+exports.markChangesReviewed = async (req, res) => {
+  try {
+    const { mentorProfileId } = req.params;
+    const MentorProfile = require('../models/MentorProfile');
+
+    const profile = await MentorProfile.findById(mentorProfileId);
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    // Mark all unreviewed changes as reviewed
+    profile.profileChangeHistory.forEach(change => {
+      if (!change.isReviewed) {
+        change.isReviewed = true;
+      }
+    });
+
+    await profile.save();
+
+    res.json({ message: 'Changes marked as reviewed' });
+  } catch (error) {
+    console.error('Error marking changes as reviewed:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
