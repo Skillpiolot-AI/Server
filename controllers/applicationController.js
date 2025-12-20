@@ -183,9 +183,9 @@ exports.getApplicationByTrackingId = async (req, res) => {
       moreInfoRequest:
         application.status === 'More Info Requested'
           ? {
-            requestDetails: application.moreInfoRequest?.requestDetails,
-            requestedAt: application.moreInfoRequest?.requestedAt,
-          }
+              requestDetails: application.moreInfoRequest?.requestDetails,
+              requestedAt: application.moreInfoRequest?.requestedAt,
+            }
           : undefined,
     });
   } catch (error) {
@@ -456,8 +456,8 @@ exports.approveApplication = async (req, res) => {
 
     const emailContent = isExistingUser
       ? {
-        subject: '🎉 Mentor Application Approved - Skill-Pilot',
-        html: `
+          subject: '🎉 Mentor Application Approved - Skill-Pilot',
+          html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">
                 <h1>🎉 Congratulations!</h1>
@@ -489,11 +489,11 @@ exports.approveApplication = async (req, res) => {
               </div>
             </div>
           `,
-        text: `Congratulations ${application.name}!\n\nYour mentor application has been APPROVED!\n\nYour existing account has been upgraded to Mentor role. Login with your existing credentials to access mentor features.\n\nBest regards,\nThe Skill-Pilot Team`,
-      }
+          text: `Congratulations ${application.name}!\n\nYour mentor application has been APPROVED!\n\nYour existing account has been upgraded to Mentor role. Login with your existing credentials to access mentor features.\n\nBest regards,\nThe Skill-Pilot Team`,
+        }
       : {
-        subject: '🎉 Mentor Application Approved - Skill-Pilot',
-        html: `
+          subject: '🎉 Mentor Application Approved - Skill-Pilot',
+          html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">
                 <h1>🎉 Congratulations!</h1>
@@ -538,8 +538,8 @@ exports.approveApplication = async (req, res) => {
               </div>
             </div>
           `,
-        text: `Congratulations ${application.name}!\n\nYour mentor application has been APPROVED!\n\nUsername: ${baseUsername}\nTemporary Password: ${tempPassword}\n\nVerify your email: ${verificationLink}\nPhone OTP: ${phoneOTP.otp}\n\nBest regards,\nThe Skill-Pilot Team`,
-      };
+          text: `Congratulations ${application.name}!\n\nYour mentor application has been APPROVED!\n\nUsername: ${baseUsername}\nTemporary Password: ${tempPassword}\n\nVerify your email: ${verificationLink}\nPhone OTP: ${phoneOTP.otp}\n\nBest regards,\nThe Skill-Pilot Team`,
+        };
 
     // Send approval email (async, non-blocking)
     sendEmailFast(application.email, emailContent)

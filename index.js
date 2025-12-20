@@ -258,7 +258,7 @@ const startServer = async () => {
     const WebSocket = require('ws');
     const wss = new WebSocket.Server({ server, path: '/ws/logs' });
 
-    wss.on('connection', (ws) => {
+    wss.on('connection', ws => {
       console.log('📊 New WebSocket client connected for live logs');
       logsModule.wsClients.add(ws);
 
@@ -271,7 +271,7 @@ const startServer = async () => {
         console.log('📊 WebSocket client disconnected');
       });
 
-      ws.on('error', (error) => {
+      ws.on('error', error => {
         console.error('WebSocket error:', error);
         logsModule.wsClients.delete(ws);
       });
