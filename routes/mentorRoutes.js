@@ -45,8 +45,11 @@ router.get('/mentors/my-sessions', verifyToken, mentorController.getMentorSessio
 router.get('/mentors/admin/change-history', verifyToken, mentorController.getMentorChangeHistory);
 
 // Admin: Mark changes as reviewed
-router.post('/mentors/admin/mark-reviewed/:mentorProfileId', verifyToken, mentorController.markChangesReviewed);
-
+router.post(
+  '/mentors/admin/mark-reviewed/:mentorProfileId',
+  verifyToken,
+  mentorController.markChangesReviewed
+);
 
 router.get('/mentors', mentorController.getMentors);
 router.post('/book-appointment', mentorController.bookAppointment);

@@ -108,9 +108,9 @@ exports.getAllMentors = async (req, res) => {
     const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
     const campaign = isFreeMentorship
       ? {
-        name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
-        endDate: settings.globalFreeMentorship.endDate,
-      }
+          name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
+          endDate: settings.globalFreeMentorship.endDate,
+        }
       : null;
 
     const [mentors, total] = await Promise.all([
@@ -1109,9 +1109,11 @@ exports.updateMentorProfile = async (req, res) => {
           c => `
           <tr>
             <td style="padding: 8px; border: 1px solid #e5e7eb;"><strong>${c.field}</strong></td>
-            <td style="padding: 8px; border: 1px solid #e5e7eb; color: #dc2626;">${typeof c.oldValue === 'object' ? JSON.stringify(c.oldValue) : c.oldValue || 'N/A'
+            <td style="padding: 8px; border: 1px solid #e5e7eb; color: #dc2626;">${
+              typeof c.oldValue === 'object' ? JSON.stringify(c.oldValue) : c.oldValue || 'N/A'
             }</td>
-            <td style="padding: 8px; border: 1px solid #e5e7eb; color: #059669;">${typeof c.newValue === 'object' ? JSON.stringify(c.newValue) : c.newValue || 'N/A'
+            <td style="padding: 8px; border: 1px solid #e5e7eb; color: #059669;">${
+              typeof c.newValue === 'object' ? JSON.stringify(c.newValue) : c.newValue || 'N/A'
             }</td>
           </tr>
         `

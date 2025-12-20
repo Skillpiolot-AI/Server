@@ -33,6 +33,122 @@ const generateJitsiLink = bookingId => {
 // ==========================================
 
 /**
+ * Get available time slots for a mentor on a specific date
+ * GET /api/bookings/available-slots/:mentorProfileId
+ * Query params: date (YYYY-MM-DD)
+ */
+exports.getAvailableSlots = async (req, res) => {
+  try {
+    const { mentorProfileId } = req.params;
+    const { date } = req.query;
+
+    if (!date) {
+      return res.status(400).json({ error: 'Date is required (YYYY-MM-DD)' });
+    }
+
+    // Get mentor profile with availability
+    const mentorProfile = await MentorProfile.findById(mentorProfileId);
+    if (!mentorProfile) {
+      return res.status(404).json({ error: 'Mentor not found' });
+    }
+
+    const mentorId = mentorProfile.userId;
+    const requestedDate = new Date(date);
+    const dayOfWeek = requestedDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+    // Check if this date is in busy dates
+    const isBusyDate = (mentorProfile.busyDates || []).some(busy => {
+      const busyDate = new Date(busy.date);
+      return busyDate.toISOString().split('T')[0] === date;
+    });
+
+    if (isBusyDate) {
+      return res.json({
+        date,
+        dayOfWeek,
+        isBusyDate: true,
+        slots: [],
+        message: 'Mentor is unavailable on this date',
+      });
+    }
+
+    // Get mentor's availability for this day of week
+    const dayAvailability = (mentorProfile.availabilitySlots || []).find(
+      slot => slot.day === dayOfWeek && slot.isAvailable
+    );
+
+    // Generate base slots (9 AM to 9 PM)
+    const allSlots = [];
+    for (let hour = 9; hour <= 21; hour++) {
+      allSlots.push({
+        time: `${hour.toString().padStart(2, '0')}:00`,
+        hour,
+        label: hour <= 12 ? `${hour}:00 ${hour < 12 ? 'AM' : 'PM'}` : `${hour - 12}:00 PM`,
+      });
+    }
+
+    // Filter by mentor's weekly availability (if set)
+    let availableSlots = allSlots;
+    if (dayAvailability) {
+      const startHour = parseInt(dayAvailability.startTime.split(':')[0]);
+      const endHour = parseInt(dayAvailability.endTime.split(':')[0]);
+      availableSlots = allSlots.filter(slot => slot.hour >= startHour && slot.hour < endHour);
+    } else if (mentorProfile.availabilitySlots && mentorProfile.availabilitySlots.length > 0) {
+      // Mentor has set availability but not for this day - they're unavailable
+      return res.json({
+        date,
+        dayOfWeek,
+        isBusyDate: false,
+        isWeeklyUnavailable: true,
+        slots: [],
+        message: `Mentor is not available on ${dayOfWeek}s`,
+      });
+    }
+
+    // Get existing bookings for this date
+    const dateStart = new Date(date);
+    dateStart.setHours(0, 0, 0, 0);
+    const dateEnd = new Date(date);
+    dateEnd.setHours(23, 59, 59, 999);
+
+    const existingBookings = await MentorBooking.find({
+      mentorId,
+      scheduledAt: { $gte: dateStart, $lte: dateEnd },
+      status: { $nin: ['cancelled'] },
+    }).select('scheduledAt duration');
+
+    // Mark booked slots
+    const bookedTimes = new Set();
+    existingBookings.forEach(booking => {
+      const bookingHour = new Date(booking.scheduledAt).getHours();
+      bookedTimes.add(bookingHour);
+    });
+
+    // Build final slots with availability status
+    const slots = availableSlots.map(slot => ({
+      ...slot,
+      isBooked: bookedTimes.has(slot.hour),
+      isAvailable: !bookedTimes.has(slot.hour),
+    }));
+
+    res.json({
+      date,
+      dayOfWeek,
+      isBusyDate: false,
+      isWeeklyUnavailable: false,
+      mentorName: mentorProfile.displayName,
+      sessionDuration: mentorProfile.sessionDuration || 60,
+      slots,
+      availableCount: slots.filter(s => s.isAvailable).length,
+      bookedCount: slots.filter(s => s.isBooked).length,
+    });
+  } catch (error) {
+    console.error('Error fetching available slots:', error);
+    res.status(500).json({ error: 'Failed to fetch available slots' });
+  }
+};
+
+/**
  * Create a new booking
  * POST /api/bookings/book
  */

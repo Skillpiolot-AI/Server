@@ -9,6 +9,9 @@ const { verifyToken, isAdmin, isMentor } = require('../middleware/auth');
 // PUBLIC ROUTES
 // ==========================================
 
+// Get available time slots for a mentor on a specific date
+router.get('/available-slots/:mentorProfileId', bookingController.getAvailableSlots);
+
 // Get meeting link page data (token-based, no auth required)
 router.get('/send-link-page/:token', bookingController.getMeetingLinkPage);
 
