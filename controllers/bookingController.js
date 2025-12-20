@@ -267,9 +267,7 @@ exports.getBookingById = async (req, res) => {
 
     // Build query - only use _id if it's a valid ObjectId (24 hex chars)
     const isValidObjectId = /^[a-fA-F0-9]{24}$/.test(bookingId);
-    const query = isValidObjectId
-      ? { $or: [{ _id: bookingId }, { bookingId }] }
-      : { bookingId };
+    const query = isValidObjectId ? { $or: [{ _id: bookingId }, { bookingId }] } : { bookingId };
 
     const booking = await MentorBooking.findOne(query)
       .populate('userId', 'name email imageUrl')
@@ -363,9 +361,7 @@ exports.rateBooking = async (req, res) => {
 
     // Build query - only use _id if it's a valid ObjectId (24 hex chars)
     const isValidObjectId = /^[a-fA-F0-9]{24}$/.test(bookingId);
-    const query = isValidObjectId
-      ? { $or: [{ _id: bookingId }, { bookingId }] }
-      : { bookingId };
+    const query = isValidObjectId ? { $or: [{ _id: bookingId }, { bookingId }] } : { bookingId };
 
     const booking = await MentorBooking.findOne(query);
 
