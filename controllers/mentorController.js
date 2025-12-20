@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const emailjs = require('@emailjs/nodejs');
 const MentorAppointment = require('../models/Mentor');
 const mongoose = require('mongoose');
+const SystemSettings = require('../models/SystemSettings');
 const { sendEmailFast } = require('../config/mailHelper');
 const {
   mentorAppointmentBookedEmail,
@@ -55,7 +56,6 @@ exports.registerMentor = async (req, res) => {
 exports.getAllMentors = async (req, res) => {
   try {
     const MentorProfile = require('../models/MentorProfile');
-    const SystemSettings = require('../models/SystemSettings');
 
     const {
       expertise,
@@ -108,9 +108,9 @@ exports.getAllMentors = async (req, res) => {
     const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
     const campaign = isFreeMentorship
       ? {
-          name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
-          endDate: settings.globalFreeMentorship.endDate,
-        }
+        name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
+        endDate: settings.globalFreeMentorship.endDate,
+      }
       : null;
 
     const [mentors, total] = await Promise.all([
@@ -728,10 +728,18 @@ exports.addMentorNote = async (req, res) => {
 exports.getMentorDashboardStats = async (req, res) => {
   try {
     const mentorId = req.user._id;
+    console.log('Fetching dashboard stats for mentor:', mentorId);
+
     const now = new Date();
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    // Use fresh dates to avoid side effects
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(now.getDate() - 30);
 
     const [upcoming, completed, week, month, year, totalMentees] = await Promise.all([
       MentorAppointment.countDocuments({
@@ -755,12 +763,10 @@ exports.getMentorDashboardStats = async (req, res) => {
         status: 'completed',
         scheduledDate: { $gte: startOfYear },
       }),
-      User.countDocuments({ role: 'Student', 'appointments.userId': mentorId }), // Mock logic for mentees
+      User.countDocuments({ role: 'Student', 'appointments.userId': mentorId }),
     ]);
 
     // Average calls per day (last 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const last30DaysCount = await MentorAppointment.countDocuments({
       mentorId,
       status: 'completed',
@@ -771,21 +777,23 @@ exports.getMentorDashboardStats = async (req, res) => {
     res.json({
       upcomingSessions: upcoming,
       completedSessions: completed,
-      thisWeek: week,
-      thisMonth: month,
-      thisYear: year,
-      totalMentees: totalMentees || 0,
-      avgCallsPerDay: parseFloat(avgCallsPerDay),
+      weekSessions: week,
+      monthSessions: month,
+      yearSessions: year,
+      totalMentees,
+      avgCallsPerDay,
     });
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Server Error', details: error.message });
   }
 };
 
 exports.getActivityGraph = async (req, res) => {
   try {
     const mentorId = req.user._id;
+    console.log('Fetching activity graph for mentor:', mentorId);
+
     const last7Days = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -793,12 +801,16 @@ exports.getActivityGraph = async (req, res) => {
       last7Days.push(d.toISOString().split('T')[0]);
     }
 
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
     const stats = await MentorAppointment.aggregate([
       {
         $match: {
           mentorId: new mongoose.Types.ObjectId(mentorId),
           status: 'completed',
-          scheduledDate: { $gte: new Date(new Date().setDate(new Date().getDate() - 7)) },
+          scheduledDate: { $gte: sevenDaysAgo },
         },
       },
       {
@@ -823,7 +835,7 @@ exports.getActivityGraph = async (req, res) => {
     res.json(graphData);
   } catch (error) {
     console.error('Error fetching activity graph:', error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Server Error', details: error.message });
   }
 };
 
