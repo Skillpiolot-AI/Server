@@ -250,6 +250,15 @@ const MentorProfileSchema = new mongoose.Schema({
     },
   ],
 
+  // Admin Review System
+  isChangePending: {
+    type: Boolean,
+    default: false,
+  },
+  pendingChanges: {
+    type: mongoose.Schema.Types.Mixed,
+  },
+
   // Education & Certifications (from application)
   education: [
     {

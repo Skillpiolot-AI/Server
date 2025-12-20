@@ -8,6 +8,11 @@ router.post('/register-mentor', mentorController.registerMentor);
 router.get('/all-mentors', mentorController.getAllMentors);
 router.put('/update-mentor/:id', verifyToken, mentorController.updateMentor);
 router.delete('/delete-mentor/:id', verifyToken, mentorController.deleteMentor);
+router.get('/dashboard-stats', verifyToken, mentorController.getMentorDashboardStats);
+router.get('/activity-graph', verifyToken, mentorController.getActivityGraph);
+router.put('/request-profile-update', verifyToken, mentorController.requestProfileUpdate);
+router.put('/admin/approve-profile-update/:id', verifyToken, mentorController.approveProfileUpdate);
+router.put('/admin/reject-profile-update/:id', verifyToken, mentorController.rejectProfileUpdate);
 
 router.get('/mentors', mentorController.getMentors);
 router.post('/book-appointment', mentorController.bookAppointment);

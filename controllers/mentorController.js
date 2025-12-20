@@ -724,3 +724,219 @@ exports.addMentorNote = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
+
+exports.getMentorDashboardStats = async (req, res) => {
+  try {
+    const mentorId = req.user._id;
+    const now = new Date();
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    const [upcoming, completed, week, month, year, totalMentees] = await Promise.all([
+      MentorAppointment.countDocuments({
+        mentorId,
+        status: 'scheduled',
+        scheduledDate: { $gt: new Date() },
+      }),
+      MentorAppointment.countDocuments({ mentorId, status: 'completed' }),
+      MentorAppointment.countDocuments({
+        mentorId,
+        status: 'completed',
+        scheduledDate: { $gte: startOfWeek },
+      }),
+      MentorAppointment.countDocuments({
+        mentorId,
+        status: 'completed',
+        scheduledDate: { $gte: startOfMonth },
+      }),
+      MentorAppointment.countDocuments({
+        mentorId,
+        status: 'completed',
+        scheduledDate: { $gte: startOfYear },
+      }),
+      User.countDocuments({ role: 'Student', 'appointments.userId': mentorId }), // Mock logic for mentees
+    ]);
+
+    // Average calls per day (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const last30DaysCount = await MentorAppointment.countDocuments({
+      mentorId,
+      status: 'completed',
+      scheduledDate: { $gte: thirtyDaysAgo },
+    });
+    const avgCallsPerDay = (last30DaysCount / 30).toFixed(1);
+
+    res.json({
+      upcomingSessions: upcoming,
+      completedSessions: completed,
+      thisWeek: week,
+      thisMonth: month,
+      thisYear: year,
+      totalMentees: totalMentees || 0,
+      avgCallsPerDay: parseFloat(avgCallsPerDay),
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+exports.getActivityGraph = async (req, res) => {
+  try {
+    const mentorId = req.user._id;
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      last7Days.push(d.toISOString().split('T')[0]);
+    }
+
+    const stats = await MentorAppointment.aggregate([
+      {
+        $match: {
+          mentorId: new mongoose.Types.ObjectId(mentorId),
+          status: 'completed',
+          scheduledDate: { $gte: new Date(new Date().setDate(new Date().getDate() - 7)) },
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$scheduledDate' } },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const dataMap = stats.reduce((acc, curr) => {
+      acc[curr._id] = curr.count;
+      return acc;
+    }, {});
+
+    const graphData = last7Days.map(date => ({
+      date,
+      day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(date).getDay()],
+      count: dataMap[date] || 0,
+    }));
+
+    res.json(graphData);
+  } catch (error) {
+    console.error('Error fetching activity graph:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+exports.requestProfileUpdate = async (req, res) => {
+  try {
+    const mentorId = req.user._id;
+    const updateData = req.body;
+    const MentorProfile = require('../models/MentorProfile');
+
+    const profile = await MentorProfile.findOne({ userId: mentorId });
+    if (!profile) {
+      return res.status(404).json({ message: 'Mentor profile not found' });
+    }
+
+    // Store changes in pendingChanges and set flag
+    profile.pendingChanges = updateData;
+    profile.isChangePending = true;
+    await profile.save();
+
+    // NOTIFY ADMINS
+    const admins = await User.find({ role: 'Admin' });
+    const adminEmails = admins.map(a => a.email);
+
+    if (adminEmails.length > 0) {
+      const emailContent = {
+        subject: `🔔 Mentor Profile Update Request: ${profile.displayName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Profile Update Request</h2>
+            <p>Mentor <strong>${profile.displayName}</strong> has requested an update to their profile.</p>
+            <p>Please review the changes in the admin dashboard.</p>
+            <div style="margin-top: 20px;">
+              <a href="${process.env.ADMIN_URL || 'http://localhost:3000/admin/mentors'}/${profile._id}" 
+                 style="background: #3F3FF3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                Review Changes
+              </a>
+            </div>
+          </div>
+        `,
+      };
+
+      for (const email of adminEmails) {
+        await sendEmailFast(email, emailContent);
+      }
+    }
+
+    res.json({ message: 'Update request submitted for admin review' });
+  } catch (error) {
+    console.error('Error requesting profile update:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+exports.approveProfileUpdate = async (req, res) => {
+  try {
+    const { id } = req.params; // profileId
+    const MentorProfile = require('../models/MentorProfile');
+
+    const profile = await MentorProfile.findById(id);
+    if (!profile || !profile.isChangePending) {
+      return res.status(404).json({ message: 'No pending changes found for this profile' });
+    }
+
+    // Apply changes
+    Object.assign(profile, profile.pendingChanges);
+    profile.isChangePending = false;
+    profile.pendingChanges = undefined;
+    await profile.save();
+
+    // Notify mentor
+    const user = await User.findById(profile.userId);
+    if (user) {
+      await sendEmailFast(user.email, {
+        subject: '✅ Your Profile Update was Approved!',
+        html: `<p>Hi ${profile.displayName}, your recent profile changes have been reviewed and approved. They are now live on the platform.</p>`,
+      });
+    }
+
+    res.json({ message: 'Profile update approved and applied' });
+  } catch (error) {
+    console.error('Error approving profile update:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+exports.rejectProfileUpdate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const MentorProfile = require('../models/MentorProfile');
+
+    const profile = await MentorProfile.findById(id);
+    if (!profile || !profile.isChangePending) {
+      return res.status(404).json({ message: 'No pending changes found' });
+    }
+
+    profile.isChangePending = false;
+    profile.pendingChanges = undefined;
+    await profile.save();
+
+    // Notify mentor
+    const user = await User.findById(profile.userId);
+    if (user) {
+      await sendEmailFast(user.email, {
+        subject: '❌ Profile Update Request Feedback',
+        html: `<p>Hi ${profile.displayName}, your recent profile update request was not approved.</p>
+               <p><strong>Reason:</strong> ${reason || 'Does not meet our community standards.'}</p>`,
+      });
+    }
+
+    res.json({ message: 'Profile update rejected' });
+  } catch (error) {
+    console.error('Error rejecting profile update:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
