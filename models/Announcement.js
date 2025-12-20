@@ -222,13 +222,32 @@ AnnouncementSchema.statics.getForUser = async function (userId, userRole) {
     .select('-deliveryLog');
 };
 
-// Static: Get unread count for user
+// Static: Get unread count for user (only from last 5 days)
 AnnouncementSchema.statics.getUnreadCount = async function (userId, userRole) {
-  const announcements = await this.getForUser(userId, userRole);
+  // Only count announcements from the last 5 days
+  const fiveDaysAgo = new Date();
+  fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+
+  // Query directly with deliveryLog included
+  const announcements = await this.find({
+    status: 'sent',
+    sentAt: { $gte: fiveDaysAgo }, // Only announcements from last 5 days
+    $or: [
+      { recipientType: 'all' },
+      { recipientType: userRole.toLowerCase() + 's' },
+      { recipientIds: userId },
+      { targetRoles: userRole },
+    ],
+  })
+    .sort({ sentAt: -1 })
+    .limit(50)
+    .select('deliveryLog');
+
   let unreadCount = 0;
+  const userIdStr = userId.toString();
 
   for (const ann of announcements) {
-    const log = ann.deliveryLog?.find(l => l.userId?.toString() === userId.toString());
+    const log = ann.deliveryLog?.find(l => l.userId?.toString() === userIdStr);
     if (!log?.readAt) unreadCount++;
   }
 

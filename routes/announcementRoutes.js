@@ -6,6 +6,19 @@ const announcementController = require('../controllers/announcementController');
 const { verifyToken, isAdmin } = require('../middleware/auth');
 
 // ==========================================
+// USER ROUTES (Authenticated) - Must be BEFORE :id routes!
+// ==========================================
+
+// Get announcements for current user
+router.get('/my', verifyToken, announcementController.getMyAnnouncements);
+
+// Get unread count
+router.get('/unread-count', verifyToken, announcementController.getUnreadCount);
+
+// Register push token
+router.post('/register-token', verifyToken, announcementController.registerPushToken);
+
+// ==========================================
 // ADMIN ROUTES (Authenticated + Admin role)
 // ==========================================
 
@@ -17,18 +30,6 @@ router.post('/', adminAuth, announcementController.createAnnouncement);
 // Get all announcements (admin view)
 router.get('/', adminAuth, announcementController.getAnnouncements);
 
-// Get single announcement
-router.get('/:id', adminAuth, announcementController.getAnnouncementById);
-
-// Update announcement
-router.put('/:id', adminAuth, announcementController.updateAnnouncement);
-
-// Delete announcement
-router.delete('/:id', adminAuth, announcementController.deleteAnnouncement);
-
-// Send announcement
-router.post('/:id/send', adminAuth, announcementController.sendAnnouncement);
-
 // Test notification (send to admin's device)
 router.post('/test', adminAuth, announcementController.testNotification);
 
@@ -36,19 +37,22 @@ router.post('/test', adminAuth, announcementController.testNotification);
 router.post('/preview-recipients', adminAuth, announcementController.previewRecipients);
 
 // ==========================================
-// USER ROUTES (Authenticated)
+// DYNAMIC :id ROUTES - Must be AFTER static routes!
 // ==========================================
 
-// Get announcements for current user
-router.get('/my', verifyToken, announcementController.getMyAnnouncements);
+// Get single announcement (admin)
+router.get('/:id', adminAuth, announcementController.getAnnouncementById);
 
-// Get unread count
-router.get('/unread-count', verifyToken, announcementController.getUnreadCount);
+// Update announcement (admin)
+router.put('/:id', adminAuth, announcementController.updateAnnouncement);
 
-// Mark announcement as read
+// Delete announcement (admin)
+router.delete('/:id', adminAuth, announcementController.deleteAnnouncement);
+
+// Send announcement (admin)
+router.post('/:id/send', adminAuth, announcementController.sendAnnouncement);
+
+// Mark announcement as read (user)
 router.post('/:id/read', verifyToken, announcementController.markAsRead);
-
-// Register push token
-router.post('/register-token', verifyToken, announcementController.registerPushToken);
 
 module.exports = router;

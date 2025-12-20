@@ -310,26 +310,51 @@ exports.previewRecipients = async (req, res) => {
   }
 };
 
-// ==========================================
-// USER ENDPOINTS
-// ==========================================
-
 /**
  * Get announcements for current user
  * GET /api/announcements/my
  */
 exports.getMyAnnouncements = async (req, res) => {
   try {
+    // Defensive check for req.user
+    if (!req.user || !req.user._id) {
+      console.error('getMyAnnouncements: req.user is undefined or missing _id');
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
     const userId = req.user._id;
-    const userRole = req.user.role;
+    const userRole = req.user.role || 'User';
+    const userIdStr = userId.toString();
 
-    const announcements = await Announcement.getForUser(userId, userRole);
+    // Only show announcements from the last 5 days
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
 
-    // Mark read status for each
+    console.log(`getMyAnnouncements: Fetching for user ${userIdStr} with role ${userRole}`);
+
+    // Query announcements with deliveryLog included for read status calculation
+    const announcements = await Announcement.find({
+      status: 'sent',
+      sentAt: { $gte: fiveDaysAgo }, // Only announcements from last 5 days
+      $or: [
+        { recipientType: 'all' },
+        { recipientType: userRole.toLowerCase() + 's' },
+        { recipientIds: userId },
+        { targetRoles: userRole },
+      ],
+    })
+      .sort({ sentAt: -1 })
+      .limit(50);
+
+    console.log(`getMyAnnouncements: Found ${announcements.length} announcements`);
+
+    // Mark read status for each and exclude deliveryLog from response
     const announcementsWithStatus = announcements.map(ann => {
-      const log = ann.deliveryLog?.find(l => l.userId?.toString() === userId.toString());
+      const log = ann.deliveryLog?.find(l => l.userId?.toString() === userIdStr);
+      const annObj = ann.toObject();
+      delete annObj.deliveryLog; // Remove deliveryLog from response
       return {
-        ...ann.toObject(),
+        ...annObj,
         isRead: !!log?.readAt,
         readAt: log?.readAt,
       };
@@ -337,8 +362,8 @@ exports.getMyAnnouncements = async (req, res) => {
 
     res.json({ announcements: announcementsWithStatus });
   } catch (error) {
-    console.error('Error fetching user announcements:', error);
-    res.status(500).json({ error: 'Failed to fetch announcements' });
+    console.error('Error fetching user announcements:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to fetch announcements', details: error.message });
   }
 };
 
@@ -369,11 +394,17 @@ exports.markAsRead = async (req, res) => {
  */
 exports.getUnreadCount = async (req, res) => {
   try {
-    const count = await Announcement.getUnreadCount(req.user._id, req.user.role);
+    // Defensive check for req.user
+    if (!req.user || !req.user._id) {
+      console.error('getUnreadCount: req.user is undefined or missing _id');
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const count = await Announcement.getUnreadCount(req.user._id, req.user.role || 'User');
     res.json({ unreadCount: count });
   } catch (error) {
-    console.error('Error getting unread count:', error);
-    res.status(500).json({ error: 'Failed to get unread count' });
+    console.error('Error getting unread count:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to get unread count', details: error.message });
   }
 };
 
