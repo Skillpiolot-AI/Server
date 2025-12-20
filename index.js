@@ -31,6 +31,7 @@ const interestRoutes = require('./routes/interestRoutes');
 const bulkMentorRoutes = require('./routes/bulkMentorRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const logsModule = require('./routes/logsRoutes');
 
 // Import scheduled jobs
 const tempPasswordReminder = require('./jobs/tempPasswordReminder');
@@ -135,6 +136,9 @@ app.use('/api/chatbot', chatbotRoutes);
 // Booking routes
 app.use('/api/bookings', bookingRoutes);
 
+// Live server logs routes
+app.use('/api/logs', logsModule.router);
+
 // ==================== CACHED JOB INFO ENDPOINT ====================
 let jobDataCache = null;
 let cacheTime = null;
@@ -235,7 +239,7 @@ const startServer = async () => {
     // Connect to database
     await connectDB();
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`\n🚀 Server running on port ${PORT}`);
       console.log(`📅 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL}`);
@@ -249,6 +253,31 @@ const startServer = async () => {
 
       console.log('\n✅ Server initialization complete!\n');
     });
+
+    // ==================== WEBSOCKET FOR LIVE LOGS ====================
+    const WebSocket = require('ws');
+    const wss = new WebSocket.Server({ server, path: '/ws/logs' });
+
+    wss.on('connection', (ws) => {
+      console.log('📊 New WebSocket client connected for live logs');
+      logsModule.wsClients.add(ws);
+
+      // Send recent logs on connect
+      const recentLogs = logsModule.logs.slice(-50).reverse();
+      ws.send(JSON.stringify({ type: 'init', logs: recentLogs }));
+
+      ws.on('close', () => {
+        logsModule.wsClients.delete(ws);
+        console.log('📊 WebSocket client disconnected');
+      });
+
+      ws.on('error', (error) => {
+        console.error('WebSocket error:', error);
+        logsModule.wsClients.delete(ws);
+      });
+    });
+
+    console.log('📊 WebSocket server for logs enabled at /ws/logs');
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);

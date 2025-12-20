@@ -183,9 +183,9 @@ exports.getApplicationByTrackingId = async (req, res) => {
       moreInfoRequest:
         application.status === 'More Info Requested'
           ? {
-              requestDetails: application.moreInfoRequest?.requestDetails,
-              requestedAt: application.moreInfoRequest?.requestedAt,
-            }
+            requestDetails: application.moreInfoRequest?.requestDetails,
+            requestedAt: application.moreInfoRequest?.requestedAt,
+          }
           : undefined,
     });
   } catch (error) {
@@ -314,39 +314,78 @@ exports.approveApplication = async (req, res) => {
       return res.status(400).json({ error: 'Application is already approved' });
     }
 
-    // Generate temporary password
-    const tempPassword = crypto.randomBytes(8).toString('hex');
-    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+    // ========================================
+    // CHECK IF USER ALREADY EXISTS BY EMAIL
+    // ========================================
+    let savedMentor;
+    let tempPassword = null;
+    let baseUsername = null;
+    const existingUser = await User.findOne({ email: application.email.toLowerCase() });
 
-    // Generate unique username
-    const baseUsername =
-      application.name.toLowerCase().replace(/\s+/g, '.') + Math.floor(Math.random() * 1000);
+    if (existingUser) {
+      // ========================================
+      // UPGRADE EXISTING USER TO MENTOR
+      // ========================================
+      console.log(`📌 Upgrading existing user ${existingUser.email} to Mentor role`);
 
-    // Create User with Mentor role
-    const newMentor = new User({
-      username: baseUsername,
-      name: application.name,
-      email: application.email,
-      password: hashedPassword,
-      phoneNumber: application.phone,
-      jobTitle: application.jobTitle,
-      companiesJoined: application.companiesWorked,
-      experience: application.experience,
-      role: 'Mentor',
-      imageUrl: application.profileImage,
-      isVerified: true,
-      isActive: true,
-      mentorStatus: 'verified', // Verified upon admin approval
-      mentorBadge: 'verified',
-      applicationId: application._id,
-      mentorVerification: {
+      existingUser.role = 'Mentor';
+      existingUser.mentorStatus = 'verified';
+      existingUser.mentorBadge = 'verified';
+      existingUser.applicationId = application._id;
+      existingUser.jobTitle = application.jobTitle || existingUser.jobTitle;
+      existingUser.experience = application.experience || existingUser.experience;
+      existingUser.companiesJoined = application.companiesWorked || existingUser.companiesJoined;
+      existingUser.imageUrl = application.profileImage || existingUser.imageUrl;
+      existingUser.mentorVerification = {
         emailVerified: true,
         phoneVerified: true,
         documentVerified: true,
-      },
-    });
+      };
+      existingUser.isActive = true;
 
-    const savedMentor = await newMentor.save();
+      savedMentor = await existingUser.save();
+      console.log(`✅ User ${savedMentor.email} upgraded to Mentor role`);
+    } else {
+      // ========================================
+      // CREATE NEW USER WITH MENTOR ROLE
+      // ========================================
+      console.log(`📌 Creating new mentor account for ${application.email}`);
+
+      // Generate temporary password
+      tempPassword = crypto.randomBytes(8).toString('hex');
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+      // Generate unique username
+      baseUsername =
+        application.name.toLowerCase().replace(/\s+/g, '.') + Math.floor(Math.random() * 1000);
+
+      // Create User with Mentor role
+      const newMentor = new User({
+        username: baseUsername,
+        name: application.name,
+        email: application.email,
+        password: hashedPassword,
+        phoneNumber: application.phone,
+        jobTitle: application.jobTitle,
+        companiesJoined: application.companiesWorked,
+        experience: application.experience,
+        role: 'Mentor',
+        imageUrl: application.profileImage,
+        isVerified: true,
+        isActive: true,
+        mentorStatus: 'verified',
+        mentorBadge: 'verified',
+        applicationId: application._id,
+        mentorVerification: {
+          emailVerified: true,
+          phoneVerified: true,
+          documentVerified: true,
+        },
+      });
+
+      savedMentor = await newMentor.save();
+      console.log(`✅ New mentor account created for ${savedMentor.email}`);
+    }
 
     // Create MentorProfile
     const mentorProfile = new MentorProfile({
@@ -409,59 +448,101 @@ exports.approveApplication = async (req, res) => {
     // Create OTP for phone verification
     const phoneOTP = await OTP.createOTP(application.email, 'two_factor', null, null);
 
-    // Send approval email with credentials
+    // Send approval email with appropriate content based on user type
     const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${emailToken.token}`;
 
-    // Send approval email with credentials (async, non-blocking)
-    sendEmailFast(application.email, {
-      subject: '🎉 Mentor Application Approved - Skill-Pilot',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">
-            <h1>🎉 Congratulations!</h1>
-          </div>
-          <div style="padding: 30px; background: #fff;">
-            <h2>Hello ${application.name}!</h2>
-            <p>Your mentor application has been <strong style="color: #28a745;">APPROVED</strong>! Welcome to the Skill-Pilot mentor community.</p>
-            
-            <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
-              <p style="margin: 0; font-size: 16px;">✅ You are now a Skill-Pilot Mentor!</p>
+    // Different email content for existing user vs new user
+    const isExistingUser = !tempPassword; // If no temp password, it was an existing user upgrade
+
+    const emailContent = isExistingUser
+      ? {
+        subject: '🎉 Mentor Application Approved - Skill-Pilot',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">
+                <h1>🎉 Congratulations!</h1>
+              </div>
+              <div style="padding: 30px; background: #fff;">
+                <h2>Hello ${application.name}!</h2>
+                <p>Your mentor application has been <strong style="color: #28a745;">APPROVED</strong>! Welcome to the Skill-Pilot mentor community.</p>
+                
+                <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
+                  <p style="margin: 0; font-size: 16px;">✅ Your account has been upgraded to Mentor!</p>
+                </div>
+                
+                <p><strong>What's changed:</strong></p>
+                <ul>
+                  <li>Your existing account role is now "Mentor"</li>
+                  <li>Log in with your existing credentials</li>
+                  <li>Access new mentor features in your dashboard</li>
+                  <li>Your mentor profile is now visible to students</li>
+                </ul>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login" style="display: inline-block; padding: 14px 32px; background: #3F3FF3; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Login to Your Account</a>
+                </div>
+                
+                <p style="margin-top: 30px;">Welcome aboard!<br><strong>The Skill-Pilot Team</strong></p>
+              </div>
+              <div style="text-align: center; padding: 20px; color: #666; font-size: 12px; background: #f5f5f5;">
+                <p>&copy; 2025 Skill-Pilot Career Guidance. All rights reserved.</p>
+              </div>
             </div>
-            
-            <p><strong>Your Login Credentials:</strong></p>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
-              <p style="margin: 5px 0;"><strong>Username:</strong> ${baseUsername}</p>
-              <p style="margin: 5px 0;"><strong>Temporary Password:</strong> ${tempPassword}</p>
+          `,
+        text: `Congratulations ${application.name}!\n\nYour mentor application has been APPROVED!\n\nYour existing account has been upgraded to Mentor role. Login with your existing credentials to access mentor features.\n\nBest regards,\nThe Skill-Pilot Team`,
+      }
+      : {
+        subject: '🎉 Mentor Application Approved - Skill-Pilot',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">
+                <h1>🎉 Congratulations!</h1>
+              </div>
+              <div style="padding: 30px; background: #fff;">
+                <h2>Hello ${application.name}!</h2>
+                <p>Your mentor application has been <strong style="color: #28a745;">APPROVED</strong>! Welcome to the Skill-Pilot mentor community.</p>
+                
+                <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
+                  <p style="margin: 0; font-size: 16px;">✅ You are now a Skill-Pilot Mentor!</p>
+                </div>
+                
+                <p><strong>Your Login Credentials:</strong></p>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                  <p style="margin: 5px 0;"><strong>Username:</strong> ${baseUsername}</p>
+                  <p style="margin: 5px 0;"><strong>Temporary Password:</strong> ${tempPassword}</p>
+                </div>
+                
+                <p><strong>Complete Your Verification:</strong></p>
+                <ol>
+                  <li>Verify your email by clicking the button below</li>
+                  <li>Use this OTP to verify your phone: <strong style="color: #3F3FF3; font-size: 18px;">${phoneOTP.otp}</strong></li>
+                </ol>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${verificationLink}" style="display: inline-block; padding: 14px 32px; background: #3F3FF3; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">✅ Verify Email</a>
+                </div>
+                
+                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+                  <p><strong>⚠️ Important:</strong></p>
+                  <ul style="margin: 5px 0;">
+                    <li>Change your temporary password after first login</li>
+                    <li>Complete both email and phone verification</li>
+                    <li>Your profile will be visible after verification</li>
+                  </ul>
+                </div>
+                
+                <p style="margin-top: 30px;">Welcome aboard!<br><strong>The Skill-Pilot Team</strong></p>
+              </div>
+              <div style="text-align: center; padding: 20px; color: #666; font-size: 12px; background: #f5f5f5;">
+                <p>&copy; 2025 Skill-Pilot Career Guidance. All rights reserved.</p>
+              </div>
             </div>
-            
-            <p><strong>Complete Your Verification:</strong></p>
-            <ol>
-              <li>Verify your email by clicking the button below</li>
-              <li>Use this OTP to verify your phone: <strong style="color: #3F3FF3; font-size: 18px;">${phoneOTP.otp}</strong></li>
-            </ol>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${verificationLink}" style="display: inline-block; padding: 14px 32px; background: #3F3FF3; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">✅ Verify Email</a>
-            </div>
-            
-            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
-              <p><strong>⚠️ Important:</strong></p>
-              <ul style="margin: 5px 0;">
-                <li>Change your temporary password after first login</li>
-                <li>Complete both email and phone verification</li>
-                <li>Your profile will be visible after verification</li>
-              </ul>
-            </div>
-            
-            <p style="margin-top: 30px;">Welcome aboard!<br><strong>The Skill-Pilot Team</strong></p>
-          </div>
-          <div style="text-align: center; padding: 20px; color: #666; font-size: 12px; background: #f5f5f5;">
-            <p>&copy; 2025 Skill-Pilot Career Guidance. All rights reserved.</p>
-          </div>
-        </div>
-      `,
-      text: `Congratulations ${application.name}!\n\nYour mentor application has been APPROVED!\n\nUsername: ${baseUsername}\nTemporary Password: ${tempPassword}\n\nVerify your email: ${verificationLink}\nPhone OTP: ${phoneOTP.otp}\n\nBest regards,\nThe Skill-Pilot Team`,
-    })
+          `,
+        text: `Congratulations ${application.name}!\n\nYour mentor application has been APPROVED!\n\nUsername: ${baseUsername}\nTemporary Password: ${tempPassword}\n\nVerify your email: ${verificationLink}\nPhone OTP: ${phoneOTP.otp}\n\nBest regards,\nThe Skill-Pilot Team`,
+      };
+
+    // Send approval email (async, non-blocking)
+    sendEmailFast(application.email, emailContent)
       .then(() => {
         console.log('✅ Approval email sent');
       })
