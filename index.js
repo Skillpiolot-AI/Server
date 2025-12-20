@@ -139,6 +139,10 @@ app.use('/api/bookings', bookingRoutes);
 // Live server logs routes
 app.use('/api/logs', logsModule.router);
 
+// Announcement routes
+const announcementRoutes = require('./routes/announcementRoutes');
+app.use('/api/announcements', announcementRoutes);
+
 // ==================== CACHED JOB INFO ENDPOINT ====================
 let jobDataCache = null;
 let cacheTime = null;

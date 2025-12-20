@@ -32,7 +32,7 @@ router.get('/:bookingId', verifyToken, bookingController.getBookingById);
 router.put('/:bookingId/cancel', verifyToken, bookingController.cancelBooking);
 
 // Submit rating for completed booking
-router.post('/:bookingId/rate', verifyToken, bookingController.submitRating);
+router.post('/:bookingId/rate', verifyToken, bookingController.rateBooking);
 
 // ==========================================
 // MENTOR ROUTES (Authenticated + Mentor role)

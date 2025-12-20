@@ -40,6 +40,13 @@ const UserSchema = new mongoose.Schema({
     enum: ['local', 'google'],
     default: 'local',
   },
+
+  // Push notification token (Expo)
+  pushToken: {
+    type: String,
+    sparse: true,
+  },
+
   // ============================================
   companiesJoined: [
     {

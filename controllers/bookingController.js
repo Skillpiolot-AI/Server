@@ -265,9 +265,13 @@ exports.getBookingById = async (req, res) => {
     const { bookingId } = req.params;
     const userId = req.user._id;
 
-    const booking = await MentorBooking.findOne({
-      $or: [{ _id: bookingId }, { bookingId }],
-    })
+    // Build query - only use _id if it's a valid ObjectId (24 hex chars)
+    const isValidObjectId = /^[a-fA-F0-9]{24}$/.test(bookingId);
+    const query = isValidObjectId
+      ? { $or: [{ _id: bookingId }, { bookingId }] }
+      : { bookingId };
+
+    const booking = await MentorBooking.findOne(query)
       .populate('userId', 'name email imageUrl')
       .populate('mentorId', 'name email imageUrl')
       .populate('mentorProfileId', 'displayName tagline profileImage bio');
@@ -335,6 +339,70 @@ exports.cancelBooking = async (req, res) => {
   } catch (error) {
     console.error('Error cancelling booking:', error);
     res.status(500).json({ error: 'Failed to cancel booking' });
+  }
+};
+
+// ==========================================
+// RATING ENDPOINT
+// ==========================================
+
+/**
+ * Rate a completed session
+ * POST /api/bookings/:bookingId/rate
+ */
+exports.rateBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { score, comment } = req.body;
+    const userId = req.user._id;
+
+    // Validate rating score
+    if (!score || score < 1 || score > 5) {
+      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+    }
+
+    // Build query - only use _id if it's a valid ObjectId (24 hex chars)
+    const isValidObjectId = /^[a-fA-F0-9]{24}$/.test(bookingId);
+    const query = isValidObjectId
+      ? { $or: [{ _id: bookingId }, { bookingId }] }
+      : { bookingId };
+
+    const booking = await MentorBooking.findOne(query);
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Only the user who booked can rate
+    if (booking.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ error: 'Only the booking user can rate this session' });
+    }
+
+    // Check if already rated
+    if (booking.rating?.score) {
+      return res.status(400).json({ error: 'You have already rated this session' });
+    }
+
+    // Check if session is completed
+    if (booking.status !== 'completed') {
+      return res.status(400).json({ error: 'Can only rate completed sessions' });
+    }
+
+    // Add rating using model method
+    await booking.addRating(score, comment || '');
+
+    res.json({
+      success: true,
+      message: 'Thank you for your feedback!',
+      rating: {
+        score,
+        comment,
+        submittedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error('Error rating booking:', error);
+    res.status(500).json({ error: 'Failed to submit rating' });
   }
 };
 
