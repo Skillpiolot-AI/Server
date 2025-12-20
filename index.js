@@ -150,11 +150,15 @@ app.get('/api/track/:trackingId', async (req, res) => {
     const { trackingId } = req.params;
 
     const application = await Application.findOne({
-      trackingId: trackingId.toUpperCase()
-    }).select('name email trackingId status submittedAt updatedAt rejectionReason additionalInfoRequest');
+      trackingId: trackingId.toUpperCase(),
+    }).select(
+      'name email trackingId status submittedAt updatedAt rejectionReason additionalInfoRequest'
+    );
 
     if (!application) {
-      return res.status(404).json({ error: 'Application not found. Please check your tracking ID.' });
+      return res
+        .status(404)
+        .json({ error: 'Application not found. Please check your tracking ID.' });
     }
 
     res.json({
