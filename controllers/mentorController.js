@@ -891,12 +891,12 @@ exports.requestProfileUpdate = async (req, res) => {
 
 exports.approveProfileUpdate = async (req, res) => {
   try {
-    const { id } = req.params; // profileId
+    const { id } = req.params; // mentorId (User ID)
     const MentorProfile = require('../models/MentorProfile');
 
-    const profile = await MentorProfile.findById(id);
+    const profile = await MentorProfile.findOne({ userId: id });
     if (!profile || !profile.isChangePending) {
-      return res.status(404).json({ message: 'No pending changes found for this profile' });
+      return res.status(404).json({ message: 'No pending changes found for this mentor' });
     }
 
     // Apply changes
@@ -906,7 +906,7 @@ exports.approveProfileUpdate = async (req, res) => {
     await profile.save();
 
     // Notify mentor
-    const user = await User.findById(profile.userId);
+    const user = await User.findById(id);
     if (user) {
       await sendEmailFast(user.email, {
         subject: '✅ Your Profile Update was Approved!',
@@ -923,11 +923,11 @@ exports.approveProfileUpdate = async (req, res) => {
 
 exports.rejectProfileUpdate = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // mentorId
     const { reason } = req.body;
     const MentorProfile = require('../models/MentorProfile');
 
-    const profile = await MentorProfile.findById(id);
+    const profile = await MentorProfile.findOne({ userId: id });
     if (!profile || !profile.isChangePending) {
       return res.status(404).json({ message: 'No pending changes found' });
     }
@@ -937,7 +937,7 @@ exports.rejectProfileUpdate = async (req, res) => {
     await profile.save();
 
     // Notify mentor
-    const user = await User.findById(profile.userId);
+    const user = await User.findById(id);
     if (user) {
       await sendEmailFast(user.email, {
         subject: '❌ Profile Update Request Feedback',
@@ -949,6 +949,29 @@ exports.rejectProfileUpdate = async (req, res) => {
     res.json({ message: 'Profile update rejected' });
   } catch (error) {
     console.error('Error rejecting profile update:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+exports.getPendingProfileUpdates = async (req, res) => {
+  try {
+    const MentorProfile = require('../models/MentorProfile');
+    // Find profiles with pending changes and populate user info
+    const pendingProfiles = await MentorProfile.find({ isChangePending: true })
+      .populate('userId', 'name email createdAt updatedAt');
+
+    // Format data for the frontend
+    const result = pendingProfiles.map(profile => ({
+      _id: profile.userId._id, // Send userId as _id for the frontend actions
+      name: profile.userId.name,
+      email: profile.userId.email,
+      updatedAt: profile.updatedAt,
+      mentorProfile: profile
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching pending profile updates:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
