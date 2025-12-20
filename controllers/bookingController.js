@@ -7,10 +7,25 @@ const crypto = require('crypto');
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-// Generate Jitsi meeting link
+// Generate Jitsi meeting link with proper configuration
+// Using meet.jit.si's URL parameters to ensure meetings start properly
 const generateJitsiLink = bookingId => {
-  const roomName = `skillpilot-${bookingId}-${crypto.randomBytes(4).toString('hex')}`;
-  return `https://meet.jit.si/${roomName}`;
+  // Create a shorter, cleaner room name
+  const shortId = bookingId.replace('BK-', '').substring(0, 12);
+  const roomName = `SkillPilot${shortId}`;
+
+  // Add config parameters to:
+  // - Disable lobby (startWithAudioMuted/VideoMuted are optional preferences)
+  // - Allow direct join without waiting for moderator
+  // Note: For public meet.jit.si, the first person to join becomes moderator automatically
+  // Adding config to improve user experience
+  const configParams = [
+    'config.prejoinConfig.enabled=false',  // Skip pre-join screen
+    'config.startWithAudioMuted=true',     // Start muted to be polite
+    'config.startWithVideoMuted=false',    // Video on by default
+  ].join('&');
+
+  return `https://meet.jit.si/${roomName}#${configParams}`;
 };
 
 // ==========================================
