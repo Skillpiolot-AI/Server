@@ -108,9 +108,9 @@ exports.getAllMentors = async (req, res) => {
     const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
     const campaign = isFreeMentorship
       ? {
-        name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
-        endDate: settings.globalFreeMentorship.endDate,
-      }
+          name: settings.globalFreeMentorship.reason || 'Free Mentorship Campaign',
+          endDate: settings.globalFreeMentorship.endDate,
+        }
       : null;
 
     const [mentors, total] = await Promise.all([
@@ -957,8 +957,10 @@ exports.getPendingProfileUpdates = async (req, res) => {
   try {
     const MentorProfile = require('../models/MentorProfile');
     // Find profiles with pending changes and populate user info
-    const pendingProfiles = await MentorProfile.find({ isChangePending: true })
-      .populate('userId', 'name email createdAt updatedAt');
+    const pendingProfiles = await MentorProfile.find({ isChangePending: true }).populate(
+      'userId',
+      'name email createdAt updatedAt'
+    );
 
     // Format data for the frontend
     const result = pendingProfiles.map(profile => ({
@@ -966,7 +968,7 @@ exports.getPendingProfileUpdates = async (req, res) => {
       name: profile.userId.name,
       email: profile.userId.email,
       updatedAt: profile.updatedAt,
-      mentorProfile: profile
+      mentorProfile: profile,
     }));
 
     res.json(result);

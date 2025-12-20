@@ -11,9 +11,21 @@ router.delete('/delete-mentor/:id', verifyToken, mentorController.deleteMentor);
 router.get('/mentors/dashboard-stats', verifyToken, mentorController.getMentorDashboardStats);
 router.get('/mentors/activity-graph', verifyToken, mentorController.getActivityGraph);
 router.put('/mentors/request-profile-update', verifyToken, mentorController.requestProfileUpdate);
-router.get('/mentors/admin/pending-updates', verifyToken, mentorController.getPendingProfileUpdates);
-router.post('/mentors/admin/approve-profile-update/:id', verifyToken, mentorController.approveProfileUpdate);
-router.post('/mentors/admin/reject-profile-update/:id', verifyToken, mentorController.rejectProfileUpdate);
+router.get(
+  '/mentors/admin/pending-updates',
+  verifyToken,
+  mentorController.getPendingProfileUpdates
+);
+router.post(
+  '/mentors/admin/approve-profile-update/:id',
+  verifyToken,
+  mentorController.approveProfileUpdate
+);
+router.post(
+  '/mentors/admin/reject-profile-update/:id',
+  verifyToken,
+  mentorController.rejectProfileUpdate
+);
 
 router.get('/mentors', mentorController.getMentors);
 router.post('/book-appointment', mentorController.bookAppointment);
