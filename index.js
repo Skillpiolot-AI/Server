@@ -143,6 +143,35 @@ app.use('/api/logs', logsModule.router);
 const announcementRoutes = require('./routes/announcementRoutes');
 app.use('/api/announcements', announcementRoutes);
 
+// Track application by tracking ID (public endpoint)
+const Application = require('./models/Application');
+app.get('/api/track/:trackingId', async (req, res) => {
+  try {
+    const { trackingId } = req.params;
+
+    const application = await Application.findOne({
+      trackingId: trackingId.toUpperCase()
+    }).select('name email trackingId status submittedAt updatedAt rejectionReason additionalInfoRequest');
+
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found. Please check your tracking ID.' });
+    }
+
+    res.json({
+      trackingId: application.trackingId,
+      name: application.name,
+      status: application.status,
+      submittedAt: application.submittedAt,
+      updatedAt: application.updatedAt,
+      rejectionReason: application.rejectionReason,
+      additionalInfoRequest: application.additionalInfoRequest,
+    });
+  } catch (error) {
+    console.error('Error tracking application:', error);
+    res.status(500).json({ error: 'Failed to track application' });
+  }
+});
+
 // ==================== CACHED JOB INFO ENDPOINT ====================
 let jobDataCache = null;
 let cacheTime = null;
