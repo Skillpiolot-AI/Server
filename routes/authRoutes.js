@@ -717,9 +717,11 @@ router.post('/forgot-password', async (req, res) => {
       console.error('❌ Error sending OTP email:', emailError);
 
       res.status(500).json({
-        message: 'Failed to send reset code. Please try again later.',
+        message: 'Failed to send reset code. Email server error.',
         success: false,
         error: emailError.message,
+        errorCode: emailError.code,
+        emailResponse: emailError.response,
       });
     }
   } catch (error) {

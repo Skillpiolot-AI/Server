@@ -5,8 +5,8 @@ const nodemailer = require('nodemailer');
 // Configure transporter for fast delivery
 const transporter = nodemailer.createTransport({
   host: 'smtp.hostinger.com',
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false, // Use STARTTLS
   auth: {
     user: 'no-reply@pratimesh.com',
     pass: 'Ujjwaljha_12',
