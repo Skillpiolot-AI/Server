@@ -20,9 +20,9 @@ const generateJitsiLink = bookingId => {
   // Note: For public meet.jit.si, the first person to join becomes moderator automatically
   // Adding config to improve user experience
   const configParams = [
-    'config.prejoinConfig.enabled=false',  // Skip pre-join screen
-    'config.startWithAudioMuted=true',     // Start muted to be polite
-    'config.startWithVideoMuted=false',    // Video on by default
+    'config.prejoinConfig.enabled=false', // Skip pre-join screen
+    'config.startWithAudioMuted=true', // Start muted to be polite
+    'config.startWithVideoMuted=false', // Video on by default
   ].join('&');
 
   return `https://meet.jit.si/${roomName}#${configParams}`;
