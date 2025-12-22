@@ -504,4 +504,3 @@ describe('Auth Middleware Tests', () => {
     });
   });
 });
-
