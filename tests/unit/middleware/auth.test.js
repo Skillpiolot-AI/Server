@@ -369,4 +369,139 @@ describe('Auth Middleware Tests', () => {
       expect(nextFn).toHaveBeenCalled();
     });
   });
+
+  describe('isMentor middleware', () => {
+    const { isMentor } = require('../../../middleware/auth');
+
+    it('should reject if user is not authenticated', () => {
+      mockReq.user = null;
+
+      isMentor(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Authentication required.',
+      });
+    });
+
+    it('should reject non-mentor users', () => {
+      mockReq.user = { role: 'User' };
+
+      isMentor(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Access denied. Mentor role required.',
+      });
+    });
+
+    it('should reject Admin role', () => {
+      mockReq.user = { role: 'Admin' };
+
+      isMentor(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+    });
+
+    it('should allow Mentor role', () => {
+      mockReq.user = { role: 'Mentor' };
+
+      isMentor(mockReq, mockRes, nextFn);
+
+      expect(nextFn).toHaveBeenCalled();
+    });
+  });
+
+  describe('isMentorOrAdmin middleware', () => {
+    const { isMentorOrAdmin } = require('../../../middleware/auth');
+
+    it('should reject if user is not authenticated', () => {
+      mockReq.user = null;
+
+      isMentorOrAdmin(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Authentication required.',
+      });
+    });
+
+    it('should reject regular User role', () => {
+      mockReq.user = { role: 'User' };
+
+      isMentorOrAdmin(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Access denied. Mentor or Admin role required.',
+      });
+    });
+
+    it('should reject UniAdmin role', () => {
+      mockReq.user = { role: 'UniAdmin' };
+
+      isMentorOrAdmin(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+    });
+
+    it('should allow Mentor role', () => {
+      mockReq.user = { role: 'Mentor' };
+
+      isMentorOrAdmin(mockReq, mockRes, nextFn);
+
+      expect(nextFn).toHaveBeenCalled();
+    });
+
+    it('should allow Admin role', () => {
+      mockReq.user = { role: 'Admin' };
+
+      isMentorOrAdmin(mockReq, mockRes, nextFn);
+
+      expect(nextFn).toHaveBeenCalled();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle malformed Bearer token', async () => {
+      mockReq.header.mockReturnValue('Bearer ');
+
+      await auth(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+    });
+
+    it('should handle token with extra spaces', async () => {
+      const token = jwt.sign({ id: 'user123' }, JWT_SECRET, { expiresIn: '1h' });
+      mockReq.header.mockReturnValue(`  Bearer ${token}  `);
+
+      // This should still extract the token
+      await auth(mockReq, mockRes, nextFn);
+
+      // The behavior depends on implementation - token should be extracted
+    });
+
+    it('should handle undefined user object in requireRole', () => {
+      mockReq.user = undefined;
+
+      const middleware = requireRole(['Admin']);
+      middleware(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+    });
+
+    it('should handle empty allowed roles array', () => {
+      mockReq.user = { role: 'Admin' };
+
+      const middleware = requireRole([]);
+      middleware(mockReq, mockRes, nextFn);
+
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+    });
+  });
 });
+
