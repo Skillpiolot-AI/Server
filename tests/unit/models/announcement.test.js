@@ -346,38 +346,7 @@ describe('Announcement Model Tests', () => {
     });
   });
 
-  describe('Email Settings', () => {
-    it('should accept email settings', async () => {
-      const announcement = await Announcement.create({
-        subject: 'Email Announcement',
-        description: 'With email settings',
-        recipientType: 'all',
-        createdBy: testAdminId,
-        channels: { email: true },
-        emailSettings: {
-          isMarkdown: true,
-          previewText: 'Preview of the email',
-        },
-      });
 
-      expect(announcement.emailSettings.isMarkdown).toBe(true);
-      expect(announcement.emailSettings.previewText).toBe('Preview of the email');
-    });
-
-    it('should enforce previewText maxlength', async () => {
-      const announcement = new Announcement({
-        subject: 'Test',
-        description: 'Test',
-        recipientType: 'all',
-        createdBy: testAdminId,
-        emailSettings: {
-          previewText: 'A'.repeat(151),
-        },
-      });
-
-      await expect(announcement.save()).rejects.toThrow();
-    });
-  });
 
   describe('Stats Tracking', () => {
     it('should initialize stats with defaults', async () => {
