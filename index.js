@@ -95,7 +95,6 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// ==================== HEALTH CHECK (HIGH PRIORITY) ====================
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
@@ -103,9 +102,6 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
   });
 });
-
-// ==================== ROUTES ====================
-// Group related routes for better organization
 app.use('/api/careers', careerRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/job', Title);
@@ -128,7 +124,7 @@ app.use('/api/questions', require('./routes/questions'));
 app.use('/api/assessments', require('./routes/assessments'));
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/user-data', userDataRoutes);
-app.use('/api', bulkMentorRoutes); // Add this with your other route imports
+app.use('/api', bulkMentorRoutes);
 
 // Add this with your other routes
 app.use('/api/chatbot', chatbotRoutes);

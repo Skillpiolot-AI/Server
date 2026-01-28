@@ -346,8 +346,6 @@ describe('Announcement Model Tests', () => {
     });
   });
 
-
-
   describe('Stats Tracking', () => {
     it('should initialize stats with defaults', async () => {
       const announcement = await Announcement.create({
