@@ -1,900 +1,362 @@
 /**
- * ✈️ SKILL-PILOT EMAIL TEMPLATES
- * Complete email template system with all user management scenarios
+ * SkillPilot Email Templates
+ * Simple, clean email templates for all user management scenarios
  */
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
-const LOGO = '✈️ SKILL-PILOT';
-const TAGLINE = 'Navigate Your Career Journey';
-const SUPPORT_EMAIL = 'support@skillpilot.com';
-const COMPANY_NAME = 'Skill-Pilot Career Guidance';
+const LOGO = 'SkillPilot';
+const TAGLINE = 'Your Career Guidance Partner';
+const SUPPORT_EMAIL = 'support@skillpilot.in';
+const COMPANY_NAME = 'SkillPilot';
 
-// ============================================================================
-// COLOR SYSTEM & DESIGN TOKENS
-// ============================================================================
-
-const colors = {
-  primary: '#667eea',
-  primaryDark: '#1e3c72',
-  primaryLight: '#764ba2',
-  accent: '#f093fb',
-  accentRed: '#f5576c',
-  success: '#10b981',
-  successDark: '#059669',
-  warning: '#f59e0b',
-  warningLight: '#fef3c7',
-  error: '#dc2626',
-  errorLight: '#fef2f2',
-  text: '#1a1a1a',
-  textMuted: '#64748b',
-  textDark: '#1e3c72',
-  white: '#ffffff',
-  lightBg: '#f8f9ff',
-  borderLight: '#e0e7ff',
-};
-
-const gradients = {
-  primary: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 50%, ${colors.accent} 100%)`,
-  header: `linear-gradient(135deg, ${colors.primaryDark} 0%, #2a5298 50%, #7e22ce 100%)`,
-  success: `linear-gradient(135deg, ${colors.success} 0%, ${colors.successDark} 100%)`,
-  warning: `linear-gradient(135deg, ${colors.warningLight} 0%, #fde68a 100%)`,
-  error: `linear-gradient(135deg, ${colors.errorLight} 0%, #fee2e2 100%)`,
-};
-
-// ============================================================================
-// GLOBAL STYLES
-// ============================================================================
-
-const getAllStyles = () => `
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    line-height: 1.6; 
-    color: ${colors.text}; 
-    background: ${gradients.primary};
-  }
-  .email-wrapper { 
-    width: 100%; 
-    padding: 40px 20px; 
-    background: ${gradients.primary};
-  }
-  .container { 
-    max-width: 650px; 
-    margin: 0 auto; 
-    background-color: ${colors.white}; 
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
-    border-radius: 20px; 
-    overflow: hidden;
-  }
-  .header { 
-    background: ${gradients.header};
-    color: ${colors.white}; 
-    padding: 50px 30px; 
-    text-align: center;
-  }
-  .logo-text {
-    font-size: 48px;
-    font-weight: 900;
-    background: linear-gradient(135deg, ${colors.white} 0%, #a8d0ff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: 2px;
-  }
-  .tagline {
-    font-size: 16px;
-    opacity: 0.95;
-    font-weight: 300;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    margin-top: 10px;
-  }
-  .content { 
-    padding: 50px 40px; 
-    background: linear-gradient(to bottom, ${colors.white} 0%, ${colors.lightBg} 100%);
-  }
-  .btn {
-    display: inline-block;
-    padding: 20px 50px;
-    color: ${colors.white};
-    text-decoration: none;
-    border-radius: 50px;
-    font-weight: 800;
-    font-size: 18px;
-    margin: 35px 0;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  .btn-primary { background: ${gradients.primary}; }
-  .btn-success { background: ${gradients.success}; }
-  .badge {
-    display: inline-block;
-    padding: 15px 35px;
-    color: ${colors.white};
-    border-radius: 50px;
-    font-weight: 800;
-    font-size: 18px;
-    margin: 25px 0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    background: linear-gradient(135deg, ${colors.accent} 0%, ${colors.accentRed} 100%);
-  }
-  .card {
-    background: ${colors.white};
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-    padding: 40px;
-    margin: 40px 0;
-    border: 3px solid transparent;
-    background-image: 
-      linear-gradient(${colors.white}, ${colors.white}),
-      ${gradients.primary};
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-  }
-  .credential-row {
-    background: linear-gradient(135deg, ${colors.lightBg} 0%, ${colors.borderLight} 100%);
-    padding: 20px 25px;
-    margin: 18px 0;
-    border-left: 6px solid ${colors.primary};
-    border-radius: 12px;
-  }
-  .credential-label {
-    color: #4a5568;
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-  }
-  .credential-value {
-    color: ${colors.textDark};
-    font-weight: 700;
-    font-size: 18px;
-  }
-  .password-value {
-    color: ${colors.error};
-    font-weight: 900;
-    font-family: 'Courier New', monospace;
-    font-size: 22px;
-    letter-spacing: 2px;
-    background: ${colors.errorLight};
-    padding: 15px;
-    border-radius: 8px;
-    display: inline-block;
-    margin-top: 10px;
-  }
-  .alert {
-    padding: 20px 25px;
-    margin: 30px 0;
-    border-radius: 12px;
-    border-left: 6px solid;
-  }
-  .alert-warning { background: ${gradients.warning}; border-left-color: ${colors.warning}; }
-  .alert-error { background: ${gradients.error}; border-left-color: ${colors.error}; }
-  .alert-info { background: #dbeafe; border-left-color: #3b82f6; }
-  .alert-success { background: #f0fdf4; border-left-color: ${colors.success}; }
-  .footer { 
-    background: ${gradients.header};
-    text-align: center; 
-    padding: 40px 30px; 
-    color: #e0e7ff;
-  }
-  .footer-logo {
-    font-size: 28px;
-    font-weight: 900;
-    background: linear-gradient(135deg, ${colors.white} 0%, #a8d0ff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 15px;
-    letter-spacing: 2px;
-  }
-  @media only screen and (max-width: 600px) {
-    .content { padding: 30px 20px; }
-    .card { padding: 25px; }
-  }
-`;
-
-// ============================================================================
-// COMPONENT BUILDERS
-// ============================================================================
-
+// Simple header for emails
 const Header = () => `
-  <div class="header">
-    <div class="logo-text">${LOGO}</div>
-    <p class="tagline">${TAGLINE}</p>
+  <div style="background-color: #4F46E5; padding: 20px; text-align: center;">
+    <h1 style="color: white; margin: 0; font-family: Arial, sans-serif;">${LOGO}</h1>
+    <p style="color: #E0E7FF; margin: 5px 0 0 0; font-size: 14px;">${TAGLINE}</p>
   </div>
 `;
 
+// Simple footer for emails
 const Footer = () => `
-  <div class="footer">
-    <div class="footer-logo">${LOGO}</div>
-    <p><strong>${TAGLINE}</strong></p>
-    <p style="margin: 15px 0;">Need help? Contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: #a8d0ff;">${SUPPORT_EMAIL}</a></p>
-    <p style="font-style: italic; opacity: 0.8;">"Empowering careers, one skill at a time"</p>
-    <p style="margin-top: 20px;">&copy; 2025 ${COMPANY_NAME}. All rights reserved.</p>
+  <div style="background-color: #F3F4F6; padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+    <p style="margin: 0; color: #6B7280; font-size: 12px;">© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved.</p>
+    <p style="margin: 5px 0 0 0; color: #6B7280; font-size: 12px;">Need help? Contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: #4F46E5;">${SUPPORT_EMAIL}</a></p>
   </div>
 `;
 
+// Create email template wrapper
 const createEmailTemplate = (subject, htmlContent, textContent) => ({
   subject,
   html: `
     <!DOCTYPE html>
     <html>
     <head>
-      <meta charset="UTF-8">
+      <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>${getAllStyles()}</style>
     </head>
-    <body>
-      <div class="email-wrapper">
-        <div class="container">
-          ${htmlContent}
-        </div>
+    <body style="margin: 0; padding: 0; background-color: #F9FAFB; font-family: Arial, sans-serif;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: white;">
+        ${htmlContent}
       </div>
     </body>
     </html>
   `,
-  text: textContent,
+  text: textContent
 });
 
-// ============================================================================
-// ADMIN CREATED USER TEMPLATES
-// ============================================================================
-
-const adminCreatedWelcome = (name, username, email, password, role) => {
+// Admin created welcome email
+const adminCreatedWelcome = (name, username, email, tempPassword) => {
   const htmlContent = `
     ${Header()}
-    <div class="content">
-      <div style="background: ${gradients.primary}; color: white; padding: 40px; text-align: center; margin: -20px -10px 40px -10px; border-radius: 16px;">
-        <h2 style="font-size: 36px; margin-bottom: 15px; font-weight: 800;">Welcome Aboard, ${name}! 🎉</h2>
-        <p style="font-size: 18px; opacity: 0.95;">Your account has been personally created by our admin team</p>
-      </div>
-
-      <p style="font-size: 18px; margin-bottom: 25px; text-align: center;">
-        We're thrilled to have you join <strong>Skill-Pilot</strong>!
-      </p>
-
-      <div style="text-align: center; margin: 30px 0;">
-        <span class="badge">🎯 ${role.toUpperCase()} ACCESS</span>
-      </div>
-
-      <div class="card">
-        <h3 style="color: ${colors.primary}; margin-bottom: 25px; text-align: center; font-size: 26px;">🔑 Your Access Credentials</h3>
-        
-        <div class="credential-row">
-          <div class="credential-label">👤 Username</div>
-          <div class="credential-value">${username}</div>
-        </div>
-        
-        <div class="credential-row">
-          <div class="credential-label">📧 Email Address</div>
-          <div class="credential-value">${email}</div>
-        </div>
-        
-        <div class="credential-row">
-          <div class="credential-label">🔐 Temporary Password</div>
-          <div class="password-value">${password}</div>
-        </div>
-      </div>
-
-      <div class="alert alert-warning">
-        <strong style="color: #92400e;">⚠️ SECURITY FIRST!</strong>
-        <p style="color: #78350f; margin: 5px 0 0 0;">For your protection, please change this temporary password immediately after your first login.</p>
-      </div>
-
-      <div style="text-align: center;">
-        <a href="${FRONTEND_URL}/login" class="btn btn-primary">🚀 Launch Dashboard</a>
-      </div>
-
-      <p style="margin-top: 35px; color: #64748b;">
-        We're excited to see you achieve great things with Skill-Pilot!
-      </p>
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #1F2937; margin-bottom: 20px;">Welcome to ${COMPANY_NAME}!</h2>
+      <p style="color: #4B5563;">Hello ${name},</p>
+      <p style="color: #4B5563;">Your account has been created by an administrator. Here are your login credentials:</p>
       
-      <p style="margin-top: 20px;">
-        Ready for takeoff,<br>
-        <strong style="color: ${colors.textDark};">The Skill-Pilot Team ✈️</strong>
-      </p>
-    </div>
-    ${Footer()}
-  `;
-
-  const textContent = `
-    ✈️ SKILL-PILOT - Welcome Aboard!
-    
-    Hello ${name},
-    
-    Your account has been created with ${role} access.
-    
-    YOUR LOGIN CREDENTIALS
-    Username: ${username}
-    Email: ${email}
-    Temporary Password: ${password}
-    
-    ⚠️ IMPORTANT: Please change your password immediately after first login.
-    
-    Login now: ${FRONTEND_URL}/login
-    
-    Best regards,
-    The Skill-Pilot Team ✈️
-  `;
-
-  return createEmailTemplate(
-    `✨ Welcome Aboard Skill-Pilot - Your ${role} Journey Begins!`,
-    htmlContent,
-    textContent
-  );
-};
-
-const adminCreatedVerification = (name, username, email, password, role, verificationLink) => {
-  const htmlContent = `
-    ${Header()}
-    <div class="content">
-      <p style="font-size: 20px; font-weight: 600; color: ${colors.textDark};">Hello <strong>${name}</strong>,</p>
-      
-      <p style="font-size: 17px; margin: 20px 0;">
-        Great news! An administrator has created a <strong>Skill-Pilot</strong> account for you with special access privileges.
-      </p>
-      
-      <div style="text-align: center; margin: 30px 0;">
-        <span class="badge">🎯 ${role.toUpperCase()} ACCESS</span>
-      </div>
-
-      <div class="card">
-        <h3 style="color: ${colors.primary}; margin-bottom: 25px; text-align: center; font-size: 26px;">🔑 Your Access Credentials</h3>
-        
-        <div class="credential-row">
-          <div class="credential-label">👤 Username</div>
-          <div class="credential-value">${username}</div>
-        </div>
-        
-        <div class="credential-row">
-          <div class="credential-label">📧 Email Address</div>
-          <div class="credential-value">${email}</div>
-        </div>
-        
-        <div class="credential-row">
-          <div class="credential-label">🔐 Temporary Password</div>
-          <div class="password-value">${password}</div>
-        </div>
-      </div>
-
-      <div style="background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%); border: 3px solid ${colors.success}; padding: 35px; text-align: center; margin: 30px 0; border-radius: 20px;">
-        <h2 style="color: #047857; margin: 0 0 20px 0; font-size: 28px;">✅ Verify Your Email</h2>
-        <p style="color: #065f46; margin-bottom: 25px;">
-          To activate your Skill-Pilot account and start your journey, please verify your email address:
-        </p>
-        <a href="${verificationLink}" class="btn btn-success">🚀 Verify & Activate Account</a>
-        <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">⏰ This link expires in 24 hours</p>
-      </div>
-
-      <div class="alert alert-warning">
-        <strong style="color: #92400e;">⚠️ SECURITY REMINDER</strong>
-        <p style="color: #78350f; margin: 5px 0 0 0;">After verification and your first login, immediately change your temporary password.</p>
-      </div>
-
-      <div class="alert alert-error">
-        <p style="color: #7f1d1d; margin: 0;">
-          <strong>⚠️ Didn't request this account?</strong><br>
-          If you didn't expect this account creation, please contact our support team immediately.
-        </p>
+      <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 5px 0;"><strong>Username:</strong> ${username}</p>
+        <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+        <p style="margin: 5px 0;"><strong>Temporary Password:</strong> ${tempPassword}</p>
       </div>
       
-      <p style="margin-top: 30px;">
-        Ready to navigate success,<br>
-        <strong style="color: ${colors.textDark};">The Skill-Pilot Team ✈️</strong>
-      </p>
+      <p style="color: #DC2626; font-weight: bold;">Please change your password after logging in.</p>
+      
+      <a href="${FRONTEND_URL}/login" style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px;">Login Now</a>
+      
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
     </div>
     ${Footer()}
   `;
 
-  const textContent = `
-    ✈️ SKILL-PILOT - Verify Your Account
-    
-    Hello ${name},
-    
-    An administrator has created a Skill-Pilot account for you with ${role} access.
-    
-    YOUR LOGIN CREDENTIALS
-    Username: ${username}
-    Email: ${email}
-    Temporary Password: ${password}
-    
-    VERIFY YOUR EMAIL
-    To activate your account, verify your email:
-    ${verificationLink}
-    
-    ⏰ This link expires in 24 hours.
-    
-    ⚠️ SECURITY REMINDER:
-    Change your temporary password immediately after verification and first login.
-    
-    Best regards,
-    The Skill-Pilot Team ✈️
-  `;
+  const textContent = `Welcome to ${COMPANY_NAME}!\n\nHello ${name},\n\nYour account has been created. Here are your credentials:\n\nUsername: ${username}\nEmail: ${email}\nTemporary Password: ${tempPassword}\n\nPlease change your password after logging in.\n\nLogin at: ${FRONTEND_URL}/login\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(
-    `🔐 Verify Your Skill-Pilot Account - ${role} Access Awaits!`,
-    htmlContent,
-    textContent
-  );
+  return createEmailTemplate(`Welcome to ${COMPANY_NAME}!`, htmlContent, textContent);
 };
 
-// ============================================================================
-// OTHER NOTIFICATION TEMPLATES
-// ============================================================================
-
-const accountDeletedEmail = (name, reason = null) => {
+// Admin created verification email
+const adminCreatedVerification = (name, otp) => {
   const htmlContent = `
     ${Header()}
-    <div class="content">
-      <div class="alert alert-error">
-        <h2 style="color: #dc2626; margin: 0 0 15px 0;">⚠️ Account Deleted</h2>
-        <p style="color: #7f1d1d; margin: 0;">Your ${COMPANY_NAME} account has been permanently deleted.</p>
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #1F2937; margin-bottom: 20px;">Verify Your Email</h2>
+      <p style="color: #4B5563;">Hello ${name},</p>
+      <p style="color: #4B5563;">Please use the following verification code to verify your email:</p>
+      
+      <div style="background-color: #4F46E5; color: white; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px;">${otp}</span>
       </div>
-
-      <p>Dear ${name},</p>
-      <p>We're writing to inform you that your account with ${COMPANY_NAME} has been deleted by our administrative team.</p>
-
-      ${
-        reason
-          ? `
-        <div style="background: #fef2f2; border: 2px solid #fecaca; padding: 20px; border-radius: 12px; margin: 25px 0;">
-          <p style="margin: 0; font-weight: 600; color: #991b1b; margin-bottom: 8px;">Reason for deletion:</p>
-          <p style="margin: 0; color: #7f1d1d;">${reason}</p>
-        </div>
-      `
-          : ''
-      }
-
-      <div class="alert alert-info">
-        <p style="color: #1e40af; margin: 0;">
-          <strong>Think this was a mistake?</strong><br>
-          If you believe your account was deleted in error, please contact our support team at 
-          <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a>
-        </p>
-      </div>
-
-      <p style="margin-top: 30px;">Thank you for being part of our journey,<br><strong>${COMPANY_NAME} Team</strong></p>
+      
+      <p style="color: #6B7280;">This code expires in 10 minutes.</p>
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
     </div>
     ${Footer()}
   `;
 
-  const textContent = `Account Deletion Notice\n\nDear ${name},\n\nYour account with ${COMPANY_NAME} has been deleted.\n\n${reason ? `Reason: ${reason}\n\n` : ''}Contact us at ${SUPPORT_EMAIL} if this was a mistake.\n\nThank you,\n${COMPANY_NAME} Team`;
+  const textContent = `Verify Your Email\n\nHello ${name},\n\nYour verification code: ${otp}\n\nThis code expires in 10 minutes.\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(`Account Deletion Notice - ${COMPANY_NAME}`, htmlContent, textContent);
+  return createEmailTemplate(`Verify Your Email - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
-const accountUnverifiedEmail = (name, username, verificationLink) => {
+// Account deleted email
+const accountDeletedEmail = (name, reason) => {
   const htmlContent = `
     ${Header()}
-    <div class="content">
-      <div class="alert alert-warning">
-        <h2 style="color: #f59e0b; margin: 0 0 15px 0;">⚠️ Verification Required</h2>
-        <p style="color: #78350f; margin: 0;">Your account has been marked as unverified and requires email verification.</p>
-      </div>
-
-      <p>Hello ${name},</p>
-      <p>Your ${COMPANY_NAME} account (<strong>${username}</strong>) requires email verification before you can access our services.</p>
-
-      <div style="background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%); border: 3px solid ${colors.success}; padding: 35px; text-align: center; margin: 30px 0; border-radius: 20px;">
-        <h2 style="color: #047857;">✅ Verify Your Email</h2>
-        <p style="color: #065f46; margin-bottom: 25px;">Click the button below to verify your email address and activate your account:</p>
-        <a href="${verificationLink}" class="btn btn-success">🚀 Verify My Account</a>
-        <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">⏰ This link expires in 24 hours</p>
-      </div>
-
-      <p style="margin-top: 25px;">Best regards,<br><strong>${COMPANY_NAME} Team ✈️</strong></p>
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #DC2626; margin-bottom: 20px;">Account Deleted</h2>
+      <p style="color: #4B5563;">Dear ${name},</p>
+      <p style="color: #4B5563;">Your ${COMPANY_NAME} account has been deleted by an administrator.</p>
+      
+      ${reason ? `<p style="color: #4B5563;"><strong>Reason:</strong> ${reason}</p>` : ''}
+      
+      <p style="color: #6B7280;">If you believe this was a mistake, please contact our support team.</p>
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
     </div>
     ${Footer()}
   `;
 
-  const textContent = `Account Verification Required\n\nHello ${name},\n\nYour ${COMPANY_NAME} account (${username}) requires email verification.\n\nVerify your account: ${verificationLink}\n\nThis link expires in 24 hours.\n\nBest regards,\n${COMPANY_NAME} Team`;
+  const textContent = `Account Deleted\n\nDear ${name},\n\nYour ${COMPANY_NAME} account has been deleted by an administrator.\n\n${reason ? `Reason: ${reason}\n\n` : ''}If you believe this was a mistake, please contact our support team.\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(
-    `🔐 Account Verification Required - ${COMPANY_NAME}`,
-    htmlContent,
-    textContent
-  );
+  return createEmailTemplate(`Account Deleted - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
-const roleChangedEmail = (name, oldRole, newRole) => {
+// Account unverified email
+const accountUnverifiedEmail = (name, reason) => {
   const htmlContent = `
     ${Header()}
-    <div class="content">
-      <div class="alert alert-success">
-        <h2 style="color: ${colors.success}; margin: 0 0 15px 0;">🎉 Role Updated</h2>
-        <p style="color: #065f46; margin: 0;">Your account role has been updated successfully!</p>
-      </div>
-
-      <p>Hello ${name},</p>
-      <p>Great news! Your role in ${COMPANY_NAME} has been updated by our administrative team.</p>
-
-      <div style="background: ${colors.lightBg}; border: 3px solid ${colors.primary}; padding: 30px; border-radius: 20px; margin: 30px 0; text-align: center;">
-        <h3 style="color: ${colors.textDark}; margin-bottom: 25px;">Your Role Change</h3>
-        <div style="margin: 25px 0;">
-          <div style="display: inline-block; background: #fee2e2; color: #991b1b; padding: 12px 24px; border-radius: 25px; font-weight: 700; margin: 0 10px;">
-            ${oldRole}
-          </div>
-          <span style="font-size: 32px; color: ${colors.primary};">→</span>
-          <div style="display: inline-block; background: ${gradients.primary}; color: white; padding: 12px 24px; border-radius: 25px; font-weight: 700; margin: 0 10px;">
-            ${newRole}
-          </div>
-        </div>
-      </div>
-
-      <div style="text-align: center;">
-        <a href="${FRONTEND_URL}/login" class="btn btn-primary">Access Your Dashboard</a>
-      </div>
-
-      <p style="margin-top: 30px;">Best regards,<br><strong>${COMPANY_NAME} Team ✈️</strong></p>
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #F59E0B; margin-bottom: 20px;">Account Unverified</h2>
+      <p style="color: #4B5563;">Dear ${name},</p>
+      <p style="color: #4B5563;">Your ${COMPANY_NAME} account has been marked as unverified by an administrator.</p>
+      
+      ${reason ? `<p style="color: #4B5563;"><strong>Reason:</strong> ${reason}</p>` : ''}
+      
+      <p style="color: #4B5563;">You will need to verify your email again to access your account.</p>
+      
+      <a href="${FRONTEND_URL}/verify-email" style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px;">Verify Email</a>
+      
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
     </div>
     ${Footer()}
   `;
 
-  const textContent = `Role Updated\n\nHello ${name},\n\nYour role in ${COMPANY_NAME} has been updated!\n\nPrevious Role: ${oldRole}\nNew Role: ${newRole}\n\nAccess your dashboard: ${FRONTEND_URL}/login\n\nBest regards,\n${COMPANY_NAME} Team`;
+  const textContent = `Account Unverified\n\nDear ${name},\n\nYour ${COMPANY_NAME} account has been marked as unverified.\n\n${reason ? `Reason: ${reason}\n\n` : ''}Please verify your email at: ${FRONTEND_URL}/verify-email\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(
-    `Role Updated: ${newRole} Access Granted - ${COMPANY_NAME}`,
-    htmlContent,
-    textContent
-  );
+  return createEmailTemplate(`Account Unverified - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
-const accountDeactivatedEmail = (name, reason = null) => {
+// Role changed email
+const roleChangedEmail = (name, oldRole, newRole, reason) => {
   const htmlContent = `
     ${Header()}
-    <div class="content">
-      <div class="alert alert-warning">
-        <h2 style="color: #f59e0b; margin: 0 0 15px 0;">⚠️ Account Deactivated</h2>
-        <p style="color: #78350f; margin: 0;">Your account has been temporarily deactivated.</p>
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #1F2937; margin-bottom: 20px;">Role Updated</h2>
+      <p style="color: #4B5563;">Dear ${name},</p>
+      <p style="color: #4B5563;">Your account role has been updated.</p>
+      
+      <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 5px 0;"><strong>Previous Role:</strong> ${oldRole}</p>
+        <p style="margin: 5px 0;"><strong>New Role:</strong> ${newRole}</p>
       </div>
-
-      <p>Dear ${name},</p>
-      <p>Your ${COMPANY_NAME} account has been deactivated by our administrative team.</p>
-
-      ${
-        reason
-          ? `
-        <div style="background: #fef3c7; border: 2px solid #fde68a; padding: 20px; border-radius: 12px; margin: 25px 0;">
-          <p style="margin: 0; font-weight: 600; color: #92400e; margin-bottom: 8px;">Reason:</p>
-          <p style="margin: 0; color: #78350f;">${reason}</p>
-        </div>
-      `
-          : ''
-      }
-
-      <div class="alert alert-info">
-        <p style="color: #1e40af; margin: 0;">
-          <strong>Need to Reactivate?</strong><br>
-          Contact our support team at <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a> to request account reactivation.
-        </p>
-      </div>
-
-      <p style="margin-top: 30px;">Thank you for your understanding,<br><strong>${COMPANY_NAME} Team</strong></p>
+      
+      ${reason ? `<p style="color: #4B5563;"><strong>Reason:</strong> ${reason}</p>` : ''}
+      
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
     </div>
     ${Footer()}
   `;
 
-  const textContent = `Account Deactivated\n\nDear ${name},\n\nYour ${COMPANY_NAME} account has been deactivated.\n\n${reason ? `Reason: ${reason}\n\n` : ''}Contact support to reactivate: ${SUPPORT_EMAIL}\n\nThank you,\n${COMPANY_NAME} Team`;
+  const textContent = `Role Updated\n\nDear ${name},\n\nYour account role has been updated.\n\nPrevious Role: ${oldRole}\nNew Role: ${newRole}\n${reason ? `\nReason: ${reason}` : ''}\n\nBest regards,\n${COMPANY_NAME} Team`;
+
+  return createEmailTemplate(`Role Updated - ${COMPANY_NAME}`, htmlContent, textContent);
+};
+
+// Account deactivated email
+const accountDeactivatedEmail = (name, reason) => {
+  const htmlContent = `
+    ${Header()}
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #DC2626; margin-bottom: 20px;">Account Deactivated</h2>
+      <p style="color: #4B5563;">Dear ${name},</p>
+      <p style="color: #4B5563;">Your ${COMPANY_NAME} account has been deactivated by an administrator.</p>
+      
+      ${reason ? `<p style="color: #4B5563;"><strong>Reason:</strong> ${reason}</p>` : ''}
+      
+      <p style="color: #6B7280;">If you believe this was a mistake, please contact our support team.</p>
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
+    </div>
+    ${Footer()}
+  `;
+
+  const textContent = `Account Deactivated\n\nDear ${name},\n\nYour ${COMPANY_NAME} account has been deactivated.\n\n${reason ? `Reason: ${reason}\n\n` : ''}If you believe this was a mistake, please contact support.\n\nBest regards,\n${COMPANY_NAME} Team`;
 
   return createEmailTemplate(`Account Deactivated - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
-const accountReactivatedEmail = name => {
+// Account reactivated email
+const accountReactivatedEmail = (name) => {
   const htmlContent = `
     ${Header()}
-    <div class="content">
-      <div class="alert alert-success">
-        <h2 style="color: ${colors.success}; margin: 0 0 15px 0;">🎉 Welcome Back!</h2>
-        <p style="color: #065f46; margin: 0;">Your account has been successfully reactivated!</p>
-      </div>
-
-      <p>Hello ${name},</p>
-      <p>Great news! Your ${COMPANY_NAME} account has been reactivated and you can now access all our services again.</p>
-
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${FRONTEND_URL}/login" class="btn btn-success">🚀 Access Your Dashboard</a>
-      </div>
-
-      <p style="margin-top: 30px;">Best regards,<br><strong>${COMPANY_NAME} Team ✈️</strong></p>
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #10B981; margin-bottom: 20px;">Account Reactivated</h2>
+      <p style="color: #4B5563;">Dear ${name},</p>
+      <p style="color: #4B5563;">Great news! Your ${COMPANY_NAME} account has been reactivated.</p>
+      <p style="color: #4B5563;">You can now log in and access all features.</p>
+      
+      <a href="${FRONTEND_URL}/login" style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px;">Login Now</a>
+      
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
     </div>
     ${Footer()}
   `;
 
-  const textContent = `Welcome Back!\n\nHello ${name},\n\nYour ${COMPANY_NAME} account has been reactivated!\n\nLogin now: ${FRONTEND_URL}/login\n\nBest regards,\n${COMPANY_NAME} Team`;
+  const textContent = `Account Reactivated\n\nDear ${name},\n\nGreat news! Your ${COMPANY_NAME} account has been reactivated.\n\nYou can now log in at: ${FRONTEND_URL}/login\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(
-    `✅ Account Reactivated - Welcome Back to ${COMPANY_NAME}!`,
-    htmlContent,
-    textContent
-  );
+  return createEmailTemplate(`Account Reactivated - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
+// Temp password reminder email
 const tempPasswordReminderEmail = (name, daysRemaining) => {
   const htmlContent = `
     ${Header()}
-    <div class="content">
-      <div class="alert alert-warning">
-        <h2 style="color: #f59e0b; margin: 0 0 15px 0;">🔐 Security Reminder</h2>
-        <p style="color: #78350f; margin: 0;">You're still using a temporary password. Please change it for security.</p>
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #F59E0B; margin-bottom: 20px;">Password Change Reminder</h2>
+      <p style="color: #4B5563;">Dear ${name},</p>
+      <p style="color: #4B5563;">This is a reminder that you are still using a temporary password.</p>
+      
+      <div style="background-color: #FEF3C7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+        <p style="margin: 0; color: #92400E;"><strong>Please change your password within ${daysRemaining} days.</strong></p>
       </div>
-
-      <p>Hello ${name},</p>
-      <p>This is a friendly reminder that your ${COMPANY_NAME} account is still using a temporary password assigned by our team.</p>
-
-      <div style="background: ${gradients.warning}; border: 3px solid ${colors.warning}; padding: 30px; border-radius: 20px; margin: 30px 0; text-align: center;">
-        <h2 style="color: #92400e;">⚠️ Action Required</h2>
-        <p style="color: #78350f;">For your account security, please change your temporary password as soon as possible.</p>
-        <div style="background: white; padding: 15px; border-radius: 12px; margin: 20px 0;">
-          <p style="color: #92400e; margin: 0;"><strong>Days since account creation:</strong> ${daysRemaining} days</p>
-        </div>
-      </div>
-
-      <div style="text-align: center;">
-        <a href="${FRONTEND_URL}/login" class="btn btn-primary">🔒 Change Password Now</a>
-      </div>
-
-      <p style="margin-top: 30px;">Stay secure,<br><strong>${COMPANY_NAME} Security Team</strong></p>
+      
+      <a href="${FRONTEND_URL}/change-password" style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 10px;">Change Password</a>
+      
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
     </div>
     ${Footer()}
   `;
 
-  const textContent = `Security Reminder\n\nHello ${name},\n\nYou're still using a temporary password for your ${COMPANY_NAME} account.\n\nDays since account creation: ${daysRemaining} days\n\nChange password: ${FRONTEND_URL}/login\n\nStay secure,\n${COMPANY_NAME} Security Team`;
+  const textContent = `Password Change Reminder\n\nDear ${name},\n\nThis is a reminder that you are still using a temporary password.\n\nPlease change your password within ${daysRemaining} days.\n\nChange password at: ${FRONTEND_URL}/change-password\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(
-    `⚠️ Reminder: Change Your Temporary Password - ${COMPANY_NAME}`,
-    htmlContent,
-    textContent
-  );
+  return createEmailTemplate(`Password Change Reminder - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
-const googleWelcomeTemplate = (name, username) => ({
-  subject: '🎉 Welcome to Spark Career Guidance!',
-  html: `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header { text-align: center; margin-bottom: 30px; }
-        .logo { width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; }
-        h1 { color: #667eea; margin: 0; font-size: 28px; }
-        .welcome-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; margin: 30px 0; }
-        .google-badge { background: #fff; color: #4285f4; padding: 10px 20px; border-radius: 25px; display: inline-block; margin-top: 15px; font-weight: bold; }
-        .info-box { background: #f8f9fa; padding: 20px; border-left: 4px solid #667eea; margin: 20px 0; border-radius: 5px; }
-        .credentials { background: #e3f2fd; padding: 15px; margin: 15px 0; border-radius: 5px; }
-        .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
-        .features { list-style: none; padding: 0; }
-        .features li { padding: 10px 0; border-bottom: 1px solid #eee; }
-        .features li:before { content: "✓"; color: #667eea; font-weight: bold; margin-right: 10px; }
-        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="logo">S</div>
-          <h1>Welcome to Spark!</h1>
-        </div>
-
-        <div class="welcome-box">
-          <h2 style="margin: 0 0 10px 0;">🎉 Account Created Successfully!</h2>
-          <p style="margin: 0; font-size: 18px;">Hi ${name}!</p>
-          <div class="google-badge">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width: 18px; vertical-align: middle; margin-right: 8px;" alt="Google">
-            Signed up with Google
-          </div>
-        </div>
-
-        <p>Thank you for joining Spark Career Guidance Portal! Your account has been created successfully using Google Sign-In.</p>
-
-        <div class="credentials">
-          <strong>📝 Your Account Details:</strong><br>
-          <strong>Username:</strong> ${username}<br>
-          <strong>Email:</strong> Linked to your Google account<br>
-          <strong>Account Status:</strong> ✅ Verified & Active
-        </div>
-
-        <div class="info-box">
-          <strong>🔐 Secure Login Options:</strong><br>
-          You can now sign in using:
-          <ul style="margin: 10px 0;">
-            <li>Google Sign-In (Recommended)</li>
-            <li>Username and password (set a password in your profile settings)</li>
-          </ul>
-        </div>
-
-        <h3 style="color: #667eea;">🚀 What's Next?</h3>
-        <ul class="features">
-          <li>Complete your profile to get personalized recommendations</li>
-          <li>Take career assessment tests</li>
-          <li>Connect with mentors in your field</li>
-          <li>Explore career paths and opportunities</li>
-          <li>Access exclusive resources and workshops</li>
-        </ul>
-
-        <div style="text-align: center;">
-          <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" class="button">
-            Start Your Journey →
-          </a>
-        </div>
-
-        <div class="info-box" style="background: #fff3cd; border-left-color: #ffc107;">
-          <strong>💡 Pro Tip:</strong> Enable two-factor authentication in your account settings for enhanced security!
-        </div>
-
-        <div class="footer">
-          <p>Need help? Contact us at support@sparkcareer.com</p>
-          <p>© 2025 Spark Career Guidance. All rights reserved.</p>
-          <p style="margin-top: 15px;">
-            <a href="#" style="color: #667eea; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
-            <a href="#" style="color: #667eea; text-decoration: none; margin: 0 10px;">Terms of Service</a>
-          </p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `,
-  text: `
-Welcome to Spark Career Guidance!
-
-Hi ${name}!
-
-Thank you for joining Spark Career Guidance Portal using Google Sign-In!
-
-Your Account Details:
-- Username: ${username}
-- Email: Linked to your Google account
-- Account Status: Verified & Active
-
-You can now sign in using:
-- Google Sign-In (Recommended)
-- Username and password (set a password in your profile settings)
-
-What's Next?
-- Complete your profile to get personalized recommendations
-- Take career assessment tests
-- Connect with mentors in your field
-- Explore career paths and opportunities
-- Access exclusive resources and workshops
-
-Get Started: ${process.env.FRONTEND_URL || 'http://localhost:5173'}
-
-Need help? Contact us at support@sparkcareer.com
-
-© 2025 Spark Career Guidance. All rights reserved.
-  `,
-});
-
-// ============================================================================
-// EMAIL CHANGE TEMPLATES
-// ============================================================================
-
-const emailChangeOTPTemplate = (name, otp, newEmail) => {
+// Google welcome template
+const googleWelcomeTemplate = (name, email, username) => {
   const htmlContent = `
     ${Header()}
-    <div class="content">
-      <div class="alert alert-info">
-        <h2 style="color: #3b82f6; margin: 0 0 15px 0;">🔐 Email Change Verification</h2>
-        <p style="color: #1e40af; margin: 0;">Use the code below to verify your email change request.</p>
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #1F2937; margin-bottom: 20px;">Welcome to ${COMPANY_NAME}!</h2>
+      <p style="color: #4B5563;">Hello ${name},</p>
+      <p style="color: #4B5563;">Thank you for joining ${COMPANY_NAME}! Your account has been created successfully using Google Sign-In.</p>
+      
+      <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 5px 0;"><strong>Username:</strong> ${username}</p>
+        <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
       </div>
+      
+      <p style="color: #4B5563;">You can now explore all the features we offer:</p>
+      <ul style="color: #4B5563;">
+        <li>Career assessments and recommendations</li>
+        <li>Mentorship booking</li>
+        <li>Skill development resources</li>
+        <li>Industry insights and guidance</li>
+      </ul>
+      
+      <a href="${FRONTEND_URL}/dashboard" style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px;">Go to Dashboard</a>
+      
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
+    </div>
+    ${Footer()}
+  `;
 
-      <p>Hello ${name},</p>
-      <p>You've requested to change your email address to: <strong>${newEmail}</strong></p>
+  const textContent = `Welcome to ${COMPANY_NAME}!\n\nHello ${name},\n\nThank you for joining ${COMPANY_NAME} using Google Sign-In!\n\nYour account details:\nUsername: ${username}\nEmail: ${email}\n\nExplore our features:\n- Career assessments and recommendations\n- Mentorship booking\n- Skill development resources\n- Industry insights and guidance\n\nVisit your dashboard: ${FRONTEND_URL}/dashboard\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-      <div style="background: linear-gradient(135deg, #f8f9ff 0%, #e0e7ff 100%); border: 3px solid ${colors.primary}; padding: 35px; text-align: center; margin: 30px 0; border-radius: 20px;">
-        <h2 style="color: ${colors.textDark}; margin: 0 0 20px 0;">Your Verification Code</h2>
-        <div style="background: white; padding: 20px 40px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);">
-          <span style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: ${colors.primary}; font-family: 'Courier New', monospace;">${otp}</span>
-        </div>
-        <p style="font-size: 14px; color: #64748b; margin-top: 20px;">⏰ This code expires in 10 minutes</p>
+  return createEmailTemplate(`Welcome to ${COMPANY_NAME}!`, htmlContent, textContent);
+};
+
+// Email change OTP template
+const emailChangeOTPTemplate = (name, newEmail, otp) => {
+  const htmlContent = `
+    ${Header()}
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #1F2937; margin-bottom: 20px;">Email Change Verification</h2>
+      <p style="color: #4B5563;">Hello ${name},</p>
+      <p style="color: #4B5563;">You've requested to change your email to: <strong>${newEmail}</strong></p>
+      
+      <p style="color: #4B5563;">Your verification code:</p>
+      <div style="background-color: #4F46E5; color: white; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px;">${otp}</span>
       </div>
-
-      <div class="alert alert-warning">
-        <strong style="color: #92400e;">⚠️ Didn't request this?</strong>
-        <p style="color: #78350f; margin: 5px 0 0 0;">If you didn't request to change your email, please ignore this message and ensure your account is secure.</p>
-      </div>
-
-      <p style="margin-top: 30px;">Best regards,<br><strong>${COMPANY_NAME} Team ✈️</strong></p>
+      
+      <p style="color: #6B7280;">This code expires in 10 minutes.</p>
+      <p style="color: #DC2626;">If you didn't request this change, please ignore this email.</p>
+      
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
     </div>
     ${Footer()}
   `;
 
   const textContent = `Email Change Verification\n\nHello ${name},\n\nYou've requested to change your email to: ${newEmail}\n\nYour verification code: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, please ignore this message.\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(
-    `🔐 Email Change Verification Code - ${COMPANY_NAME}`,
-    htmlContent,
-    textContent
-  );
+  return createEmailTemplate(`Email Change Verification - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
+// Email change confirmation template
 const emailChangeConfirmationTemplate = (name, oldEmail, newEmail) => {
   const htmlContent = `
     ${Header()}
-    <div class="content">
-      <div class="alert alert-success">
-        <h2 style="color: ${colors.success}; margin: 0 0 15px 0;">✅ Email Changed Successfully</h2>
-        <p style="color: #065f46; margin: 0;">Your email address has been updated!</p>
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #10B981; margin-bottom: 20px;">Email Changed Successfully</h2>
+      <p style="color: #4B5563;">Hello ${name},</p>
+      <p style="color: #4B5563;">Your ${COMPANY_NAME} account email has been successfully changed.</p>
+      
+      <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 5px 0;"><strong>Previous Email:</strong> <span style="text-decoration: line-through; color: #9CA3AF;">${oldEmail}</span></p>
+        <p style="margin: 5px 0;"><strong>New Email:</strong> <span style="color: #10B981;">${newEmail}</span></p>
       </div>
-
-      <p>Hello ${name},</p>
-      <p>Your ${COMPANY_NAME} account email has been successfully changed.</p>
-
-      <div style="background: ${colors.lightBg}; border: 3px solid ${colors.primary}; padding: 30px; border-radius: 20px; margin: 30px 0;">
-        <h3 style="color: ${colors.textDark}; margin-bottom: 20px;">Email Change Details</h3>
-        <div class="credential-row">
-          <div class="credential-label">Previous Email</div>
-          <div class="credential-value" style="text-decoration: line-through; color: #9ca3af;">${oldEmail}</div>
-        </div>
-        <div class="credential-row" style="border-left-color: ${colors.success};">
-          <div class="credential-label">New Email</div>
-          <div class="credential-value" style="color: ${colors.success};">${newEmail}</div>
-        </div>
-      </div>
-
-      <div class="alert alert-warning">
-        <strong style="color: #92400e;">⚠️ Didn't make this change?</strong>
-        <p style="color: #78350f; margin: 5px 0 0 0;">If you didn't change your email, please contact our support team immediately at <a href="mailto:${SUPPORT_EMAIL}" style="color: #92400e;">${SUPPORT_EMAIL}</a></p>
-      </div>
-
-      <p style="margin-top: 30px;">Best regards,<br><strong>${COMPANY_NAME} Team ✈️</strong></p>
+      
+      <p style="color: #DC2626;"><strong>Didn't make this change?</strong> Contact our support team immediately at <a href="mailto:${SUPPORT_EMAIL}" style="color: #DC2626;">${SUPPORT_EMAIL}</a></p>
+      
+      <p style="color: #6B7280; margin-top: 30px;">Best regards,<br>${COMPANY_NAME} Team</p>
     </div>
     ${Footer()}
   `;
 
   const textContent = `Email Changed Successfully\n\nHello ${name},\n\nYour ${COMPANY_NAME} account email has been changed.\n\nPrevious Email: ${oldEmail}\nNew Email: ${newEmail}\n\nIf you didn't make this change, contact support immediately at ${SUPPORT_EMAIL}\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(
-    `✅ Email Changed Successfully - ${COMPANY_NAME}`,
-    htmlContent,
-    textContent
-  );
+  return createEmailTemplate(`Email Changed Successfully - ${COMPANY_NAME}`, htmlContent, textContent);
 };
 
+// Self delete account email
 const selfDeleteAccountEmail = name => {
   const htmlContent = `
     ${Header()}
-    <div class="content">
-      <div class="alert alert-error">
-        <h2 style="color: #dc2626; margin: 0 0 15px 0;">👋 Account Deleted</h2>
-        <p style="color: #7f1d1d; margin: 0;">Your ${COMPANY_NAME} account has been permanently deleted.</p>
+    <div style="padding: 30px; font-family: Arial, sans-serif;">
+      <h2 style="color: #DC2626; margin-bottom: 20px;">Account Deleted</h2>
+      <p style="color: #4B5563;">Dear ${name},</p>
+      <p style="color: #4B5563;">As per your request, your ${COMPANY_NAME} account has been permanently deleted. All your data has been removed from our systems.</p>
+      
+      <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+        <p style="margin: 0; color: #4B5563;">We're sad to see you go!</p>
+        <p style="margin: 10px 0 0 0; color: #6B7280;">If you change your mind, you're always welcome to create a new account.</p>
       </div>
-
-      <p>Dear ${name},</p>
-      <p>As per your request, your ${COMPANY_NAME} account has been permanently deleted. All your data has been removed from our systems.</p>
-
-      <div style="background: ${colors.lightBg}; border: 3px solid ${colors.primary}; padding: 30px; border-radius: 20px; margin: 30px 0; text-align: center;">
-        <h3 style="color: ${colors.textDark}; margin-bottom: 15px;">We're sad to see you go! 😢</h3>
-        <p style="color: #64748b;">If you change your mind, you're always welcome to create a new account.</p>
-      </div>
-
-      <div class="alert alert-info">
-        <p style="color: #1e40af; margin: 0;">
-          <strong>What happens next?</strong><br>
-          • All your profile data has been deleted<br>
-          • Your projects, certifications, and goals are removed<br>
-          • You will no longer receive emails from us
-        </p>
-      </div>
-
-      <p style="margin-top: 30px;">Thank you for being part of our journey,<br><strong>${COMPANY_NAME} Team ✈️</strong></p>
+      
+      <p style="color: #4B5563;"><strong>What happens next?</strong></p>
+      <ul style="color: #6B7280;">
+        <li>All your profile data has been deleted</li>
+        <li>Your projects, certifications, and goals are removed</li>
+        <li>You will no longer receive emails from us</li>
+      </ul>
+      
+      <p style="color: #6B7280; margin-top: 30px;">Thank you for being part of our journey,<br>${COMPANY_NAME} Team</p>
     </div>
     ${Footer()}
   `;
 
   const textContent = `Account Deleted\n\nDear ${name},\n\nAs per your request, your ${COMPANY_NAME} account has been permanently deleted.\n\nAll your data has been removed from our systems.\n\nIf you change your mind, you're always welcome to create a new account.\n\nThank you for being part of our journey,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(`👋 Account Deleted - ${COMPANY_NAME}`, htmlContent, textContent);
+  return createEmailTemplate(`Account Deleted - ${COMPANY_NAME}`, htmlContent, textContent);
 };
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
 
 module.exports = {
   // Admin templates
@@ -916,9 +378,6 @@ module.exports = {
   selfDeleteAccountEmail,
 
   // Utility exports
-  colors,
-  gradients,
-  getAllStyles,
   Header,
   Footer,
   createEmailTemplate,
