@@ -42,7 +42,7 @@ const createEmailTemplate = (subject, htmlContent, textContent) => ({
     </body>
     </html>
   `,
-  text: textContent
+  text: textContent,
 });
 
 // Admin created welcome email
@@ -194,7 +194,7 @@ const accountDeactivatedEmail = (name, reason) => {
 };
 
 // Account reactivated email
-const accountReactivatedEmail = (name) => {
+const accountReactivatedEmail = name => {
   const htmlContent = `
     ${Header()}
     <div style="padding: 30px; font-family: Arial, sans-serif;">
@@ -237,7 +237,11 @@ const tempPasswordReminderEmail = (name, daysRemaining) => {
 
   const textContent = `Password Change Reminder\n\nDear ${name},\n\nThis is a reminder that you are still using a temporary password.\n\nPlease change your password within ${daysRemaining} days.\n\nChange password at: ${FRONTEND_URL}/change-password\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(`Password Change Reminder - ${COMPANY_NAME}`, htmlContent, textContent);
+  return createEmailTemplate(
+    `Password Change Reminder - ${COMPANY_NAME}`,
+    htmlContent,
+    textContent
+  );
 };
 
 // Google welcome template
@@ -298,7 +302,11 @@ const emailChangeOTPTemplate = (name, newEmail, otp) => {
 
   const textContent = `Email Change Verification\n\nHello ${name},\n\nYou've requested to change your email to: ${newEmail}\n\nYour verification code: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, please ignore this message.\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(`Email Change Verification - ${COMPANY_NAME}`, htmlContent, textContent);
+  return createEmailTemplate(
+    `Email Change Verification - ${COMPANY_NAME}`,
+    htmlContent,
+    textContent
+  );
 };
 
 // Email change confirmation template
@@ -324,7 +332,11 @@ const emailChangeConfirmationTemplate = (name, oldEmail, newEmail) => {
 
   const textContent = `Email Changed Successfully\n\nHello ${name},\n\nYour ${COMPANY_NAME} account email has been changed.\n\nPrevious Email: ${oldEmail}\nNew Email: ${newEmail}\n\nIf you didn't make this change, contact support immediately at ${SUPPORT_EMAIL}\n\nBest regards,\n${COMPANY_NAME} Team`;
 
-  return createEmailTemplate(`Email Changed Successfully - ${COMPANY_NAME}`, htmlContent, textContent);
+  return createEmailTemplate(
+    `Email Changed Successfully - ${COMPANY_NAME}`,
+    htmlContent,
+    textContent
+  );
 };
 
 // Self delete account email

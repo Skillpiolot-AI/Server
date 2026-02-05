@@ -22,7 +22,7 @@ const professionalFooter = () => `
 `;
 
 // Application submitted template
-const applicationSubmittedTemplate = (mentorName) => ({
+const applicationSubmittedTemplate = mentorName => ({
   subject: `Application Received - ${COMPANY_NAME} Mentor Program`,
   html: `
     <!DOCTYPE html>
@@ -56,7 +56,7 @@ const applicationSubmittedTemplate = (mentorName) => ({
     </body>
     </html>
   `,
-  text: `Application Received\n\nDear ${mentorName},\n\nThank you for applying to become a mentor at ${COMPANY_NAME}!\n\nWe have received your application and our team will review it shortly.\n\nBest regards,\n${COMPANY_NAME} Team`
+  text: `Application Received\n\nDear ${mentorName},\n\nThank you for applying to become a mentor at ${COMPANY_NAME}!\n\nWe have received your application and our team will review it shortly.\n\nBest regards,\n${COMPANY_NAME} Team`,
 });
 
 // Application approved template
@@ -93,7 +93,7 @@ const applicationApprovedTemplate = (mentorName, loginUrl) => ({
     </body>
     </html>
   `,
-  text: `Congratulations!\n\nDear ${mentorName},\n\nYour application to become a mentor at ${COMPANY_NAME} has been approved!\n\nYou can now set up your profile and start accepting sessions.\n\nVisit your dashboard: ${loginUrl || FRONTEND_URL + '/mentor/dashboard'}\n\nWelcome to the team!\n${COMPANY_NAME} Team`
+  text: `Congratulations!\n\nDear ${mentorName},\n\nYour application to become a mentor at ${COMPANY_NAME} has been approved!\n\nYou can now set up your profile and start accepting sessions.\n\nVisit your dashboard: ${loginUrl || FRONTEND_URL + '/mentor/dashboard'}\n\nWelcome to the team!\n${COMPANY_NAME} Team`,
 });
 
 // Application rejected template
@@ -115,12 +115,16 @@ const applicationRejectedTemplate = (mentorName, reason) => ({
           <p style="color: #4B5563;">Thank you for your interest in becoming a mentor at ${COMPANY_NAME}.</p>
           <p style="color: #4B5563;">After careful review, we regret to inform you that we are unable to approve your application at this time.</p>
           
-          ${reason ? `
+          ${
+            reason
+              ? `
             <div style="background-color: #F3F4F6; padding: 15px; border-radius: 8px; margin: 20px 0;">
               <p style="margin: 0; color: #4B5563;"><strong>Feedback:</strong></p>
               <p style="margin: 10px 0 0 0; color: #6B7280;">${reason}</p>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
           
           <p style="color: #4B5563;">You are welcome to reapply in the future with updated qualifications.</p>
           
@@ -131,7 +135,7 @@ const applicationRejectedTemplate = (mentorName, reason) => ({
     </body>
     </html>
   `,
-  text: `Application Update\n\nDear ${mentorName},\n\nThank you for your interest in becoming a mentor at ${COMPANY_NAME}.\n\nAfter careful review, we are unable to approve your application at this time.\n\n${reason ? `Feedback: ${reason}\n\n` : ''}You are welcome to reapply in the future.\n\nBest regards,\n${COMPANY_NAME} Team`
+  text: `Application Update\n\nDear ${mentorName},\n\nThank you for your interest in becoming a mentor at ${COMPANY_NAME}.\n\nAfter careful review, we are unable to approve your application at this time.\n\n${reason ? `Feedback: ${reason}\n\n` : ''}You are welcome to reapply in the future.\n\nBest regards,\n${COMPANY_NAME} Team`,
 });
 
 // More info requested template
@@ -166,11 +170,17 @@ const moreInfoRequestedTemplate = (mentorName, requestedInfo) => ({
     </body>
     </html>
   `,
-  text: `Additional Information Needed\n\nDear ${mentorName},\n\nThank you for your application to become a mentor at ${COMPANY_NAME}.\n\nWe need the following additional information:\n\n${requestedInfo}\n\nPlease reply to this email with the requested information.\n\nBest regards,\n${COMPANY_NAME} Team`
+  text: `Additional Information Needed\n\nDear ${mentorName},\n\nThank you for your application to become a mentor at ${COMPANY_NAME}.\n\nWe need the following additional information:\n\n${requestedInfo}\n\nPlease reply to this email with the requested information.\n\nBest regards,\n${COMPANY_NAME} Team`,
 });
 
 // Session booked template (for mentor)
-const sessionBookedMentorTemplate = (mentorName, menteeName, sessionDate, sessionTime, meetingLink) => ({
+const sessionBookedMentorTemplate = (
+  mentorName,
+  menteeName,
+  sessionDate,
+  sessionTime,
+  meetingLink
+) => ({
   subject: `New Session Booked - ${COMPANY_NAME}`,
   html: `
     <!DOCTYPE html>
@@ -203,11 +213,17 @@ const sessionBookedMentorTemplate = (mentorName, menteeName, sessionDate, sessio
     </body>
     </html>
   `,
-  text: `New Session Booked\n\nDear ${mentorName},\n\nA new mentorship session has been booked with you.\n\nMentee: ${menteeName}\nDate: ${sessionDate}\nTime: ${sessionTime}\n${meetingLink ? `Meeting Link: ${meetingLink}\n` : ''}\nView session: ${FRONTEND_URL}/mentor/sessions\n\nBest regards,\n${COMPANY_NAME} Team`
+  text: `New Session Booked\n\nDear ${mentorName},\n\nA new mentorship session has been booked with you.\n\nMentee: ${menteeName}\nDate: ${sessionDate}\nTime: ${sessionTime}\n${meetingLink ? `Meeting Link: ${meetingLink}\n` : ''}\nView session: ${FRONTEND_URL}/mentor/sessions\n\nBest regards,\n${COMPANY_NAME} Team`,
 });
 
 // Session booked template (for mentee)
-const sessionBookedMenteeTemplate = (menteeName, mentorName, sessionDate, sessionTime, meetingLink) => ({
+const sessionBookedMenteeTemplate = (
+  menteeName,
+  mentorName,
+  sessionDate,
+  sessionTime,
+  meetingLink
+) => ({
   subject: `Session Confirmed - ${COMPANY_NAME}`,
   html: `
     <!DOCTYPE html>
@@ -240,11 +256,17 @@ const sessionBookedMenteeTemplate = (menteeName, mentorName, sessionDate, sessio
     </body>
     </html>
   `,
-  text: `Session Confirmed!\n\nDear ${menteeName},\n\nYour mentorship session has been confirmed.\n\nMentor: ${mentorName}\nDate: ${sessionDate}\nTime: ${sessionTime}\n${meetingLink ? `Meeting Link: ${meetingLink}\n` : ''}\nView sessions: ${FRONTEND_URL}/sessions\n\nBest regards,\n${COMPANY_NAME} Team`
+  text: `Session Confirmed!\n\nDear ${menteeName},\n\nYour mentorship session has been confirmed.\n\nMentor: ${mentorName}\nDate: ${sessionDate}\nTime: ${sessionTime}\n${meetingLink ? `Meeting Link: ${meetingLink}\n` : ''}\nView sessions: ${FRONTEND_URL}/sessions\n\nBest regards,\n${COMPANY_NAME} Team`,
 });
 
 // Session cancelled template
-const sessionCancelledTemplate = (recipientName, sessionDate, sessionTime, cancelledBy, reason) => ({
+const sessionCancelledTemplate = (
+  recipientName,
+  sessionDate,
+  sessionTime,
+  cancelledBy,
+  reason
+) => ({
   subject: `Session Cancelled - ${COMPANY_NAME}`,
   html: `
     <!DOCTYPE html>
@@ -279,11 +301,18 @@ const sessionCancelledTemplate = (recipientName, sessionDate, sessionTime, cance
     </body>
     </html>
   `,
-  text: `Session Cancelled\n\nDear ${recipientName},\n\nYour scheduled session has been cancelled.\n\nDate: ${sessionDate}\nTime: ${sessionTime}\nCancelled by: ${cancelledBy}\n${reason ? `Reason: ${reason}\n` : ''}\nBook a new session: ${FRONTEND_URL}/mentors\n\nBest regards,\n${COMPANY_NAME} Team`
+  text: `Session Cancelled\n\nDear ${recipientName},\n\nYour scheduled session has been cancelled.\n\nDate: ${sessionDate}\nTime: ${sessionTime}\nCancelled by: ${cancelledBy}\n${reason ? `Reason: ${reason}\n` : ''}\nBook a new session: ${FRONTEND_URL}/mentors\n\nBest regards,\n${COMPANY_NAME} Team`,
 });
 
 // Session reminder template
-const sessionReminderTemplate = (recipientName, otherPartyName, sessionDate, sessionTime, meetingLink, isMentor) => ({
+const sessionReminderTemplate = (
+  recipientName,
+  otherPartyName,
+  sessionDate,
+  sessionTime,
+  meetingLink,
+  isMentor
+) => ({
   subject: `Session Reminder - ${COMPANY_NAME}`,
   html: `
     <!DOCTYPE html>
@@ -316,7 +345,7 @@ const sessionReminderTemplate = (recipientName, otherPartyName, sessionDate, ses
     </body>
     </html>
   `,
-  text: `Session Reminder\n\nDear ${recipientName},\n\nThis is a reminder about your upcoming mentorship session.\n\n${isMentor ? 'Mentee' : 'Mentor'}: ${otherPartyName}\nDate: ${sessionDate}\nTime: ${sessionTime}\n${meetingLink ? `Meeting Link: ${meetingLink}\n` : ''}\nBest regards,\n${COMPANY_NAME} Team`
+  text: `Session Reminder\n\nDear ${recipientName},\n\nThis is a reminder about your upcoming mentorship session.\n\n${isMentor ? 'Mentee' : 'Mentor'}: ${otherPartyName}\nDate: ${sessionDate}\nTime: ${sessionTime}\n${meetingLink ? `Meeting Link: ${meetingLink}\n` : ''}\nBest regards,\n${COMPANY_NAME} Team`,
 });
 
 module.exports = {
@@ -331,5 +360,5 @@ module.exports = {
   professionalHeader,
   professionalFooter,
   COMPANY_NAME,
-  FRONTEND_URL
+  FRONTEND_URL,
 };
