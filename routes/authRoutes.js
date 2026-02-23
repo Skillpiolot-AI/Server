@@ -1578,7 +1578,72 @@ router.post('/admin/test-email', verifyToken, async (req, res) => {
     });
   }
 });
+// Admin: Dashboard Stats
+const Application = require('../models/Application');
+const MentorBooking = require('../models/MentorBooking');
+
+router.get('/admin/dashboard', verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const [
+      totalUsers, newUsersThisWeek,
+      totalMentors, activeMentors,
+      totalSessions, pendingApplications,
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ createdAt: { $gte: oneWeekAgo } }),
+      User.countDocuments({ role: 'Mentor' }),
+      User.countDocuments({ role: 'Mentor', isVerified: true }),
+      MentorBooking.countDocuments().catch(() => 0),
+      Application.countDocuments({ status: 'pending' }).catch(() => 0),
+    ]);
+    res.json({
+      success: true,
+      totalUsers, newUsersThisWeek,
+      totalMentors, activeMentors,
+      totalSessions, pendingApplications,
+    });
+  } catch (error) {
+    console.error('Admin dashboard error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Admin: Analytics (monthly registrations + bookings for chart)
+router.get('/admin/analytics', verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+    const months = [];
+    const labels = [];
+    const registrations = [];
+    const bookings = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const start = new Date(d.getFullYear(), d.getMonth(), 1);
+      const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      labels.push(start.toLocaleString('default', { month: 'short' }));
+      const [reg, book] = await Promise.all([
+        User.countDocuments({ createdAt: { $gte: start, $lt: end } }),
+        MentorBooking.countDocuments({ createdAt: { $gte: start, $lt: end } }).catch(() => 0),
+      ]);
+      registrations.push(reg);
+      bookings.push(book);
+    }
+    res.json({ success: true, labels, registrations, bookings });
+  } catch (error) {
+    console.error('Admin analytics error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Admin: Get All Users
+
 router.get('/admin/users', verifyToken, async (req, res) => {
   try {
     if (req.user.role !== 'Admin') {
