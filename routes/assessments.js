@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const assessmentController = require('../controllers/assessmentController');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, optionalAuth } = require('../middleware/auth');
 
-// Public route - create assessment (works with or without auth)
-router.post('/', assessmentController.createAssessment);
+// Create assessment — optionalAuth so req.user is set when logged-in user submits
+// (still works without token for anonymous use)
+router.post('/', optionalAuth, assessmentController.createAssessment);
 
 // Protected route - get authenticated user's assessment history with trends
 // MUST be before /:id so Express doesn't treat 'me' as a MongoDB id param

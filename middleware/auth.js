@@ -148,6 +148,26 @@ exports.verifyToken = async (req, res, next) => {
   }
 };
 
+// Optional auth — sets req.user if a valid token is present, but never blocks the request
+exports.optionalAuth = async (req, res, next) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) return next();
+
+    const token = authHeader.split(' ')[1];
+    if (!token) return next();
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+    if (user && !user.isLocked && user.isActive) {
+      req.user = user;
+    }
+  } catch (_) {
+    // Invalid/expired token — just skip auth, don't block
+  }
+  next();
+};
+
 // Role-based access control middleware
 exports.requireRole = allowedRoles => {
   return (req, res, next) => {
