@@ -389,6 +389,62 @@ exports.markAsRead = async (req, res) => {
 };
 
 /**
+ * Mark all announcements as read
+ * POST /api/announcements/read-all
+ */
+exports.markAllAsRead = async (req, res) => {
+  try {
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const userIdStr = req.user._id.toString();
+    const userRole = req.user.role || 'User';
+
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+
+    const announcements = await Announcement.find({
+      status: 'sent',
+      sentAt: { $gte: fiveDaysAgo },
+      $or: [
+        { recipientType: 'all' },
+        { recipientType: userRole.toLowerCase() + 's' },
+        { recipientIds: req.user._id },
+        { targetRoles: userRole },
+      ],
+    });
+
+    let markCount = 0;
+
+    for (const ann of announcements) {
+      const existingLog = ann.deliveryLog.find(l => l.userId?.toString() === userIdStr);
+      if (existingLog) {
+        if (!existingLog.readAt) {
+          existingLog.readAt = new Date();
+          ann.stats.read = (ann.stats.read || 0) + 1;
+          await ann.save();
+          markCount++;
+        }
+      } else {
+        ann.deliveryLog.push({
+          userId: req.user._id,
+          readAt: new Date(),
+        });
+        ann.stats.read = (ann.stats.read || 0) + 1;
+        await ann.save();
+        markCount++;
+      }
+    }
+
+    res.json({ success: true, message: `Marked ${markCount} announcements as read` });
+  } catch (error) {
+    console.error('Error marking all as read:', error.message);
+    res.status(500).json({ error: 'Failed to mark all as read', details: error.message });
+  }
+};
+
+/**
  * Get unread count
  * GET /api/announcements/unread-count
  */

@@ -18,6 +18,9 @@ router.get('/unread-count', verifyToken, announcementController.getUnreadCount);
 // Register push token
 router.post('/register-token', verifyToken, announcementController.registerPushToken);
 
+// Mark all announcements as read
+router.post('/read-all', verifyToken, announcementController.markAllAsRead);
+
 // ==========================================
 // ADMIN ROUTES (Authenticated + Admin role)
 // ==========================================
