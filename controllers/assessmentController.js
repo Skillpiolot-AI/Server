@@ -148,7 +148,7 @@ exports.createAssessment = async (req, res) => {
     const assessment = new Assessment({
       user: authenticatedUserId,
       // Store the real user ObjectId as string too — ensures history queries find it by either field
-      userId: authenticatedUserId ? authenticatedUserId.toString() : (userId || `anon-${Date.now()}`),
+      userId: authenticatedUserId ? authenticatedUserId.toString() : userId || `anon-${Date.now()}`,
       answers,
       results,
       previousAssessmentId: previousAssessment?._id,
