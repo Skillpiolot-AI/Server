@@ -1589,9 +1589,12 @@ router.get('/admin/dashboard', verifyToken, async (req, res) => {
     }
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const [
-      totalUsers, newUsersThisWeek,
-      totalMentors, activeMentors,
-      totalSessions, pendingApplications,
+      totalUsers,
+      newUsersThisWeek,
+      totalMentors,
+      activeMentors,
+      totalSessions,
+      pendingApplications,
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ createdAt: { $gte: oneWeekAgo } }),
@@ -1602,9 +1605,12 @@ router.get('/admin/dashboard', verifyToken, async (req, res) => {
     ]);
     res.json({
       success: true,
-      totalUsers, newUsersThisWeek,
-      totalMentors, activeMentors,
-      totalSessions, pendingApplications,
+      totalUsers,
+      newUsersThisWeek,
+      totalMentors,
+      activeMentors,
+      totalSessions,
+      pendingApplications,
     });
   } catch (error) {
     console.error('Admin dashboard error:', error);
