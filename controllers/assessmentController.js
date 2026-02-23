@@ -147,7 +147,8 @@ exports.createAssessment = async (req, res) => {
 
     const assessment = new Assessment({
       user: authenticatedUserId,
-      userId: userId || `user-${Date.now()}`,
+      // Store the real user ObjectId as string too — ensures history queries find it by either field
+      userId: authenticatedUserId ? authenticatedUserId.toString() : (userId || `anon-${Date.now()}`),
       answers,
       results,
       previousAssessmentId: previousAssessment?._id,
@@ -207,11 +208,26 @@ exports.getUserAssessments = async (req, res) => {
 exports.getMyAssessmentHistory = async (req, res) => {
   try {
     const userId = req.user._id;
+    const userIdStr = userId.toString();
 
-    const assessments = await Assessment.find({ user: userId })
+    // Query by ObjectId ref (for new assessments) OR userId string (for older records)
+    let assessments = await Assessment.find({ user: userId })
       .sort({ completedAt: -1 })
       .select('-answers')
       .limit(10);
+
+    // Fallback: also check by userId string for assessments saved before the fix
+    if (assessments.length === 0) {
+      assessments = await Assessment.find({ userId: userIdStr })
+        .sort({ completedAt: -1 })
+        .select('-answers')
+        .limit(10);
+
+      // Back-fill the `user` field on these old records so future fetches hit the fast path
+      if (assessments.length > 0) {
+        await Assessment.updateMany({ userId: userIdStr, user: null }, { $set: { user: userId } });
+      }
+    }
 
     if (assessments.length === 0) {
       return res.json({
