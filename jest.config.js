@@ -49,6 +49,14 @@ module.exports = {
   // Module paths
   moduleDirectories: ['node_modules', '<rootDir>'],
 
+  // Module name mapper for mocking external services
+  moduleNameMapper: {
+    '^@/tests/mocks/mailHelper$': '<rootDir>/tests/mocks/mailHelper.mock.js',
+    '^@/tests/mocks/cloudinary$': '<rootDir>/tests/mocks/cloudinary.mock.js',
+    '^@/tests/mocks/googleAuth$': '<rootDir>/tests/mocks/googleAuth.mock.js',
+    '^@/tests/mocks/pushNotifications$': '<rootDir>/tests/mocks/pushNotifications.mock.js',
+  },
+
   // Transform ESM modules (uuid uses ESM)
   transformIgnorePatterns: ['/node_modules/(?!(uuid)/)'],
 

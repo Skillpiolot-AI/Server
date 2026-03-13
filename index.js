@@ -32,6 +32,8 @@ const bulkMentorRoutes = require('./routes/bulkMentorRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const logsModule = require('./routes/logsRoutes');
+const mentorServicesRoutes = require('./routes/mentorServicesRoutes');
+const priorityDMRoutes = require('./routes/priorityDMRoutes');
 
 // Import scheduled jobs
 const tempPasswordReminder = require('./jobs/tempPasswordReminder');
@@ -131,6 +133,12 @@ app.use('/api/chatbot', chatbotRoutes);
 
 // Booking routes
 app.use('/api/bookings', bookingRoutes);
+
+// Mentor services, coupons, custom sections & public search (Topmate-style)
+app.use('/api', mentorServicesRoutes);
+
+// Priority DM inbox
+app.use('/api', priorityDMRoutes);
 
 // Live server logs routes
 app.use('/api/logs', logsModule.router);

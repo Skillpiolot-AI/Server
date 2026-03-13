@@ -1,9 +1,12 @@
 const MentorBooking = require('../models/MentorBooking');
 const MentorProfile = require('../models/MentorProfile');
+const MentorService = require('../models/MentorService');
+const MentorCoupon = require('../models/MentorCoupon');
 const SystemSettings = require('../models/SystemSettings');
 const User = require('../models/User');
 const { sendEmailFast } = require('../config/mailHelper');
 const crypto = require('crypto');
+
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
@@ -155,7 +158,8 @@ exports.getAvailableSlots = async (req, res) => {
 exports.createBooking = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { mentorProfileId, scheduledAt, duration = 60, remark, topics } = req.body;
+    const { mentorProfileId, scheduledAt, duration: reqDuration = 60, remark, topics, serviceId, couponCode } = req.body;
+
 
     // Validate required fields
     if (!mentorProfileId || !scheduledAt) {
@@ -184,7 +188,57 @@ exports.createBooking = async (req, res) => {
 
     // Check for time conflicts
     const scheduledDate = new Date(scheduledAt);
-    const conflict = await MentorBooking.checkConflict(mentorId, scheduledDate, duration);
+    
+    // We will establish finalDuration soon, so we check conflict after assessing duration
+
+
+    // Calculate pricing based on service or fallback
+    const settings = await SystemSettings.getSettings();
+    const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
+    let isFree = isFreeMentorship;
+    let originalPrice = 0;
+    let paidAmount = 0;
+    let finalDuration = reqDuration;
+    let serviceName = 'Mentorship Session';
+    let finalCouponId = null;
+
+    if (serviceId) {
+      const service = await MentorService.findById(serviceId);
+      if (service && service.isActive) {
+        serviceName = service.title;
+        finalDuration = service.duration || finalDuration;
+        originalPrice = service.price || 0;
+        paidAmount = originalPrice;
+        isFree = paidAmount === 0;
+
+        // Apply coupon if provided
+        if (couponCode && !isFree) {
+          const coupon = await MentorCoupon.findOne({ code: couponCode.toUpperCase(), mentorId: mentorId, isActive: true });
+          if (coupon) {
+            finalCouponId = coupon._id;
+            if (coupon.discountType === 'percentage') {
+              paidAmount = Math.max(0, originalPrice - (originalPrice * coupon.discountValue) / 100);
+            } else {
+              paidAmount = Math.max(0, originalPrice - coupon.discountValue);
+            }
+          }
+        }
+      }
+    } else if (!isFreeMentorship && mentorProfile.pricingType !== 'free') {
+      // Fallback calculations for legacy bookings
+      if (mentorProfile.trialSession?.available && mentorProfile.trialSession?.price) {
+        originalPrice = mentorProfile.trialSession.price;
+      } else if (mentorProfile.pricingPlans?.length > 0) {
+        originalPrice = mentorProfile.pricingPlans[0].price / 4; // Per session estimate
+      }
+      paidAmount = originalPrice;
+      isFree = paidAmount === 0;
+    } else {
+      isFree = true;
+    }
+
+    // Now check for time conflicts using finalDuration
+    const conflict = await MentorBooking.checkConflict(mentorId, scheduledDate, finalDuration);
     if (conflict) {
       return res.status(400).json({
         error: 'This time slot is not available',
@@ -192,34 +246,15 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    // Get system settings for pricing
-    const settings = await SystemSettings.getSettings();
-    const isFreeMentorship = await SystemSettings.isFreeMentorshipActive();
-
-    // Calculate pricing
-    let isFree = isFreeMentorship;
-    let originalPrice = 0;
-    let paidAmount = 0;
-
-    if (!isFreeMentorship && mentorProfile.pricingType !== 'free') {
-      // Calculate from mentor's pricing
-      if (mentorProfile.trialSession?.available && mentorProfile.trialSession?.price) {
-        originalPrice = mentorProfile.trialSession.price;
-      } else if (mentorProfile.pricingPlans?.length > 0) {
-        originalPrice = mentorProfile.pricingPlans[0].price / 4; // Per session estimate
-      }
-      paidAmount = originalPrice;
-    } else {
-      isFree = true;
-    }
-
     // Create booking with auto-generated Jitsi link
     const booking = new MentorBooking({
       userId,
       mentorId,
       mentorProfileId,
+      serviceId: serviceId || undefined,
+      couponId: finalCouponId || undefined,
       scheduledAt: scheduledDate,
-      duration,
+      duration: finalDuration,
       remark,
       topics: topics || [],
       isFree,
@@ -227,6 +262,7 @@ exports.createBooking = async (req, res) => {
       paidAmount,
       status: settings.bookingSettings?.autoConfirmBookings ? 'confirmed' : 'pending',
     });
+
 
     // Auto-generate Jitsi meeting link
     booking.meetingLink = generateJitsiLink(booking.bookingId);
@@ -247,15 +283,17 @@ exports.createBooking = async (req, res) => {
           </div>
           <div style="padding: 30px; background: #fff;">
             <h2>Hello ${user.name}!</h2>
-            <p>Your mentorship session has been ${savedBooking.status === 'confirmed' ? 'confirmed' : 'submitted'}.</p>
+            <p>Your ${serviceName} has been ${savedBooking.status === 'confirmed' ? 'confirmed' : 'submitted'}.</p>
+
             
             <div style="background: #f8f9ff; border-left: 4px solid #3F3FF3; padding: 15px; margin: 20px 0;">
               <p><strong>📌 Booking ID:</strong> ${savedBooking.bookingId}</p>
               <p><strong>👨‍🏫 Mentor:</strong> ${mentorProfile.displayName}</p>
               <p><strong>📅 Date:</strong> ${scheduledDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
               <p><strong>⏰ Time:</strong> ${scheduledDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
-              <p><strong>⏱️ Duration:</strong> ${duration} minutes</p>
+              <p><strong>⏱️ Duration:</strong> ${finalDuration} minutes</p>
               ${isFree ? '<p style="color: #28a745;"><strong>💚 This session is FREE!</strong></p>' : `<p><strong>💰 Amount:</strong> ₹${paidAmount}</p>`}
+
             </div>
             
             <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
@@ -272,7 +310,8 @@ exports.createBooking = async (req, res) => {
           </div>
         </div>
       `,
-      text: `Hello ${user.name}!\n\nYour mentorship session has been ${savedBooking.status}.\n\nBooking ID: ${savedBooking.bookingId}\nMentor: ${mentorProfile.displayName}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${duration} minutes\n\nBest regards,\nThe Skill-Pilot Team`,
+      text: `Hello ${user.name}!\n\nYour ${serviceName} has been ${savedBooking.status}.\n\nBooking ID: ${savedBooking.bookingId}\nMentor: ${mentorProfile.displayName}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${finalDuration} minutes\n\nBest regards,\nThe Skill-Pilot Team`,
+
     }).catch(err => console.error('Failed to send user booking email:', err));
 
     // Send notification to mentor (async)
@@ -285,14 +324,16 @@ exports.createBooking = async (req, res) => {
           </div>
           <div style="padding: 30px; background: #fff;">
             <h2>Hello ${mentorProfile.displayName}!</h2>
-            <p>A student has booked a mentorship session with you.</p>
+            <p>A student has booked a ${serviceName} with you.</p>
+
             
             <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
               <p><strong>📌 Booking ID:</strong> ${savedBooking.bookingId}</p>
               <p><strong>👤 Student:</strong> ${user.name}</p>
               <p><strong>📅 Date:</strong> ${scheduledDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
               <p><strong>⏰ Time:</strong> ${scheduledDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
-              <p><strong>⏱️ Duration:</strong> ${duration} minutes</p>
+              <p><strong>⏱️ Duration:</strong> ${finalDuration} minutes</p>
+
             </div>
             
             <div style="background: #e7f3ff; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0;">
@@ -309,7 +350,8 @@ exports.createBooking = async (req, res) => {
           </div>
         </div>
       `,
-      text: `Hello ${mentorProfile.displayName}!\n\nA student has booked a session with you.\n\nBooking ID: ${savedBooking.bookingId}\nStudent: ${user.name}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${duration} minutes\n\nMessage: ${remark || 'No message'}\n\nBest regards,\nThe Skill-Pilot Team`,
+      text: `Hello ${mentorProfile.displayName}!\n\nA student has booked a ${serviceName} with you.\n\nBooking ID: ${savedBooking.bookingId}\nStudent: ${user.name}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${finalDuration} minutes\n\nMessage: ${remark || 'No message'}\n\nBest regards,\nThe Skill-Pilot Team`,
+
     }).catch(err => console.error('Failed to send mentor booking email:', err));
 
     res.status(201).json({
@@ -321,7 +363,9 @@ exports.createBooking = async (req, res) => {
         scheduledAt: savedBooking.scheduledAt,
         duration: savedBooking.duration,
         isFree: savedBooking.isFree,
+        serviceName,
         mentor: {
+
           name: mentorProfile.displayName,
           profileImage: mentorProfile.profileImage,
         },

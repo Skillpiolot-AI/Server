@@ -1,5 +1,31 @@
 const mongoose = require('mongoose');
 
+// Custom content section schema (mentor-authored rich blocks)
+const CustomSectionSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    trim: true,
+    maxlength: 120,
+  },
+  content: {
+    type: String, // markdown / rich text
+    maxlength: 5000,
+  },
+  images: [
+    {
+      type: String, // URL from /uploads
+    },
+  ],
+  sortOrder: {
+    type: Number,
+    default: 0,
+  },
+  isVisible: {
+    type: Boolean,
+    default: true,
+  },
+});
+
 // Review schema for mentor ratings
 const MentorReviewSchema = new mongoose.Schema({
   userId: {
@@ -85,6 +111,17 @@ const MentorProfileSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+
+  // Unique public handle/slug — used in profile URL (e.g. /mentor/john_doe)
+  handle: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    unique: true,
+    sparse: true, // allows null while keeping uniqueness for set values
+    maxlength: 50,
+    match: [/^[a-z0-9_]+$/, 'Handle can only contain lowercase letters, numbers and underscores'],
+  },
   tagline: {
     type: String,
     maxlength: 200,
@@ -154,6 +191,10 @@ const MentorProfileSchema = new mongoose.Schema({
     max: 5,
   },
   totalReviews: {
+    type: Number,
+    default: 0,
+  },
+  totalEarnings: {
     type: Number,
     default: 0,
   },
@@ -317,6 +358,9 @@ const MentorProfileSchema = new mongoose.Schema({
     },
   ],
 
+  // Mentor-authored custom content blocks (shown on public profile between reviews and bio)
+  customSections: [CustomSectionSchema],
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -329,6 +373,7 @@ const MentorProfileSchema = new mongoose.Schema({
 
 // Indexes for better search performance
 MentorProfileSchema.index({ userId: 1 });
+MentorProfileSchema.index({ handle: 1 });
 MentorProfileSchema.index({ expertise: 1 });
 MentorProfileSchema.index({ targetingDomains: 1 });
 MentorProfileSchema.index({ 'location.city': 1 });

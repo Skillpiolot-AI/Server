@@ -245,24 +245,35 @@ exports.requireUniversityAccess = (req, res, next) => {
 // Alias for adminOnly (for compatibility)
 exports.isAdmin = exports.adminOnly;
 
-// Mentor only access
+// Mentor only access — must be approved
 exports.isMentor = (req, res, next) => {
   if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      message: 'Authentication required.',
-    });
+    return res.status(401).json({ success: false, message: 'Authentication required.' });
   }
-
   if (req.user.role !== 'Mentor') {
+    return res.status(403).json({ success: false, message: 'Access denied. Mentor role required.' });
+  }
+  if (req.user.mentorStatus !== 'approved') {
     return res.status(403).json({
       success: false,
-      message: 'Access denied. Mentor role required.',
+      message: 'Your mentor application is pending approval.',
+      mentorStatus: req.user.mentorStatus,
     });
   }
-
   next();
 };
+
+// Mentor (any status) or Admin — used for reading own pending profile
+exports.isMentorOrAdminAny = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Authentication required.' });
+  }
+  if (!['Mentor', 'Admin'].includes(req.user.role)) {
+    return res.status(403).json({ success: false, message: 'Access denied. Mentor or Admin role required.' });
+  }
+  next();
+};
+
 
 // Mentor or Admin access
 exports.isMentorOrAdmin = (req, res, next) => {
