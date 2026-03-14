@@ -10,12 +10,12 @@ const subscribeCalls = [];
 /**
  * Mock Expo SDK
  */
-const Expo = jest.fn(function() {
-  this.isExpoPushToken = jest.fn((token) => {
+const Expo = jest.fn(function () {
+  this.isExpoPushToken = jest.fn(token => {
     return typeof token === 'string' && token.startsWith('ExponentPushToken[');
   });
 
-  this.sendPushNotificationsAsync = jest.fn(async (messages) => {
+  this.sendPushNotificationsAsync = jest.fn(async messages => {
     const sendRecord = {
       messages: Array.isArray(messages) ? messages : [messages],
       timestamp: new Date().toISOString(),
@@ -32,7 +32,7 @@ const Expo = jest.fn(function() {
     return responses;
   });
 
-  this.sendSNSMessageAsync = jest.fn(async (message) => {
+  this.sendSNSMessageAsync = jest.fn(async message => {
     return {
       id: 'mock-sns-' + Date.now(),
       status: 'ok',
@@ -45,7 +45,7 @@ const Expo = jest.fn(function() {
 /**
  * Mock Expo Push Ticket
  */
-const ExpoPushTicket = jest.fn(function(data) {
+const ExpoPushTicket = jest.fn(function (data) {
   this.id = data.id || 'mock-ticket-' + Date.now();
   this.status = data.status || 'ok';
   this.receiptId = data.receiptId || 'mock-receipt-' + Date.now();

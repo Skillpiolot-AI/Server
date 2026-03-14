@@ -7,7 +7,6 @@ const User = require('../models/User');
 const { sendEmailFast } = require('../config/mailHelper');
 const crypto = require('crypto');
 
-
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // Generate Jitsi meeting link with proper configuration
@@ -158,8 +157,15 @@ exports.getAvailableSlots = async (req, res) => {
 exports.createBooking = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { mentorProfileId, scheduledAt, duration: reqDuration = 60, remark, topics, serviceId, couponCode } = req.body;
-
+    const {
+      mentorProfileId,
+      scheduledAt,
+      duration: reqDuration = 60,
+      remark,
+      topics,
+      serviceId,
+      couponCode,
+    } = req.body;
 
     // Validate required fields
     if (!mentorProfileId || !scheduledAt) {
@@ -188,9 +194,8 @@ exports.createBooking = async (req, res) => {
 
     // Check for time conflicts
     const scheduledDate = new Date(scheduledAt);
-    
-    // We will establish finalDuration soon, so we check conflict after assessing duration
 
+    // We will establish finalDuration soon, so we check conflict after assessing duration
 
     // Calculate pricing based on service or fallback
     const settings = await SystemSettings.getSettings();
@@ -213,11 +218,18 @@ exports.createBooking = async (req, res) => {
 
         // Apply coupon if provided
         if (couponCode && !isFree) {
-          const coupon = await MentorCoupon.findOne({ code: couponCode.toUpperCase(), mentorId: mentorId, isActive: true });
+          const coupon = await MentorCoupon.findOne({
+            code: couponCode.toUpperCase(),
+            mentorId: mentorId,
+            isActive: true,
+          });
           if (coupon) {
             finalCouponId = coupon._id;
             if (coupon.discountType === 'percentage') {
-              paidAmount = Math.max(0, originalPrice - (originalPrice * coupon.discountValue) / 100);
+              paidAmount = Math.max(
+                0,
+                originalPrice - (originalPrice * coupon.discountValue) / 100
+              );
             } else {
               paidAmount = Math.max(0, originalPrice - coupon.discountValue);
             }
@@ -262,7 +274,6 @@ exports.createBooking = async (req, res) => {
       paidAmount,
       status: settings.bookingSettings?.autoConfirmBookings ? 'confirmed' : 'pending',
     });
-
 
     // Auto-generate Jitsi meeting link
     booking.meetingLink = generateJitsiLink(booking.bookingId);
@@ -311,7 +322,6 @@ exports.createBooking = async (req, res) => {
         </div>
       `,
       text: `Hello ${user.name}!\n\nYour ${serviceName} has been ${savedBooking.status}.\n\nBooking ID: ${savedBooking.bookingId}\nMentor: ${mentorProfile.displayName}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${finalDuration} minutes\n\nBest regards,\nThe Skill-Pilot Team`,
-
     }).catch(err => console.error('Failed to send user booking email:', err));
 
     // Send notification to mentor (async)
@@ -351,7 +361,6 @@ exports.createBooking = async (req, res) => {
         </div>
       `,
       text: `Hello ${mentorProfile.displayName}!\n\nA student has booked a ${serviceName} with you.\n\nBooking ID: ${savedBooking.bookingId}\nStudent: ${user.name}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${finalDuration} minutes\n\nMessage: ${remark || 'No message'}\n\nBest regards,\nThe Skill-Pilot Team`,
-
     }).catch(err => console.error('Failed to send mentor booking email:', err));
 
     res.status(201).json({
@@ -365,7 +374,6 @@ exports.createBooking = async (req, res) => {
         isFree: savedBooking.isFree,
         serviceName,
         mentor: {
-
           name: mentorProfile.displayName,
           profileImage: mentorProfile.profileImage,
         },

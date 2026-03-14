@@ -92,8 +92,17 @@ router.get('/mentor/my-status', verifyToken, ctrl.getMyMentorStatus);
 const { adminOnly } = require('../middleware/auth');
 
 router.get('/admin/mentor-applications', verifyToken, adminOnly, ctrl.adminListMentorApplications);
-router.post('/admin/mentor-applications/:userId/approve', verifyToken, adminOnly, ctrl.adminApproveMentor);
-router.post('/admin/mentor-applications/:userId/reject', verifyToken, adminOnly, ctrl.adminRejectMentor);
+router.post(
+  '/admin/mentor-applications/:userId/approve',
+  verifyToken,
+  adminOnly,
+  ctrl.adminApproveMentor
+);
+router.post(
+  '/admin/mentor-applications/:userId/reject',
+  verifyToken,
+  adminOnly,
+  ctrl.adminRejectMentor
+);
 
 module.exports = router;
-

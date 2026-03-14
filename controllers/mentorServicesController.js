@@ -24,7 +24,9 @@ exports.createService = async (req, res) => {
     // Get or create mentor profile
     const mentorProfile = await MentorProfile.findOne({ userId });
     if (!mentorProfile) {
-      return res.status(404).json({ error: 'Mentor profile not found. Please complete your mentor profile first.' });
+      return res
+        .status(404)
+        .json({ error: 'Mentor profile not found. Please complete your mentor profile first.' });
     }
 
     // Check user is actually a mentor
@@ -34,10 +36,26 @@ exports.createService = async (req, res) => {
     }
 
     const {
-      serviceType, title, description, detailedDescription, coverImage,
-      emoji, price, currency, duration, responseTime, sessionCount,
-      subscriptionMonths, capacity, scheduledAt, courseUrl,
-      referralCompanies, includes, weeklyLimit, sortOrder, isFeatured,
+      serviceType,
+      title,
+      description,
+      detailedDescription,
+      coverImage,
+      emoji,
+      price,
+      currency,
+      duration,
+      responseTime,
+      sessionCount,
+      subscriptionMonths,
+      capacity,
+      scheduledAt,
+      courseUrl,
+      referralCompanies,
+      includes,
+      weeklyLimit,
+      sortOrder,
+      isFeatured,
     } = req.body;
 
     // Derive isFree
@@ -126,10 +144,25 @@ exports.updateService = async (req, res) => {
     }
 
     const allowedFields = [
-      'title', 'description', 'detailedDescription', 'coverImage', 'emoji',
-      'price', 'currency', 'duration', 'responseTime', 'sessionCount',
-      'subscriptionMonths', 'capacity', 'scheduledAt', 'courseUrl',
-      'referralCompanies', 'includes', 'weeklyLimit', 'sortOrder', 'isFeatured',
+      'title',
+      'description',
+      'detailedDescription',
+      'coverImage',
+      'emoji',
+      'price',
+      'currency',
+      'duration',
+      'responseTime',
+      'sessionCount',
+      'subscriptionMonths',
+      'capacity',
+      'scheduledAt',
+      'courseUrl',
+      'referralCompanies',
+      'includes',
+      'weeklyLimit',
+      'sortOrder',
+      'isFeatured',
     ];
 
     allowedFields.forEach(field => {
@@ -166,7 +199,11 @@ exports.toggleService = async (req, res) => {
 
     service.isActive = !service.isActive;
     await service.save();
-    res.json({ success: true, isActive: service.isActive, message: `Service ${service.isActive ? 'activated' : 'deactivated'}` });
+    res.json({
+      success: true,
+      isActive: service.isActive,
+      message: `Service ${service.isActive ? 'activated' : 'deactivated'}`,
+    });
   } catch (error) {
     console.error('toggleService error:', error);
     res.status(500).json({ error: 'Failed to toggle service' });
@@ -237,8 +274,10 @@ exports.getMentorPublicProfile = async (req, res) => {
     const { handle } = req.params;
 
     // Try to find by handle first, fall back to userId
-    let profile = await MentorProfile.findOne({ handle, isVisible: true })
-      .populate('userId', 'name email imageUrl mentorBadge mentorStatus jobTitle company');
+    let profile = await MentorProfile.findOne({ handle, isVisible: true }).populate(
+      'userId',
+      'name email imageUrl mentorBadge mentorStatus jobTitle company'
+    );
 
     // Fallback: treat handle as mongoose ObjectId or userId
     if (!profile && handle.match(/^[0-9a-fA-F]{24}$/)) {
@@ -258,10 +297,21 @@ exports.getMentorPublicProfile = async (req, res) => {
 
     // Group services by category for the frontend
     const groupedServices = {
-      live: services.filter(s => ['one_on_one','quick_chat','mock_interview','career_guidance','discovery_call','coaching_series'].includes(s.serviceType)),
-      async: services.filter(s => ['priority_dm','resume_review','portfolio_review','ama'].includes(s.serviceType)),
-      group: services.filter(s => ['workshop','webinar'].includes(s.serviceType)),
-      products: services.filter(s => ['course','referral','custom'].includes(s.serviceType)),
+      live: services.filter(s =>
+        [
+          'one_on_one',
+          'quick_chat',
+          'mock_interview',
+          'career_guidance',
+          'discovery_call',
+          'coaching_series',
+        ].includes(s.serviceType)
+      ),
+      async: services.filter(s =>
+        ['priority_dm', 'resume_review', 'portfolio_review', 'ama'].includes(s.serviceType)
+      ),
+      group: services.filter(s => ['workshop', 'webinar'].includes(s.serviceType)),
+      products: services.filter(s => ['course', 'referral', 'custom'].includes(s.serviceType)),
     };
 
     res.json({
@@ -286,8 +336,17 @@ exports.getMentorPublicProfile = async (req, res) => {
 exports.searchMentors = async (req, res) => {
   try {
     const {
-      q, domain, serviceType, minRating, maxPrice, minPrice,
-      menteeType, city, sort = 'featured', page = 1, limit = 20,
+      q,
+      domain,
+      serviceType,
+      minRating,
+      maxPrice,
+      minPrice,
+      menteeType,
+      city,
+      sort = 'featured',
+      page = 1,
+      limit = 20,
     } = req.query;
 
     const query = { isVisible: true };
@@ -322,11 +381,20 @@ exports.searchMentors = async (req, res) => {
     // Sort options
     let sortObj = {};
     switch (sort) {
-      case 'rating':    sortObj = { averageRating: -1, totalReviews: -1 }; break;
-      case 'bookings':  sortObj = { totalMentees: -1 }; break;
-      case 'newest':    sortObj = { createdAt: -1 }; break;
-      case 'price_asc': sortObj = { 'pricingPlans.price': 1 }; break;
-      default:          sortObj = { featured: -1, averageRating: -1, totalMentees: -1 }; // featured first
+      case 'rating':
+        sortObj = { averageRating: -1, totalReviews: -1 };
+        break;
+      case 'bookings':
+        sortObj = { totalMentees: -1 };
+        break;
+      case 'newest':
+        sortObj = { createdAt: -1 };
+        break;
+      case 'price_asc':
+        sortObj = { 'pricingPlans.price': 1 };
+        break;
+      default:
+        sortObj = { featured: -1, averageRating: -1, totalMentees: -1 }; // featured first
     }
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -385,7 +453,9 @@ exports.searchMentors = async (req, res) => {
     ]);
 
     const priceMap = {};
-    cheapestServices.forEach(s => { priceMap[s._id.toString()] = s; });
+    cheapestServices.forEach(s => {
+      priceMap[s._id.toString()] = s;
+    });
 
     const enriched = filtered.map(profile => {
       const obj = profile.toObject();
@@ -428,9 +498,16 @@ exports.createCoupon = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
     const {
-      code, discountType, discountValue, maxDiscountCap,
-      appliesTo, specificServiceIds, maxUses, perUserLimit,
-      validFrom, validUntil,
+      code,
+      discountType,
+      discountValue,
+      maxDiscountCap,
+      appliesTo,
+      specificServiceIds,
+      maxUses,
+      perUserLimit,
+      validFrom,
+      validUntil,
     } = req.body;
 
     // Validate the code is uppercase-friendly
@@ -491,10 +568,20 @@ exports.updateCoupon = async (req, res) => {
     if (!coupon) return res.status(404).json({ error: 'Coupon not found' });
 
     const fields = [
-      'discountType','discountValue','maxDiscountCap','appliesTo',
-      'specificServiceIds','maxUses','perUserLimit','validFrom','validUntil','isActive',
+      'discountType',
+      'discountValue',
+      'maxDiscountCap',
+      'appliesTo',
+      'specificServiceIds',
+      'maxUses',
+      'perUserLimit',
+      'validFrom',
+      'validUntil',
+      'isActive',
     ];
-    fields.forEach(f => { if (req.body[f] !== undefined) coupon[f] = req.body[f]; });
+    fields.forEach(f => {
+      if (req.body[f] !== undefined) coupon[f] = req.body[f];
+    });
 
     await coupon.save();
     res.json({ success: true, message: 'Coupon updated', coupon });
@@ -687,18 +774,25 @@ exports.adminListMentorApplications = async (req, res) => {
 
     // Attach mentor profiles
     const userIds = users.map(u => u._id);
-    const profiles = await MentorProfile.find({ userId: { $in: userIds } })
-      .select('handle displayName tagline expertise targetingDomains jobTitle company isVisible');
+    const profiles = await MentorProfile.find({ userId: { $in: userIds } }).select(
+      'handle displayName tagline expertise targetingDomains jobTitle company isVisible'
+    );
 
     const profileMap = {};
-    profiles.forEach(p => { profileMap[p.userId.toString()] = p; });
+    profiles.forEach(p => {
+      profileMap[p.userId.toString()] = p;
+    });
 
     const applications = users.map(u => ({
       ...u.toObject(),
       mentorProfile: profileMap[u._id.toString()] || null,
     }));
 
-    res.json({ success: true, applications, pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) } });
+    res.json({
+      success: true,
+      applications,
+      pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
+    });
   } catch (error) {
     console.error('adminListMentorApplications error:', error);
     res.status(500).json({ error: 'Failed to list applications' });
@@ -775,7 +869,9 @@ exports.adminRejectMentor = async (req, res) => {
 exports.getMyMentorStatus = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
-    const user = await User.findById(userId).select('name mentorStatus mentorAppliedAt mentorApprovedAt mentorRejectionReason');
+    const user = await User.findById(userId).select(
+      'name mentorStatus mentorAppliedAt mentorApprovedAt mentorRejectionReason'
+    );
     const profile = await MentorProfile.findOne({ userId }).select('handle displayName isVisible');
 
     res.json({
@@ -791,7 +887,6 @@ exports.getMyMentorStatus = async (req, res) => {
   }
 };
 
-
 // Submit application to become a mentor
 exports.applyToBeMentor = async (req, res) => {
   try {
@@ -799,21 +894,43 @@ exports.applyToBeMentor = async (req, res) => {
 
     const existingProfile = await MentorProfile.findOne({ userId });
     if (existingProfile) {
-      return res.status(400).json({ success: false, message: 'Mentor application already submitted or profile exists' });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: 'Mentor application already submitted or profile exists',
+        });
     }
 
     const {
-        displayName, handle, tagline, bio, city, country, profileImage,
-        languages, jobTitle, company, yearsExp, linkedIn, github, twitter, portfolio,
-        expertise, targetingDomains, searchTags, menteeType,
-        referralsAvailable, topCompanies
+      displayName,
+      handle,
+      tagline,
+      bio,
+      city,
+      country,
+      profileImage,
+      languages,
+      jobTitle,
+      company,
+      yearsExp,
+      linkedIn,
+      github,
+      twitter,
+      portfolio,
+      expertise,
+      targetingDomains,
+      searchTags,
+      menteeType,
+      referralsAvailable,
+      topCompanies,
     } = req.body;
 
     // Check if handle is already taken
     if (handle) {
       const existingHandle = await MentorProfile.findOne({ handle });
       if (existingHandle) {
-         return res.status(400).json({ success: false, message: 'This handle is already taken' });
+        return res.status(400).json({ success: false, message: 'This handle is already taken' });
       }
     }
 
@@ -835,11 +952,11 @@ exports.applyToBeMentor = async (req, res) => {
         linkedin: linkedIn,
         github,
         twitter,
-        portfolio
+        portfolio,
       },
       approvalStatus: 'pending',
       isVisible: false,
-      isActive: false
+      isActive: false,
     });
 
     await newProfile.save();
@@ -848,10 +965,15 @@ exports.applyToBeMentor = async (req, res) => {
       jobTitle,
       companiesJoined: company,
       experience: yearsExp,
-      imageUrl: profileImage
+      imageUrl: profileImage,
     });
 
-    res.status(201).json({ success: true, message: 'Mentor application submitted successfully and is pending approval.' });
+    res
+      .status(201)
+      .json({
+        success: true,
+        message: 'Mentor application submitted successfully and is pending approval.',
+      });
   } catch (error) {
     console.error('Error in applyToBeMentor:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });

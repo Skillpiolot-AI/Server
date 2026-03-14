@@ -28,8 +28,15 @@ const MENTOR_DATA = [
     jobTitle: 'SDE-3',
     company: 'Google',
     tagline: '🚀 Crack your dream FAANG interview | Ex-Amazon | 5 Years SDE',
-    bio: `Hi! I'm Rahul, a Senior Software Engineer at Google with 5+ years of experience in distributed systems and algorithms.\n\nI've helped 200+ engineers land jobs at top tech companies including Google, Amazon, Microsoft, and Adobe.\n\nI specialize in:\n• DSA & Competitive Programming\n• System Design (LLD + HLD)\n• Mock Interviews with real feedback\n• Referrals at Google & Amazon`,
-    expertise: ['Data Structures', 'System Design', 'Backend Development', 'Algorithms', 'Java', 'Python'],
+    bio: "Hi! I'm Rahul, a Senior Software Engineer at Google with 5+ years of experience in distributed systems and algorithms.\n\nI've helped 200+ engineers land jobs at top tech companies including Google, Amazon, Microsoft, and Adobe.\n\nI specialize in:\n• DSA & Competitive Programming\n• System Design (LLD + HLD)\n• Mock Interviews with real feedback\n• Referrals at Google & Amazon",
+    expertise: [
+      'Data Structures',
+      'System Design',
+      'Backend Development',
+      'Algorithms',
+      'Java',
+      'Python',
+    ],
     targetingDomains: ['Computer Science', 'Software Engineering', 'IT'],
     city: 'Bangalore',
     rating: 4.9,
@@ -43,18 +50,25 @@ const MENTOR_DATA = [
       {
         serviceType: 'mock_interview',
         title: 'Full Mock Interview (DSA + System Design)',
-        description: 'A complete 90-min mock interview simulating the real FAANG process. DSA round + System Design + detailed written feedback.',
+        description:
+          'A complete 90-min mock interview simulating the real FAANG process. DSA round + System Design + detailed written feedback.',
         emoji: '🎯',
         price: 1500,
         duration: 90,
-        includes: ['DSA coding round', 'System Design round', 'Detailed feedback doc', 'Improvement roadmap'],
+        includes: [
+          'DSA coding round',
+          'System Design round',
+          'Detailed feedback doc',
+          'Improvement roadmap',
+        ],
         isFeatured: true,
         sortOrder: 0,
       },
       {
         serviceType: 'one_on_one',
         title: '1:1 Mentorship Session',
-        description: 'A focused 60-min session on DSA, System Design, or career guidance. You set the agenda.',
+        description:
+          'A focused 60-min session on DSA, System Design, or career guidance. You set the agenda.',
         emoji: '💡',
         price: 999,
         duration: 60,
@@ -63,7 +77,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'resume_review',
         title: 'Resume Review + ATS Optimization',
-        description: 'I will review your resume, optimize for ATS, and rewrite key sections with strong impact statements.',
+        description:
+          'I will review your resume, optimize for ATS, and rewrite key sections with strong impact statements.',
         emoji: '📄',
         price: 499,
         responseTime: 'Within 48 hours',
@@ -72,7 +87,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'referral',
         title: 'Job Referral at Google / Amazon',
-        description: 'I can refer you to open positions at Google or Amazon. Strong profile required. Limited slots per month.',
+        description:
+          'I can refer you to open positions at Google or Amazon. Strong profile required. Limited slots per month.',
         emoji: '🤝',
         price: 0,
         isFree: true,
@@ -83,7 +99,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'priority_dm',
         title: 'Priority DM Access',
-        description: 'Ask me anything about interviews, career decisions, or tech concepts. I reply within 24 hours.',
+        description:
+          'Ask me anything about interviews, career decisions, or tech concepts. I reply within 24 hours.',
         emoji: '💬',
         price: 299,
         responseTime: 'Within 24 hours',
@@ -93,14 +110,28 @@ const MENTOR_DATA = [
     customSections: [
       {
         title: '🏆 Success Stories',
-        content: '✅ Akash — Google SWE (Hyderabad)\n✅ Priya — Amazon SDE-2 (Bangalore)\n✅ Rohit — Microsoft SDET (Noida)\n✅ Ananya — Flipkart SDE-1 (Bangalore)\n\n200+ placements in 3 years. DM me if you want to be next!',
+        content:
+          '✅ Akash — Google SWE (Hyderabad)\n✅ Priya — Amazon SDE-2 (Bangalore)\n✅ Rohit — Microsoft SDET (Noida)\n✅ Ananya — Flipkart SDE-1 (Bangalore)\n\n200+ placements in 3 years. DM me if you want to be next!',
         sortOrder: 0,
       },
     ],
     reviews: [
-      { rating: 5, comment: 'Rahul is absolutely incredible. Got into Google after 3 months of mentorship!', createdAt: new Date('2024-11-15') },
-      { rating: 5, comment: 'Best mock interviews I have ever had. Very detailed feedback and realistic interview simulation.', createdAt: new Date('2024-12-01') },
-      { rating: 4, comment: 'Very knowledgeable. Helped me crack Amazon system design rounds.', createdAt: new Date('2025-01-10') },
+      {
+        rating: 5,
+        comment: 'Rahul is absolutely incredible. Got into Google after 3 months of mentorship!',
+        createdAt: new Date('2024-11-15'),
+      },
+      {
+        rating: 5,
+        comment:
+          'Best mock interviews I have ever had. Very detailed feedback and realistic interview simulation.',
+        createdAt: new Date('2024-12-01'),
+      },
+      {
+        rating: 4,
+        comment: 'Very knowledgeable. Helped me crack Amazon system design rounds.',
+        createdAt: new Date('2025-01-10'),
+      },
     ],
   },
 
@@ -111,7 +142,7 @@ const MENTOR_DATA = [
     jobTitle: 'ML Engineer',
     company: 'DeepMind',
     tagline: '🤖 Making AI accessible | ML Engineer at DeepMind | Ex-Microsoft Research',
-    bio: `I'm Priya, an ML Engineer at DeepMind with a PhD in NLP from IIT Bombay.\n\nI help students and professionals break into the AI/ML field through structured learning paths, hands-on projects, and interview prep.\n\nAreas I mentor:\n• Machine Learning & Deep Learning\n• NLP & LLMs (GPT, BERT)\n• Python for Data Science\n• ML Research → Industry transition`,
+    bio: "I'm Priya, an ML Engineer at DeepMind with a PhD in NLP from IIT Bombay.\n\nI help students and professionals break into the AI/ML field through structured learning paths, hands-on projects, and interview prep.\n\nAreas I mentor:\n• Machine Learning & Deep Learning\n• NLP & LLMs (GPT, BERT)\n• Python for Data Science\n• ML Research → Industry transition",
     expertise: ['Machine Learning', 'NLP', 'Deep Learning', 'Python', 'TensorFlow', 'PyTorch'],
     targetingDomains: ['Artificial Intelligence', 'Data Science', 'Computer Science'],
     city: 'Mumbai',
@@ -126,18 +157,26 @@ const MENTOR_DATA = [
       {
         serviceType: 'coaching_series',
         title: 'ML Bootcamp — 8 Week Intensive',
-        description: '8 weekly 60-min sessions covering everything from basics to production ML. Build 2 real projects.',
+        description:
+          '8 weekly 60-min sessions covering everything from basics to production ML. Build 2 real projects.',
         emoji: '🧠',
         price: 5999,
         sessionCount: 8,
-        includes: ['8 x 60-min live sessions', '2 hands-on projects', 'GitHub portfolio', 'Interview prep', 'NLP specialization module'],
+        includes: [
+          '8 x 60-min live sessions',
+          '2 hands-on projects',
+          'GitHub portfolio',
+          'Interview prep',
+          'NLP specialization module',
+        ],
         isFeatured: true,
         sortOrder: 0,
       },
       {
         serviceType: 'one_on_one',
         title: 'AI Career Guidance Session',
-        description: 'Personalized roadmap for breaking into ML/AI. Review your background and chart a learning plan.',
+        description:
+          'Personalized roadmap for breaking into ML/AI. Review your background and chart a learning plan.',
         emoji: '🗺️',
         price: 799,
         duration: 45,
@@ -146,7 +185,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'portfolio_review',
         title: 'ML Project / Portfolio Review',
-        description: 'I review your ML projects, Kaggle notebooks, or GitHub repos with in-depth written feedback.',
+        description:
+          'I review your ML projects, Kaggle notebooks, or GitHub repos with in-depth written feedback.',
         emoji: '🖼️',
         price: 599,
         responseTime: 'Within 72 hours',
@@ -155,7 +195,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'ama',
         title: 'Ask Me Anything — AI/ML',
-        description: 'Submit your questions about AI careers, research, tools, or concepts. Get detailed async answers.',
+        description:
+          'Submit your questions about AI careers, research, tools, or concepts. Get detailed async answers.',
         emoji: '🙋',
         price: 199,
         responseTime: 'Within 48 hours',
@@ -165,14 +206,28 @@ const MENTOR_DATA = [
     customSections: [
       {
         title: '📚 What We Will Cover',
-        content: 'Week 1-2: Python, NumPy, Pandas, Data Preprocessing\nWeek 3-4: Supervised & Unsupervised Learning\nWeek 5: Deep Learning & Neural Networks\nWeek 6: NLP & Transformers\nWeek 7: MLOps & Model Deployment\nWeek 8: Mock Interviews & Portfolio Review',
+        content:
+          'Week 1-2: Python, NumPy, Pandas, Data Preprocessing\nWeek 3-4: Supervised & Unsupervised Learning\nWeek 5: Deep Learning & Neural Networks\nWeek 6: NLP & Transformers\nWeek 7: MLOps & Model Deployment\nWeek 8: Mock Interviews & Portfolio Review',
         sortOrder: 0,
       },
     ],
     reviews: [
-      { rating: 5, comment: 'Priya helped me go from zero ML knowledge to landing an ML Intern role at Swiggy in 3 months!', createdAt: new Date('2024-10-20') },
-      { rating: 5, comment: 'Her explanations of transformers and attention mechanisms are phenomenal.', createdAt: new Date('2024-12-12') },
-      { rating: 4, comment: 'Very structured and knowledgeable. Highly recommend the 8-week bootcamp.', createdAt: new Date('2025-02-01') },
+      {
+        rating: 5,
+        comment:
+          'Priya helped me go from zero ML knowledge to landing an ML Intern role at Swiggy in 3 months!',
+        createdAt: new Date('2024-10-20'),
+      },
+      {
+        rating: 5,
+        comment: 'Her explanations of transformers and attention mechanisms are phenomenal.',
+        createdAt: new Date('2024-12-12'),
+      },
+      {
+        rating: 4,
+        comment: 'Very structured and knowledgeable. Highly recommend the 8-week bootcamp.',
+        createdAt: new Date('2025-02-01'),
+      },
     ],
   },
 
@@ -183,7 +238,7 @@ const MENTOR_DATA = [
     jobTitle: 'Senior Product Engineer',
     company: 'Razorpay',
     tagline: '⚡ Full Stack Dev | React + Node.js | Helping you build real-world apps',
-    bio: `I'm Sneha, a Senior Product Engineer at Razorpay with 6 years of experience in full-stack development.\n\nI've built large-scale fintech apps and love teaching others how to do the same — with clean code, good architecture, and real-world patterns.\n\nWhat I can help with:\n• React, TypeScript, Next.js\n• Node.js, Express, MongoDB\n• System Architecture & Code Review\n• Landing your first dev job`,
+    bio: "I'm Sneha, a Senior Product Engineer at Razorpay with 6 years of experience in full-stack development.\n\nI've built large-scale fintech apps and love teaching others how to do the same — with clean code, good architecture, and real-world patterns.\n\nWhat I can help with:\n• React, TypeScript, Next.js\n• Node.js, Express, MongoDB\n• System Architecture & Code Review\n• Landing your first dev job",
     expertise: ['React', 'Node.js', 'Full Stack Development', 'TypeScript', 'MongoDB', 'Next.js'],
     targetingDomains: ['Web Development', 'Computer Science', 'Software Engineering'],
     city: 'Bangalore',
@@ -198,7 +253,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'one_on_one',
         title: '1:1 Full Stack Mentorship',
-        description: 'Hands-on 60-min session where we solve your actual coding problems, review your project, or design architecture.',
+        description:
+          'Hands-on 60-min session where we solve your actual coding problems, review your project, or design architecture.',
         emoji: '💻',
         price: 899,
         duration: 60,
@@ -208,7 +264,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'mock_interview',
         title: 'SDE Mock Interview (Frontend/Backend)',
-        description: 'Real-world interview simulation with JavaScript fundamentals, React concepts, and take-home challenge review.',
+        description:
+          'Real-world interview simulation with JavaScript fundamentals, React concepts, and take-home challenge review.',
         emoji: '🎯',
         price: 1299,
         duration: 75,
@@ -217,7 +274,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'resume_review',
         title: 'Developer Resume & LinkedIn Review',
-        description: 'Comprehensive review of your resume and LinkedIn. Rewrites, ATS tips, project descriptions, GitHub cleanup checklist.',
+        description:
+          'Comprehensive review of your resume and LinkedIn. Rewrites, ATS tips, project descriptions, GitHub cleanup checklist.',
         emoji: '📋',
         price: 399,
         responseTime: 'Within 48 hours',
@@ -226,7 +284,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'course',
         title: 'Full Stack Crash Course (Self-Paced)',
-        description: 'Pre-recorded 12-hour course: React + Node.js + MongoDB. Build a complete todo + auth + payment app.',
+        description:
+          'Pre-recorded 12-hour course: React + Node.js + MongoDB. Build a complete todo + auth + payment app.',
         emoji: '📚',
         price: 1999,
         courseUrl: 'https://courses.skillpilot.com/sneha-fullstack',
@@ -235,7 +294,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'priority_dm',
         title: 'Priority DM — Monthly',
-        description: 'Stuck on a bug? Need code review? Architecture advice? Subscribe for unlimited async questions monthly.',
+        description:
+          'Stuck on a bug? Need code review? Architecture advice? Subscribe for unlimited async questions monthly.',
         emoji: '💬',
         price: 499,
         responseTime: 'Within 12 hours',
@@ -244,9 +304,23 @@ const MENTOR_DATA = [
     ],
     customSections: [],
     reviews: [
-      { rating: 5, comment: 'Sneha is the best mentor I ever had! Clear explanations and very patient with beginners.', createdAt: new Date('2025-01-05') },
-      { rating: 5, comment: 'Her code review sessions are gold. Learned more in 1 hour than weeks of tutorials.', createdAt: new Date('2025-02-14') },
-      { rating: 5, comment: 'Got my first dev job at a startup thanks to Sneha\'s guidance!', createdAt: new Date('2025-03-01') },
+      {
+        rating: 5,
+        comment:
+          'Sneha is the best mentor I ever had! Clear explanations and very patient with beginners.',
+        createdAt: new Date('2025-01-05'),
+      },
+      {
+        rating: 5,
+        comment:
+          'Her code review sessions are gold. Learned more in 1 hour than weeks of tutorials.',
+        createdAt: new Date('2025-02-14'),
+      },
+      {
+        rating: 5,
+        comment: "Got my first dev job at a startup thanks to Sneha's guidance!",
+        createdAt: new Date('2025-03-01'),
+      },
     ],
   },
 
@@ -257,8 +331,15 @@ const MENTOR_DATA = [
     jobTitle: 'Lead UX Designer',
     company: 'Meesho',
     tagline: '🎨 UX & Product Designer | Figma Expert | Career Switcher Specialist',
-    bio: `Hey! I'm Riya, Lead UX Designer at Meesho and a Figma community advocate.\n\nI switched from mechanical engineering to UX design 5 years ago — so I know exactly how overwhelming the switch feels. I've helped 50+ career switchers get their first design job.\n\nI can help with:\n• UX Design Fundamentals\n• Portfolio Building (from scratch)\n• Figma advanced workflows\n• Design thinking & user research\n• Case study writing for job applications`,
-    expertise: ['UI/UX Design', 'Figma', 'User Research', 'Design Thinking', 'Prototyping', 'Product Design'],
+    bio: "Hey! I'm Riya, Lead UX Designer at Meesho and a Figma community advocate.\n\nI switched from mechanical engineering to UX design 5 years ago — so I know exactly how overwhelming the switch feels. I've helped 50+ career switchers get their first design job.\n\nI can help with:\n• UX Design Fundamentals\n• Portfolio Building (from scratch)\n• Figma advanced workflows\n• Design thinking & user research\n• Case study writing for job applications",
+    expertise: [
+      'UI/UX Design',
+      'Figma',
+      'User Research',
+      'Design Thinking',
+      'Prototyping',
+      'Product Design',
+    ],
     targetingDomains: ['Design', 'HCI', 'Product Management'],
     city: 'Pune',
     rating: 4.9,
@@ -272,7 +353,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'career_guidance',
         title: 'Career Switch into UX Design',
-        description: '45-min session: we evaluate your background, identify transferable skills, and create a 90-day plan to get your first design role.',
+        description:
+          '45-min session: we evaluate your background, identify transferable skills, and create a 90-day plan to get your first design role.',
         emoji: '🗺️',
         price: 699,
         duration: 45,
@@ -282,17 +364,24 @@ const MENTOR_DATA = [
       {
         serviceType: 'portfolio_review',
         title: 'UX Portfolio Review',
-        description: 'Detailed async review of your design portfolio. I score each case study and give rewrite suggestions to impress top companies.',
+        description:
+          'Detailed async review of your design portfolio. I score each case study and give rewrite suggestions to impress top companies.',
         emoji: '🎨',
         price: 799,
         responseTime: 'Within 72 hours',
-        includes: ['Case study structure feedback', 'Visual design critique', 'Story-telling improvement', 'Hiring manager perspective'],
+        includes: [
+          'Case study structure feedback',
+          'Visual design critique',
+          'Story-telling improvement',
+          'Hiring manager perspective',
+        ],
         sortOrder: 1,
       },
       {
         serviceType: 'workshop',
         title: 'Figma Masterclass — Live Group Workshop',
-        description: 'Live 3-hour Figma workshop covering components, auto-layout, prototyping, and dev handoff. Limited to 15 participants.',
+        description:
+          'Live 3-hour Figma workshop covering components, auto-layout, prototyping, and dev handoff. Limited to 15 participants.',
         emoji: '🖥️',
         price: 999,
         duration: 180,
@@ -303,7 +392,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'one_on_one',
         title: 'Design Feedback Session',
-        description: 'Share your current designs or wireframes. I give live critiques and suggest improvements based on UX best practices.',
+        description:
+          'Share your current designs or wireframes. I give live critiques and suggest improvements based on UX best practices.',
         emoji: '✏️',
         price: 599,
         duration: 45,
@@ -312,7 +402,8 @@ const MENTOR_DATA = [
       {
         serviceType: 'priority_dm',
         title: 'DM Me — Design Questions',
-        description: 'Got a quick design question? Figma issue? Portfolio confusion? Subscribe and ping me any time.',
+        description:
+          'Got a quick design question? Figma issue? Portfolio confusion? Subscribe and ping me any time.',
         emoji: '💬',
         price: 249,
         responseTime: 'Within 24 hours',
@@ -322,14 +413,29 @@ const MENTOR_DATA = [
     customSections: [
       {
         title: '💼 My Design Journey',
-        content: '2018 — Graduated Mechanical Engineering, felt lost\n2019 — Discovered UX design by accident, took a free Google course\n2020 — First design internship at a Pune startup\n2021 — Joined Meesho as Junior UX Designer\n2023 — Promoted to Lead UX Designer\n\nIf I could make the switch, so can you! Book a career guidance session and let\'s map out your path.',
+        content:
+          "2018 — Graduated Mechanical Engineering, felt lost\n2019 — Discovered UX design by accident, took a free Google course\n2020 — First design internship at a Pune startup\n2021 — Joined Meesho as Junior UX Designer\n2023 — Promoted to Lead UX Designer\n\nIf I could make the switch, so can you! Book a career guidance session and let's map out your path.",
         sortOrder: 0,
       },
     ],
     reviews: [
-      { rating: 5, comment: 'Riya completely transformed my portfolio. Got interview calls from 3 top companies within a week!', createdAt: new Date('2024-09-10') },
-      { rating: 5, comment: 'As a career switcher, her guidance was invaluable. She understood my situation perfectly.', createdAt: new Date('2024-11-22') },
-      { rating: 4, comment: 'The Figma workshop was excellent. Very practical and well-structured.', createdAt: new Date('2025-01-30') },
+      {
+        rating: 5,
+        comment:
+          'Riya completely transformed my portfolio. Got interview calls from 3 top companies within a week!',
+        createdAt: new Date('2024-09-10'),
+      },
+      {
+        rating: 5,
+        comment:
+          'As a career switcher, her guidance was invaluable. She understood my situation perfectly.',
+        createdAt: new Date('2024-11-22'),
+      },
+      {
+        rating: 4,
+        comment: 'The Figma workshop was excellent. Very practical and well-structured.',
+        createdAt: new Date('2025-01-30'),
+      },
     ],
   },
 ];
@@ -422,10 +528,20 @@ async function seed() {
         isVisible: true,
         searchTags: [...data.expertise, ...data.targetingDomains].map(t => t.toLowerCase()),
         education: [
-          { degree: 'B.Tech', field: data.targetingDomains[0], institution: 'Premier Institute of Technology', year: 2018 },
+          {
+            degree: 'B.Tech',
+            field: data.targetingDomains[0],
+            institution: 'Premier Institute of Technology',
+            year: 2018,
+          },
         ],
         certifications: [
-          { name: `Certified ${data.expertise[0]} Professional`, issuer: 'Global Board', year: 2020, credentialUrl: 'https://credential.net' },
+          {
+            name: `Certified ${data.expertise[0]} Professional`,
+            issuer: 'Global Board',
+            year: 2020,
+            credentialUrl: 'https://credential.net',
+          },
         ],
         reviews,
         customSections: data.customSections.map(s => ({ ...s, isVisible: true })),
@@ -471,7 +587,13 @@ async function seed() {
       await coupon.save();
       console.log(`  🎟️  Coupon: ${data.couponCode} (${coupon.discountValue}% off)`);
 
-      credentials.push({ name: data.name, handle: data.handle, email: data.email, password: 'Mentor@123', coupon: data.couponCode });
+      credentials.push({
+        name: data.name,
+        handle: data.handle,
+        email: data.email,
+        password: 'Mentor@123',
+        coupon: data.couponCode,
+      });
       console.log(`✅ Created mentor: ${data.name} (@${data.handle})`);
     }
 

@@ -11,7 +11,7 @@ const emailCalls = [];
  * Mock sendMail function
  * Tracks email calls instead of sending via SMTP
  */
-const sendMail = jest.fn(async (emailOptions) => {
+const sendMail = jest.fn(async emailOptions => {
   const timestamp = new Date().toISOString();
   const callRecord = {
     to: emailOptions.to,
@@ -22,9 +22,9 @@ const sendMail = jest.fn(async (emailOptions) => {
     textContent: emailOptions.text,
     timestamp,
   };
-  
+
   emailCalls.push(callRecord);
-  
+
   // Return success response
   return {
     success: true,
@@ -41,14 +41,14 @@ const sendEmailFast = jest.fn(sendMail);
 /**
  * Helper: Get all emails sent to a specific recipient
  */
-const getEmailsByRecipient = (recipient) => {
+const getEmailsByRecipient = recipient => {
   return emailCalls.filter(call => call.to === recipient);
 };
 
 /**
  * Helper: Get the most recent email to a specific recipient
  */
-const getLastEmailTo = (recipient) => {
+const getLastEmailTo = recipient => {
   const emails = getEmailsByRecipient(recipient);
   return emails.length > 0 ? emails[emails.length - 1] : null;
 };
@@ -56,7 +56,7 @@ const getLastEmailTo = (recipient) => {
 /**
  * Helper: Get a specific email by template name
  */
-const getEmailsByTemplate = (template) => {
+const getEmailsByTemplate = template => {
   return emailCalls.filter(call => call.template === template || call.subject === template);
 };
 

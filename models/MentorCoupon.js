@@ -144,8 +144,10 @@ MentorCouponSchema.index({ mentorId: 1, isActive: 1 });
 MentorCouponSchema.methods.isValid = function () {
   const now = new Date();
   if (!this.isActive) return { valid: false, reason: 'Coupon is inactive' };
-  if (this.validFrom && now < this.validFrom) return { valid: false, reason: 'Coupon not yet active' };
-  if (this.validUntil && now > this.validUntil) return { valid: false, reason: 'Coupon has expired' };
+  if (this.validFrom && now < this.validFrom)
+    return { valid: false, reason: 'Coupon not yet active' };
+  if (this.validUntil && now > this.validUntil)
+    return { valid: false, reason: 'Coupon has expired' };
   if (this.maxUses !== null && this.usedCount >= this.maxUses)
     return { valid: false, reason: 'Coupon usage limit reached' };
   return { valid: true };
@@ -191,7 +193,14 @@ MentorCouponSchema.methods.recordRedemption = async function ({
   discountAmount,
   finalPrice,
 }) {
-  this.redemptions.push({ userId, serviceId, bookingId, originalPrice, discountAmount, finalPrice });
+  this.redemptions.push({
+    userId,
+    serviceId,
+    bookingId,
+    originalPrice,
+    discountAmount,
+    finalPrice,
+  });
   this.usedCount += 1;
   return this.save();
 };
@@ -217,7 +226,10 @@ MentorCouponSchema.statics.validateCoupon = async function ({
   // Check per-user limit
   const userUses = coupon.getUserUseCount(userId);
   if (userUses >= coupon.perUserLimit) {
-    return { valid: false, reason: `You have already used this coupon ${coupon.perUserLimit} time(s)` };
+    return {
+      valid: false,
+      reason: `You have already used this coupon ${coupon.perUserLimit} time(s)`,
+    };
   }
 
   // Check service scope

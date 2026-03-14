@@ -156,8 +156,7 @@ exports.getMentorInbox = async (req, res) => {
 
     // Attach last message preview
     const threadIds = threads.map(t => t._id);
-    const fullThreads = await PriorityDM.find({ _id: { $in: threadIds } })
-      .select('_id messages');
+    const fullThreads = await PriorityDM.find({ _id: { $in: threadIds } }).select('_id messages');
 
     const lastMsgMap = {};
     fullThreads.forEach(t => {
@@ -176,7 +175,11 @@ exports.getMentorInbox = async (req, res) => {
       lastMessage: lastMsgMap[t._id.toString()] || null,
     }));
 
-    res.json({ success: true, threads: enriched, pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) } });
+    res.json({
+      success: true,
+      threads: enriched,
+      pagination: { total, page: Number(page), totalPages: Math.ceil(total / Number(limit)) },
+    });
   } catch (error) {
     console.error('getMentorInbox error:', error);
     res.status(500).json({ error: 'Failed to fetch inbox' });

@@ -46,15 +46,14 @@ const MentorBookingSchema = new mongoose.Schema({
   // Selected Service (Topmate-style specific service)
   serviceId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'MentorService'
+    ref: 'MentorService',
   },
-  
+
   // Applied Coupon (if any)
   couponId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'MentorCoupon'
+    ref: 'MentorCoupon',
   },
-
 
   duration: {
     type: Number, // in minutes

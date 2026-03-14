@@ -605,17 +605,8 @@ const testWorkshops = [
 // ============================================================================
 
 const validationCases = {
-  validEmails: [
-    'test@example.com',
-    'user.name@domain.org',
-    'user+tag@company.co.uk',
-  ],
-  invalidEmails: [
-    'invalid-email',
-    '@nodomain.com',
-    'noatsign.com',
-    'spaces in@email.com',
-  ],
+  validEmails: ['test@example.com', 'user.name@domain.org', 'user+tag@company.co.uk'],
+  invalidEmails: ['invalid-email', '@nodomain.com', 'noatsign.com', 'spaces in@email.com'],
   validRoles: ['User', 'Mentor', 'Admin', 'UniAdmin', 'UniTeach', 'Student'],
   invalidRoles: ['InvalidRole', 'SuperAdmin', '', null],
 };

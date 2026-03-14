@@ -16,17 +16,17 @@ const JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-key';
  */
 const generateToken = (userIdOrUser, role = 'User') => {
   let userId = userIdOrUser;
-  
+
   if (typeof userIdOrUser === 'object' && userIdOrUser._id) {
     userId = userIdOrUser._id;
   }
-  
+
   const payload = {
     userId: userId.toString(),
     role,
     iat: Math.floor(Date.now() / 1000),
   };
-  
+
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
 };
 
@@ -47,7 +47,7 @@ const addAuthToken = (request, userIdOrUser, role = 'User') => {
  * @param {string} token - JWT token
  * @returns {Object} Decoded payload
  */
-const decodeToken = (token) => {
+const decodeToken = token => {
   try {
     return jwt.verify(token, JWT_SECRET);
   } catch (error) {
@@ -61,7 +61,7 @@ const decodeToken = (token) => {
  */
 const cleanDatabase = async () => {
   if (!mongoose.connection.collections) return;
-  
+
   const collections = mongoose.connection.collections;
   for (const key in collections) {
     const collection = collections[key];
@@ -74,7 +74,7 @@ const cleanDatabase = async () => {
  * @param {string} modelName - Model name
  * @returns {Promise<void>}
  */
-const cleanCollection = async (modelName) => {
+const cleanCollection = async modelName => {
   try {
     const model = mongoose.model(modelName);
     await model.deleteMany({});
@@ -93,7 +93,7 @@ const expectEmailSent = (recipient, template = null) => {
     expect(global.testUtils.getEmailsByRecipient(recipient).length).toBeGreaterThan(0);
     return;
   }
-  
+
   const sent = global.testUtils.wasEmailSentTo(recipient, template);
   expect(sent).toBe(true);
 };
@@ -121,7 +121,7 @@ const expectNoEmailSent = (recipient = null) => {
 const getMockUserWithToken = (role = 'User', userDoc = null) => {
   const userId = userDoc?._id || new mongoose.Types.ObjectId();
   const token = generateToken(userId, role);
-  
+
   return {
     token,
     userId,
@@ -137,7 +137,7 @@ const getMockUserWithToken = (role = 'User', userDoc = null) => {
  */
 const createTestUser = async (userData = {}) => {
   const User = mongoose.model('User');
-  
+
   const defaultData = {
     email: `test-${Date.now()}@test.com`,
     password: 'hashed-password',
@@ -146,7 +146,7 @@ const createTestUser = async (userData = {}) => {
     isVerified: true,
     ...userData,
   };
-  
+
   return await User.create(defaultData);
 };
 
@@ -204,15 +204,19 @@ const wait = (ms = 100) => new Promise(resolve => setTimeout(resolve, ms));
  * @param {Object} expected - Expected response
  * @param {Array<string>} ignoreFields - Fields to ignore in comparison
  */
-const compareObjects = (received, expected, ignoreFields = ['_id', '__v', 'createdAt', 'updatedAt']) => {
+const compareObjects = (
+  received,
+  expected,
+  ignoreFields = ['_id', '__v', 'createdAt', 'updatedAt']
+) => {
   const receivedCopy = { ...received };
   const expectedCopy = { ...expected };
-  
+
   ignoreFields.forEach(field => {
     delete receivedCopy[field];
     delete expectedCopy[field];
   });
-  
+
   return expect(receivedCopy).toEqual(expect.objectContaining(expectedCopy));
 };
 
@@ -241,7 +245,7 @@ const expectErrorMessage = (response, expectedMessage) => {
  */
 const expectSuccessResponse = (response, requiredFields = []) => {
   expect(response.status).toBeLessThan(400);
-  
+
   if (requiredFields.length > 0) {
     requiredFields.forEach(field => {
       expect(response.body[field]).toBeDefined();
@@ -271,7 +275,7 @@ module.exports = {
   addAuthToken,
   decodeToken,
   getMockUserWithToken,
-  
+
   // Database
   cleanDatabase,
   cleanCollection,
@@ -279,20 +283,20 @@ module.exports = {
   createTestMentor,
   createTestStudent,
   createTestUniAdmin,
-  
+
   // Email assertions
   expectEmailSent,
   expectNoEmailSent,
-  
+
   // HTTP response assertions
   expectStatus,
   expectErrorMessage,
   expectSuccessResponse,
   compareObjects,
-  
+
   // File uploads
   getUploadCalls,
-  
+
   // Utilities
   wait,
   clearAllTestData,

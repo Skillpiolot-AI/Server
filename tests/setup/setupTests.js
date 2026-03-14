@@ -17,13 +17,15 @@ jest.mock('../../config/cloudinary', () => require('../mocks/cloudinary.mock.js'
 jest.mock('../../config/googleAuth', () => require('../mocks/googleAuth.mock.js'));
 
 // Mock push notification service
-jest.mock('../../services/pushNotificationService', () => require('../mocks/pushNotifications.mock.js'));
+jest.mock('../../services/pushNotificationService', () =>
+  require('../mocks/pushNotifications.mock.js')
+);
 
 // Mock nodemailer (email transporter)
 jest.mock('nodemailer', () => ({
   createTransport: jest.fn(() => ({
     verify: jest.fn(async () => true),
-    sendMail: jest.fn(async (options) => ({
+    sendMail: jest.fn(async options => ({
       messageId: 'mock-email-' + Date.now(),
       response: '250 Message accepted',
     })),
@@ -119,9 +121,9 @@ global.testUtils = {
   // Email helpers
   clearEmails: () => mailHelperMock.clearAllEmails(),
   getEmails: () => mailHelperMock.getAllEmails(),
-  getLastEmailTo: (recipient) => mailHelperMock.getLastEmailTo(recipient),
-  getEmailsByRecipient: (recipient) => mailHelperMock.getEmailsByRecipient(recipient),
-  getEmailsByTemplate: (template) => mailHelperMock.getEmailsByTemplate(template),
+  getLastEmailTo: recipient => mailHelperMock.getLastEmailTo(recipient),
+  getEmailsByRecipient: recipient => mailHelperMock.getEmailsByRecipient(recipient),
+  getEmailsByTemplate: template => mailHelperMock.getEmailsByTemplate(template),
   wasEmailSentTo: (recipient, template) => mailHelperMock.wasEmailSentTo(recipient, template),
   getEmailCount: () => mailHelperMock.getEmailCount(),
 

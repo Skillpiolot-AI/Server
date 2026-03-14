@@ -2,7 +2,7 @@
  * PriorityDM.js
  * Async messaging thread between a mentee and a mentor.
  * Each thread is tied to a PriorityDM service purchase.
- * 
+ *
  * Thread lifecycle:
  *   open → (mentor replies) → active → (response_time exceeded or manually closed) → closed
  */
@@ -32,7 +32,7 @@ const MessageSchema = new mongoose.Schema({
       url: String,
       filename: String,
       mimetype: String,
-    }
+    },
   ],
   isRead: {
     type: Boolean,
@@ -46,84 +46,87 @@ const MessageSchema = new mongoose.Schema({
 });
 
 // ─── Thread ────────────────────────────────────────────────────────────────────
-const PriorityDMSchema = new mongoose.Schema({
-  // Participants
-  menteeId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  mentorId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  mentorProfileId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'MentorProfile',
-  },
+const PriorityDMSchema = new mongoose.Schema(
+  {
+    // Participants
+    menteeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    mentorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    mentorProfileId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'MentorProfile',
+    },
 
-  // The service that was purchased
-  serviceId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'MentorService',
-  },
+    // The service that was purchased
+    serviceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'MentorService',
+    },
 
-  // Thread metadata
-  subject: {
-    type: String,
-    trim: true,
-    maxlength: 200,
-    default: 'Priority DM',
-  },
-  status: {
-    type: String,
-    enum: ['open', 'active', 'closed', 'expired'],
-    default: 'open',
-  },
+    // Thread metadata
+    subject: {
+      type: String,
+      trim: true,
+      maxlength: 200,
+      default: 'Priority DM',
+    },
+    status: {
+      type: String,
+      enum: ['open', 'active', 'closed', 'expired'],
+      default: 'open',
+    },
 
-  // Response commitment from mentor (from MentorService.responseTime)
-  responseDeadline: {
-    type: Date,
-  },
+    // Response commitment from mentor (from MentorService.responseTime)
+    responseDeadline: {
+      type: Date,
+    },
 
-  // Payment
-  isPaid: {
-    type: Boolean,
-    default: false,
-  },
-  amountPaid: {
-    type: Number,
-    default: 0,
-  },
-  couponCode: String,
-  discountApplied: Number,
+    // Payment
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
+    amountPaid: {
+      type: Number,
+      default: 0,
+    },
+    couponCode: String,
+    discountApplied: Number,
 
-  // Messages array (embedded for simplicity — use ref if volume grows)
-  messages: [MessageSchema],
+    // Messages array (embedded for simplicity — use ref if volume grows)
+    messages: [MessageSchema],
 
-  // Unread counts (cached for performance)
-  unreadByMentor: {
-    type: Number,
-    default: 0,
-  },
-  unreadByMentee: {
-    type: Number,
-    default: 0,
-  },
+    // Unread counts (cached for performance)
+    unreadByMentor: {
+      type: Number,
+      default: 0,
+    },
+    unreadByMentee: {
+      type: Number,
+      default: 0,
+    },
 
-  // Timestamps
-  createdAt: {
-    type: Date,
-    default: Date.now,
+    // Timestamps
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    lastMessageAt: {
+      type: Date,
+      default: Date.now,
+    },
+    mentorRepliedAt: Date,
+    closedAt: Date,
   },
-  lastMessageAt: {
-    type: Date,
-    default: Date.now,
-  },
-  mentorRepliedAt: Date,
-  closedAt: Date,
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 // ─── Indexes ──────────────────────────────────────────────────────────────────
 PriorityDMSchema.index({ mentorId: 1, status: 1, lastMessageAt: -1 });
@@ -135,7 +138,7 @@ PriorityDMSchema.index({ mentorId: 1, unreadByMentor: -1 });
 /**
  * Add a message to the thread and update unread counts
  */
-PriorityDMSchema.methods.addMessage = function(senderId, senderRole, content, attachments = []) {
+PriorityDMSchema.methods.addMessage = function (senderId, senderRole, content, attachments = []) {
   this.messages.push({
     sender: senderId,
     senderRole,
@@ -163,7 +166,7 @@ PriorityDMSchema.methods.addMessage = function(senderId, senderRole, content, at
 /**
  * Mark all messages as read by a given role
  */
-PriorityDMSchema.methods.markReadBy = function(role) {
+PriorityDMSchema.methods.markReadBy = function (role) {
   const field = role === 'mentor' ? 'unreadByMentor' : 'unreadByMentee';
   this[field] = 0;
 

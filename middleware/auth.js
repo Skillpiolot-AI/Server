@@ -251,7 +251,9 @@ exports.isMentor = (req, res, next) => {
     return res.status(401).json({ success: false, message: 'Authentication required.' });
   }
   if (req.user.role !== 'Mentor') {
-    return res.status(403).json({ success: false, message: 'Access denied. Mentor role required.' });
+    return res
+      .status(403)
+      .json({ success: false, message: 'Access denied. Mentor role required.' });
   }
   if (req.user.mentorStatus !== 'approved') {
     return res.status(403).json({
@@ -269,11 +271,12 @@ exports.isMentorOrAdminAny = (req, res, next) => {
     return res.status(401).json({ success: false, message: 'Authentication required.' });
   }
   if (!['Mentor', 'Admin'].includes(req.user.role)) {
-    return res.status(403).json({ success: false, message: 'Access denied. Mentor or Admin role required.' });
+    return res
+      .status(403)
+      .json({ success: false, message: 'Access denied. Mentor or Admin role required.' });
   }
   next();
 };
-
 
 // Mentor or Admin access
 exports.isMentorOrAdmin = (req, res, next) => {

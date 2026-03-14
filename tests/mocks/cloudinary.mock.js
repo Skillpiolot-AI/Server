@@ -11,7 +11,7 @@ const deleteCalls = [];
  * Mock v2 object with uploader
  */
 const v2 = {
-  config: jest.fn((options) => {
+  config: jest.fn(options => {
     return {
       cloud_name: 'test-cloud',
       api_key: 'test-key',
@@ -68,7 +68,7 @@ const v2 = {
     /**
      * Mock resource function
      */
-    resource: jest.fn(async (publicId) => {
+    resource: jest.fn(async publicId => {
       return {
         public_id: publicId,
         url: `https://res.cloudinary.com/test/image/upload/${publicId}.jpg`,

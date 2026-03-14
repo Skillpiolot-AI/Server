@@ -13,7 +13,7 @@ const API_URL = 'http://localhost:3001/api';
 // Test Data
 const USERS = {
   mentor: { email: 'pro_mentor@test.com', password: 'Password@123', handle: 'pro_mentor_1' },
-  student: { email: 'pro_student@test.com', password: 'Password@123' }
+  student: { email: 'pro_student@test.com', password: 'Password@123' },
 };
 
 let store = {
@@ -24,12 +24,12 @@ let store = {
   serviceId: '',
   bookingId: '',
   threadId: '',
-  postId: ''
+  postId: '',
 };
 
 // --- Test Utilities ---
-const logHead = (msg) => console.log('\n\x1b[44m\x1b[37m %s \x1b[0m', msg);
-const logSuccess = (msg) => console.log('\x1b[32m✅ %s\x1b[0m', msg);
+const logHead = msg => console.log('\n\x1b[44m\x1b[37m %s \x1b[0m', msg);
+const logSuccess = msg => console.log('\x1b[32m✅ %s\x1b[0m', msg);
 const logError = (msg, err) => {
   console.log('\x1b[31m❌ %s\x1b[0m', msg);
   if (err?.response?.data) {
@@ -38,7 +38,6 @@ const logError = (msg, err) => {
   console.error(err?.stack || err);
   process.exit(1); // Fail fast
 };
-
 
 async function cleanup() {
   logHead('CLEANUP PREVIOUS TEST DATA');
@@ -61,36 +60,42 @@ async function runAuthSuite(userKey) {
       username: `${userKey}_user`,
       email: userData.email,
       password: userData.password,
-      confirmPassword: userData.password
+      confirmPassword: userData.password,
     });
     logSuccess('Signup successful');
 
     // 2. Bypass Email Verification via DB
     // Small delay to ensure DB write is complete
     await new Promise(r => setTimeout(r, 1000));
-    const bypassVf = await EmailVerification.findOne({ email: userData.email }).sort({ createdAt: -1 });
+    const bypassVf = await EmailVerification.findOne({ email: userData.email }).sort({
+      createdAt: -1,
+    });
     if (!bypassVf) {
       throw new Error(`EmailVerification document not found for ${userData.email}`);
     }
     await axios.post(`${API_URL}/auth/verify-email`, { token: bypassVf.token });
     logSuccess('Email verified');
 
-
     // 3. Login
     const loginRes = await axios.post(`${API_URL}/auth/login`, {
       username: userData.email,
-      password: userData.password
+      password: userData.password,
     });
     store[`${userKey}Token`] = loginRes.data.token;
     store[`${userKey}UserId`] = loginRes.data.user.id || loginRes.data.user._id;
     logSuccess('Login successful');
 
     // 4. Update Profile Route
-    await axios.put(`${API_URL}/profile/personal`, {
-      firstName: userKey, lastName: 'TestUser', bio: 'I am a pro test bot'
-    }, { headers: { Authorization: `Bearer ${store[`${userKey}Token`]}` }});
+    await axios.put(
+      `${API_URL}/profile/personal`,
+      {
+        firstName: userKey,
+        lastName: 'TestUser',
+        bio: 'I am a pro test bot',
+      },
+      { headers: { Authorization: `Bearer ${store[`${userKey}Token`]}` } }
+    );
     logSuccess('Profile personalized');
-
   } catch (err) {
     logError(`Auth Suite Failed for ${userKey}`, err);
   }
@@ -100,49 +105,62 @@ async function runAuthSuite(userKey) {
 // SUITE 2: MENTORSHIP & SERVICES
 // ---------------------------------------------------------
 async function runMentorSuite() {
-  logHead(`SUITE 2: MENTOR ONBOARDING & SERVICES`);
+  logHead('SUITE 2: MENTOR ONBOARDING & SERVICES');
   const headers = { Authorization: `Bearer ${store.mentorToken}` };
 
   try {
     // 1. Apply to be a mentor
-    await axios.post(`${API_URL}/mentor/register`, {
-      handle: USERS.mentor.handle,
-      displayName: 'Pro Mentor User',
-      jobTitle: 'Principal Engineer',
-      expertise: ['Node.js', 'Testing']
-    }, { headers });
+    await axios.post(
+      `${API_URL}/mentor/register`,
+      {
+        handle: USERS.mentor.handle,
+        displayName: 'Pro Mentor User',
+        jobTitle: 'Principal Engineer',
+        expertise: ['Node.js', 'Testing'],
+      },
+      { headers }
+    );
     logSuccess('Mentor Application Submitted');
 
     // 2. Admin DB Bypass (Approve Profile & Switch Role)
-    await MentorProfile.updateOne({ handle: USERS.mentor.handle }, {
+    await MentorProfile.updateOne(
+      { handle: USERS.mentor.handle },
+      {
         approvalStatus: 'approved',
         isVisible: true,
-        isActive: true
-    });
-    await User.updateOne({ email: USERS.mentor.email }, { role: 'Mentor', mentorStatus: 'approved' });
+        isActive: true,
+      }
+    );
+    await User.updateOne(
+      { email: USERS.mentor.email },
+      { role: 'Mentor', mentorStatus: 'approved' }
+    );
     logSuccess('Mentor automatically approved via DB hooks');
 
     // Re-login to get Mentor Role Token
     const loginRes = await axios.post(`${API_URL}/auth/login`, {
       username: USERS.mentor.email,
-      password: USERS.mentor.password
+      password: USERS.mentor.password,
     });
     store.mentorToken = loginRes.data.token;
     headers.Authorization = `Bearer ${store.mentorToken}`;
 
     // 3. Create Custom Service
-    const serviceRes = await axios.post(`${API_URL}/mentor/services`, {
-      serviceType: 'one_on_one',
-      title: 'Pro Code Review',
-      description: 'Reviewing code like a pro',
-      price: 50,
-      duration: 60,
-      isActive: true
-    }, { headers });
+    const serviceRes = await axios.post(
+      `${API_URL}/mentor/services`,
+      {
+        serviceType: 'one_on_one',
+        title: 'Pro Code Review',
+        description: 'Reviewing code like a pro',
+        price: 50,
+        duration: 60,
+        isActive: true,
+      },
+      { headers }
+    );
     store.serviceId = serviceRes.data?.service?._id;
     logSuccess(`Mentor Service created: ${store.serviceId}`);
-
-  } catch(err) {
+  } catch (err) {
     logError('Mentor Suite Failed', err);
   }
 }
@@ -151,7 +169,7 @@ async function runMentorSuite() {
 // SUITE 3: PUBLIC BROWSING & BOOKING (Student Action)
 // ---------------------------------------------------------
 async function runBookingSuite() {
-  logHead(`SUITE 3: BOOKING FLOW`);
+  logHead('SUITE 3: BOOKING FLOW');
   const headers = { Authorization: `Bearer ${store.studentToken}` };
 
   try {
@@ -162,15 +180,18 @@ async function runBookingSuite() {
     logSuccess('Successfully fetched public Topmate-style profile window');
 
     // 2. Book a session
-    const bookRes = await axios.post(`${API_URL}/bookings/book`, {
-      mentorProfileId: mentorProfileId,
-      serviceId: store.serviceId,
-      scheduledAt: new Date(Date.now() + 86400000).toISOString() // Tomorrow
-    }, { headers });
+    const bookRes = await axios.post(
+      `${API_URL}/bookings/book`,
+      {
+        mentorProfileId: mentorProfileId,
+        serviceId: store.serviceId,
+        scheduledAt: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+      },
+      { headers }
+    );
     store.bookingId = bookRes.data.appointmentId || bookRes.data._id;
     logSuccess(`Booking successfully submitted: ${store.bookingId}`);
-
-  } catch(err) {
+  } catch (err) {
     logError('Booking Suite Failed', err);
   }
 }
@@ -179,36 +200,43 @@ async function runBookingSuite() {
 // SUITE 4: PRIORITY DMs
 // ---------------------------------------------------------
 async function runDMSuite() {
-  logHead(`SUITE 4: PRIORITY DMs`);
+  logHead('SUITE 4: PRIORITY DMs');
   const studentHeaders = { Authorization: `Bearer ${store.studentToken}` };
   const mentorHeaders = { Authorization: `Bearer ${store.mentorToken}` };
 
   try {
     // 1. Student initiates DM
-    const startRes = await axios.post(`${API_URL}/dm/start`, {
-      mentorId: store.mentorUserId,
-      subject: 'Urgent Testing Help',
-      message: 'Hello Mentor, I need help with testing.'
-    }, { headers: studentHeaders });
+    const startRes = await axios.post(
+      `${API_URL}/dm/start`,
+      {
+        mentorId: store.mentorUserId,
+        subject: 'Urgent Testing Help',
+        message: 'Hello Mentor, I need help with testing.',
+      },
+      { headers: studentHeaders }
+    );
     store.threadId = startRes.data.thread._id || startRes.data._id || startRes.data.threadId;
 
     // Use fallback extraction if the API structure varies slightly
     if (!store.threadId && startRes.data.message === 'Thread started') {
-        // We will fetch student outbox to find the latest thread
-        const outboxRes = await axios.get(`${API_URL}/dm/inbox/mentee`, { headers: studentHeaders });
-        store.threadId = outboxRes.data.threads?.[0]?._id;
+      // We will fetch student outbox to find the latest thread
+      const outboxRes = await axios.get(`${API_URL}/dm/inbox/mentee`, { headers: studentHeaders });
+      store.threadId = outboxRes.data.threads?.[0]?._id;
     }
-    logSuccess(`Priority DM thread created!`);
+    logSuccess('Priority DM thread created!');
 
-    if(store.threadId) {
+    if (store.threadId) {
       // 2. Mentor replies to DM
-      await axios.post(`${API_URL}/dm/${store.threadId}/messages`, {
-        content: 'Sure! I can help you with backend tests.'
-      }, { headers: mentorHeaders });
+      await axios.post(
+        `${API_URL}/dm/${store.threadId}/messages`,
+        {
+          content: 'Sure! I can help you with backend tests.',
+        },
+        { headers: mentorHeaders }
+      );
       logSuccess('Mentor replied to DM successfully');
     }
-
-  } catch(err) {
+  } catch (err) {
     logError('DM Suite Failed', err);
   }
 }
@@ -217,15 +245,19 @@ async function runDMSuite() {
 // SUITE 5: COMMUNITY POSTS
 // ---------------------------------------------------------
 async function runCommunitySuite() {
-  logHead(`SUITE 5: COMMUNITY POSTS`);
+  logHead('SUITE 5: COMMUNITY POSTS');
   const studentHeaders = { Authorization: `Bearer ${store.studentToken}` };
   const mentorHeaders = { Authorization: `Bearer ${store.mentorToken}` };
 
   try {
     // 1. Mentor creates a post
-    const postRes = await axios.post(`${API_URL}/posts`, {
-        content: 'Welcome to the pro testing framework! #Backend #NodeJS'
-    }, { headers: mentorHeaders });
+    const postRes = await axios.post(
+      `${API_URL}/posts`,
+      {
+        content: 'Welcome to the pro testing framework! #Backend #NodeJS',
+      },
+      { headers: mentorHeaders }
+    );
     store.postId = postRes.data._id;
     logSuccess(`Community post created: ${store.postId}`);
 
@@ -234,12 +266,15 @@ async function runCommunitySuite() {
     logSuccess('Student liked the community post');
 
     // 3. Student comments on the post
-    await axios.post(`${API_URL}/posts/${store.postId}/comments`, {
-        content: 'Great tutorial, looking forward to more!'
-    }, { headers: studentHeaders });
+    await axios.post(
+      `${API_URL}/posts/${store.postId}/comments`,
+      {
+        content: 'Great tutorial, looking forward to more!',
+      },
+      { headers: studentHeaders }
+    );
     logSuccess('Student commented on the post');
-
-  } catch(err) {
+  } catch (err) {
     logError('Community Suite Failed', err);
   }
 }
@@ -267,7 +302,7 @@ async function runAllTests() {
     console.log('\n\x1b[42m\x1b[37m ================================================= \x1b[0m');
     console.log('\x1b[42m\x1b[37m 🎉 ALL TESTS PASSED SUCCESSFULLY!                 \x1b[0m');
     console.log('\x1b[42m\x1b[37m ================================================= \x1b[0m\n');
-  } catch(e) {
+  } catch (e) {
     console.error('Fatal Error during execution:', e);
   } finally {
     process.exit(0);

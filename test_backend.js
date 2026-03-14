@@ -28,7 +28,7 @@ async function cleanup() {
 async function runTests() {
   await connectDB();
   await cleanup();
-  
+
   let token = null;
   let mentorHandle = 'ujjwal_test_handle';
 
@@ -40,18 +40,18 @@ async function runTests() {
       username: USERNAME,
       password: PASSWORD,
       confirmPassword: PASSWORD,
-      role: 'User'
+      role: 'User',
     });
     console.log('✅ Signup Response:', signupRes.data.message);
-    
+
     // Bypass email, get verification token directly from DB
     const verification = await EmailVerification.findOne({ email: EMAIL });
     if (!verification) throw new Error('No verification token found in DB');
-    
+
     console.log('Got Verification Token:', verification.token);
-    
+
     const verifyRes = await axios.post(`${API_URL}/auth/verify-email`, {
-      token: verification.token
+      token: verification.token,
     });
     console.log('✅ Email Verification:', verifyRes.data.message);
   } catch (err) {
@@ -63,7 +63,7 @@ async function runTests() {
   try {
     const loginRes = await axios.post(`${API_URL}/auth/login`, {
       username: EMAIL,
-      password: PASSWORD
+      password: PASSWORD,
     });
     token = loginRes.data.token;
     console.log('✅ Login Successful. Token:', token.slice(0, 20) + '...');
@@ -78,26 +78,28 @@ async function runTests() {
   try {
     const profileRes = await axios.get(`${API_URL}/profile/me`, { headers });
     console.log('✅ Profile Fetched:', profileRes.data.profile.user.email);
-
   } catch (err) {
     console.error('❌ Profile Error:', err.response?.data || err.message);
   }
 
   console.log('\n--- 4. BECOME A MENTOR ---');
   try {
-    const mentorAppRes = await axios.post(`${API_URL}/mentor/register`, {
-      handle: mentorHandle,
-      displayName: 'Ujjwal Expert',
-      jobTitle: 'Senior Software Engineer',
-      company: 'Tech Corp',
-      bio: 'I help people get jobs.',
-      expertise: ['Engineering', 'Career'],
-      skills: ['Node.js', 'React'],
-      pricingType: 'free'
-    }, { headers });
+    const mentorAppRes = await axios.post(
+      `${API_URL}/mentor/register`,
+      {
+        handle: mentorHandle,
+        displayName: 'Ujjwal Expert',
+        jobTitle: 'Senior Software Engineer',
+        company: 'Tech Corp',
+        bio: 'I help people get jobs.',
+        expertise: ['Engineering', 'Career'],
+        skills: ['Node.js', 'React'],
+        pricingType: 'free',
+      },
+      { headers }
+    );
     console.log('✅ Mentor Application Submitted:', mentorAppRes.data.message);
 
-    
     // Auto-approve mentor via DB directly for testing purposes
     const profile = await MentorProfile.findOne({ handle: mentorHandle });
     profile.approvalStatus = 'approved';
@@ -105,27 +107,31 @@ async function runTests() {
     profile.isVisible = true;
     await profile.save();
     console.log('🟢 Automatically approved mentor profile via DB');
-    
+
     // Change user role
     await User.updateOne({ email: EMAIL }, { role: 'Mentor', mentorStatus: 'approved' });
 
-    
     // Re-login to get updated role token
-    const newLogin = await axios.post(`${API_URL}/auth/login`, { username: EMAIL, password: PASSWORD });
+    const newLogin = await axios.post(`${API_URL}/auth/login`, {
+      username: EMAIL,
+      password: PASSWORD,
+    });
     token = newLogin.data.token;
     headers.Authorization = `Bearer ${token}`;
     console.log('🔄 Re-authenticated to get Mentor role token.');
 
-    const createCouponRes = await axios.post(`${API_URL}/mentor/coupons`, {
-      code: 'TEST50',
-      discountType: 'percentage',
-      discountValue: 50,
-      isActive: true,
-      maxUses: 10
-    }, { headers });
+    const createCouponRes = await axios.post(
+      `${API_URL}/mentor/coupons`,
+      {
+        code: 'TEST50',
+        discountType: 'percentage',
+        discountValue: 50,
+        isActive: true,
+        maxUses: 10,
+      },
+      { headers }
+    );
     console.log('✅ Coupon Created:', createCouponRes.data.coupon.code);
-
-    
   } catch (err) {
     console.error('❌ Mentor Apply Error:', err.response?.data || err.message);
   }
@@ -133,14 +139,18 @@ async function runTests() {
   console.log('\n--- 5. CREATE A MENTOR SERVICE ---');
   let serviceId = null;
   try {
-    const serviceRes = await axios.post(`${API_URL}/mentor/services`, {
-      title: 'Mock Interview Session',
-      serviceType: 'mock_interview',
-      description: 'An intensive mock interview.',
-      price: 500,
-      duration: 60,
-      isActive: true
-    }, { headers });
+    const serviceRes = await axios.post(
+      `${API_URL}/mentor/services`,
+      {
+        title: 'Mock Interview Session',
+        serviceType: 'mock_interview',
+        description: 'An intensive mock interview.',
+        price: 500,
+        duration: 60,
+        isActive: true,
+      },
+      { headers }
+    );
     serviceId = serviceRes.data.service._id;
     console.log('✅ Service Created. ID:', serviceId);
   } catch (err) {
@@ -151,19 +161,23 @@ async function runTests() {
   try {
     // Actually, booking self might be blocked, let's see.
     const profile = await MentorProfile.findOne({ handle: mentorHandle });
-    const bookRes = await axios.post(`${API_URL}/bookings/book`, {
-      mentorProfileId: profile._id,
-      serviceId: serviceId,
-      scheduledAt: new Date(Date.now() + 86400000).toISOString(),
-      duration: 60
-    }, { headers });
+    const bookRes = await axios.post(
+      `${API_URL}/bookings/book`,
+      {
+        mentorProfileId: profile._id,
+        serviceId: serviceId,
+        scheduledAt: new Date(Date.now() + 86400000).toISOString(),
+        duration: 60,
+      },
+      { headers }
+    );
     console.log('✅ Booking Response:', bookRes.data);
   } catch (err) {
     // We expect "You cannot book a session with yourself", which proves validation works.
     if (err.response?.data?.error === 'You cannot book a session with yourself') {
-       console.log('✅ Booking correctly prevented self-booking.');
+      console.log('✅ Booking correctly prevented self-booking.');
     } else {
-       console.error('❌ Booking Error:', err.response?.data || err.message);
+      console.error('❌ Booking Error:', err.response?.data || err.message);
     }
   }
 

@@ -12,7 +12,7 @@ const tokenCalls = [];
  */
 const google = {
   auth: {
-    OAuth2: jest.fn(function(clientId, clientSecret, redirectUrl) {
+    OAuth2: jest.fn(function (clientId, clientSecret, redirectUrl) {
       this.clientId = clientId;
       this.clientSecret = clientSecret;
       this.redirectUrl = redirectUrl;
@@ -24,7 +24,7 @@ const google = {
         };
       });
 
-      this.verifyIdToken = jest.fn(async (options) => {
+      this.verifyIdToken = jest.fn(async options => {
         const verifyRecord = {
           idToken: options.idToken,
           audience: options.audience,
@@ -60,7 +60,7 @@ const google = {
 /**
  * Mock getTokenInfo endpoint
  */
-const getTokenInfo = jest.fn(async (token) => {
+const getTokenInfo = jest.fn(async token => {
   const tokenRecord = {
     token,
     timestamp: new Date().toISOString(),

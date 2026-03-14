@@ -26,21 +26,21 @@ const MentorServiceSchema = new mongoose.Schema(
     serviceType: {
       type: String,
       enum: [
-        'one_on_one',       // 1:1 live video/audio session
-        'quick_chat',       // Short 15–30 min call
-        'mock_interview',   // Live mock interview session
-        'career_guidance',  // Career strategy call
-        'discovery_call',   // Free intro / discovery call
-        'priority_dm',      // Async: paid messaging inbox (monthly)
-        'resume_review',    // Async: user uploads doc, mentor reviews
+        'one_on_one', // 1:1 live video/audio session
+        'quick_chat', // Short 15–30 min call
+        'mock_interview', // Live mock interview session
+        'career_guidance', // Career strategy call
+        'discovery_call', // Free intro / discovery call
+        'priority_dm', // Async: paid messaging inbox (monthly)
+        'resume_review', // Async: user uploads doc, mentor reviews
         'portfolio_review', // Async: portfolio document / link review
-        'ama',              // Async: Ask Me Anything – single Q&A
-        'referral',         // Mentor refers user to a company they know
-        'course',           // Digital: self-paced course (external link)
-        'workshop',         // Group live event with capacity limit
-        'coaching_series',  // Bundle: multi-session package
-        'webinar',          // Group live education session
-        'custom',           // Anything else the mentor defines
+        'ama', // Async: Ask Me Anything – single Q&A
+        'referral', // Mentor refers user to a company they know
+        'course', // Digital: self-paced course (external link)
+        'workshop', // Group live event with capacity limit
+        'coaching_series', // Bundle: multi-session package
+        'webinar', // Group live education session
+        'custom', // Anything else the mentor defines
       ],
       required: true,
     },
