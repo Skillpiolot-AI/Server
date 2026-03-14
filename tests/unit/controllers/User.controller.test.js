@@ -9,15 +9,8 @@ const request = require('supertest');
 const app = require('../../../index');
 const User = require('../../../models/User');
 const University = require('../../../models/University');
-const {
-  testUsers,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-  getValidJWT,
-} = require('../../helpers/testHelpers');
+const { testUsers, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestUser, getValidJWT } = require('../../helpers/testHelpers');
 
 describe('User Controller', () => {
   let testUser;
@@ -27,10 +20,10 @@ describe('User Controller', () => {
 
   beforeEach(async () => {
     await cleanDatabase();
-    
+
     testUser = await createTestUser('User');
     authToken = getValidJWT(testUser._id, 'User');
-    
+
     adminUser = await createTestUser('Admin');
     adminToken = getValidJWT(adminUser._id, 'Admin');
   });
@@ -75,7 +68,7 @@ describe('User Controller', () => {
 
     test('should return 404 for non-existent user', async () => {
       const fakeId = new mongoose.Types.ObjectId();
-      
+
       const response = await request(app)
         .get(`/api/users/${fakeId}/public`)
         .set('Authorization', `Bearer ${authToken}`);
@@ -163,7 +156,7 @@ describe('User Controller', () => {
 
     test('should track profile update timestamp', async () => {
       const beforeUpdate = new Date();
-      
+
       await request(app)
         .patch('/api/users/profile')
         .set('Authorization', `Bearer ${authToken}`)
@@ -239,11 +232,9 @@ describe('User Controller', () => {
     });
 
     test('should trigger password reset via email', async () => {
-      const response = await request(app)
-        .post('/api/auth/forgot-password')
-        .send({
-          email: testUser.email,
-        });
+      const response = await request(app).post('/api/auth/forgot-password').send({
+        email: testUser.email,
+      });
 
       expect(response.status).toBe(200);
     });
@@ -251,13 +242,11 @@ describe('User Controller', () => {
     test('should verify reset token and allow password change', async () => {
       // In real scenario, token comes from email
       const resetToken = 'mock-reset-token-123';
-      
-      const response = await request(app)
-        .post('/api/auth/reset-password')
-        .send({
-          token: resetToken,
-          newPassword: 'newresetpassword456',
-        });
+
+      const response = await request(app).post('/api/auth/reset-password').send({
+        token: resetToken,
+        newPassword: 'newresetpassword456',
+      });
 
       // Should succeed or fail based on token validity
       expect([200, 400]).toContain(response.status);
@@ -279,11 +268,9 @@ describe('User Controller', () => {
     test('should verify email with correct token', async () => {
       const verificationToken = 'mock-verification-token';
 
-      const response = await request(app)
-        .post('/api/users/verify-email')
-        .send({
-          token: verificationToken,
-        });
+      const response = await request(app).post('/api/users/verify-email').send({
+        token: verificationToken,
+      });
 
       expect([200, 400]).toContain(response.status);
     });
@@ -369,9 +356,7 @@ describe('User Controller', () => {
     });
 
     test('should not allow operations with deactivated account', async () => {
-      await request(app)
-        .post('/api/users/deactivate')
-        .set('Authorization', `Bearer ${authToken}`);
+      await request(app).post('/api/users/deactivate').set('Authorization', `Bearer ${authToken}`);
 
       const response = await request(app)
         .patch('/api/users/profile')
@@ -384,9 +369,7 @@ describe('User Controller', () => {
     });
 
     test('should reactivate account', async () => {
-      await request(app)
-        .post('/api/users/deactivate')
-        .set('Authorization', `Bearer ${authToken}`);
+      await request(app).post('/api/users/deactivate').set('Authorization', `Bearer ${authToken}`);
 
       const response = await request(app)
         .post('/api/users/reactivate')

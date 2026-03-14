@@ -11,16 +11,8 @@ const Assessment = require('../../../models/Assessment');
 const Career = require('../../../models/Career');
 const Recommendation = require('../../../models/Recommendation');
 const User = require('../../../models/User');
-const {
-  testUsers,
-  testCareers,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-  getValidJWT,
-} = require('../../helpers/testHelpers');
+const { testUsers, testCareers, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestUser, getValidJWT } = require('../../helpers/testHelpers');
 
 describe('Assessment Controller', () => {
   let server;
@@ -266,7 +258,7 @@ describe('Assessment Controller', () => {
       expect(response.status).toBe(200);
       const assessment = response.body.assessment;
       expect(assessment.recommendedCareers).toBeDefined();
-      
+
       // Software Engineer should be top recommendation
       const softwareEngineering = assessment.recommendedCareers.find(
         c => c.name === 'Software Engineer'
@@ -295,7 +287,7 @@ describe('Assessment Controller', () => {
 
       expect(response.status).toBe(200);
       const assessment = response.body.assessment;
-      
+
       const accountant = assessment.recommendedCareers.find(c => c.name === 'Accountant');
       expect(accountant).toBeDefined();
       expect(accountant.matchScore).toBeGreaterThan(70);
@@ -321,7 +313,7 @@ describe('Assessment Controller', () => {
 
       expect(response.status).toBe(200);
       const careers = response.body.assessment.recommendedCareers;
-      
+
       // Should be sorted by match score (descending)
       for (let i = 0; i < careers.length - 1; i++) {
         expect(careers[i].matchScore).toBeGreaterThanOrEqual(careers[i + 1].matchScore);
@@ -348,7 +340,7 @@ describe('Assessment Controller', () => {
 
       expect(response.status).toBe(200);
       const careers = response.body.assessment.recommendedCareers;
-      
+
       careers.forEach(career => {
         expect(career.salaryRange).toBeDefined();
         expect(career.salaryRange.min).toBeGreaterThan(0);
@@ -378,7 +370,7 @@ describe('Assessment Controller', () => {
       const graphicDesigner = response.body.assessment.recommendedCareers.find(
         c => c.name === 'Graphic Designer'
       );
-      
+
       if (graphicDesigner) {
         expect(graphicDesigner.matchScore).toBeLessThan(30);
       }
@@ -452,9 +444,10 @@ describe('Assessment Controller', () => {
         .send(secondAssessmentData);
 
       expect(secondResponse.status).toBe(200);
-      expect(secondResponse.body.assessment._id.toString())
-        .toBe(firstResponse.body.assessment._id.toString());
-      
+      expect(secondResponse.body.assessment._id.toString()).toBe(
+        firstResponse.body.assessment._id.toString()
+      );
+
       expect(secondResponse.body.assessment.holandCode.realistic).toBe(90);
     });
 
@@ -621,7 +614,7 @@ describe('Assessment Controller', () => {
 
       expect(secondResponse.status).toBe(200);
       const assessment = secondResponse.body.assessment;
-      
+
       expect(assessment.improvements).toBeDefined();
       expect(assessment.improvements.realistic).toBe(30); // 80 - 50
       expect(assessment.improvements.investigative).toBe(35); // 85 - 50
@@ -630,9 +623,30 @@ describe('Assessment Controller', () => {
     test('should calculate domain growth trends', async () => {
       // Create multiple assessments
       const scores = [
-        { realistic: 40, investigative: 40, artistic: 40, social: 40, enterprising: 40, conventional: 40 },
-        { realistic: 60, investigative: 70, artistic: 50, social: 50, enterprising: 60, conventional: 50 },
-        { realistic: 80, investigative: 90, artistic: 60, social: 60, enterprising: 75, conventional: 60 },
+        {
+          realistic: 40,
+          investigative: 40,
+          artistic: 40,
+          social: 40,
+          enterprising: 40,
+          conventional: 40,
+        },
+        {
+          realistic: 60,
+          investigative: 70,
+          artistic: 50,
+          social: 50,
+          enterprising: 60,
+          conventional: 50,
+        },
+        {
+          realistic: 80,
+          investigative: 90,
+          artistic: 60,
+          social: 60,
+          enterprising: 75,
+          conventional: 60,
+        },
       ];
 
       for (const holandCode of scores) {

@@ -5,14 +5,8 @@
 
 const mongoose = require('mongoose');
 const Recommendation = require('../../../models/Recommendation');
-const {
-  testCareers,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-} = require('../../helpers/testHelpers');
+const { testCareers, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestUser } = require('../../helpers/testHelpers');
 
 describe('Recommendation Model', () => {
   let testUser;
@@ -266,18 +260,9 @@ describe('Recommendation Model', () => {
         careerId: generateId(),
         score: 83,
         detailedAnalysis: {
-          strengths: [
-            'Strong investigative orientation',
-            'Excellent technical aptitude',
-          ],
-          areas_for_improvement: [
-            'Develop teamwork skills more',
-            'Work on communication',
-          ],
-          recommendations: [
-            'Consider AI/ML specialization',
-            'Take team projects',
-          ],
+          strengths: ['Strong investigative orientation', 'Excellent technical aptitude'],
+          areas_for_improvement: ['Develop teamwork skills more', 'Work on communication'],
+          recommendations: ['Consider AI/ML specialization', 'Take team projects'],
         },
       });
 
@@ -514,9 +499,7 @@ describe('Recommendation Model', () => {
         score: 85,
       });
 
-      const sortedRecs = await Recommendation.find({ userId: testUser._id }).sort(
-        { score: -1 }
-      );
+      const sortedRecs = await Recommendation.find({ userId: testUser._id }).sort({ score: -1 });
 
       expect(sortedRecs[0].score).toBe(90);
       expect(sortedRecs[1].score).toBe(85);

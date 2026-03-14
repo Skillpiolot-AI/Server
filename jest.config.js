@@ -57,12 +57,13 @@ module.exports = {
     '^@/tests/mocks/pushNotifications$': '<rootDir>/tests/mocks/pushNotifications.mock.js',
   },
 
-  // Transform ESM modules (uuid uses ESM)
-  transformIgnorePatterns: ['/node_modules/(?!(uuid)/)'],
+  // Transform ESM modules (uuid and marked use ESM)
+  transformIgnorePatterns: ['/node_modules/(?!(uuid|marked)/)'],
 
   // Transform files - use babel for ESM support
+  // Note: This also helps with transforming ESM modules when they're imported
   transform: {
-    '^.+\\.js$': 'babel-jest',
+    '^.+\\.js$': ['babel-jest', { rootMode: 'upward' }],
   },
 
   // Ignore patterns

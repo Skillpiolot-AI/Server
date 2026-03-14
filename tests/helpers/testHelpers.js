@@ -139,6 +139,8 @@ const createTestUser = async (userData = {}) => {
   const User = mongoose.model('User');
 
   const defaultData = {
+    name: `Test User ${Date.now()}`,
+    username: `testuser${Date.now()}`,
     email: `test-${Date.now()}@test.com`,
     password: 'hashed-password',
     role: 'User',
@@ -170,9 +172,32 @@ const createTestMentor = async (mentorData = {}) => {
  * @returns {Promise<Object>} Created student user
  */
 const createTestStudent = async (universityId, studentData = {}) => {
+  const Student = mongoose.model('Student');
+
+  // Create admin user to be createdBy if not provided
+  let createdBy = studentData.createdBy;
+  if (!createdBy) {
+    const adminUser = await createTestUser({ role: 'Admin' });
+    createdBy = adminUser._id;
+  }
+
+  // Create student profile first if needed
+  let studentProfileId = studentData.studentProfile;
+  if (!studentProfileId) {
+    const studentProfile = await Student.create({
+      userId: new mongoose.Types.ObjectId(),
+      universityId,
+      rollNumber: `ROLL${Date.now()}`,
+      createdBy,
+      ...studentData,
+    });
+    studentProfileId = studentProfile._id;
+  }
+
   return await createTestUser({
     role: 'Student',
     universityId,
+    studentProfile: studentProfileId,
     ...studentData,
   });
 };
@@ -189,6 +214,41 @@ const createTestUniAdmin = async (universityId, adminData = {}) => {
     universityId,
     ...adminData,
   });
+};
+
+/**
+ * Create test university in database
+ * @param {Object} universityData - University data
+ * @returns {Promise<Object>} Created university document
+ */
+const createTestUniversity = async (universityData = {}) => {
+  const University = mongoose.model('University');
+  const adminUser = await createTestUser({ role: 'Admin' });
+
+  const defaultData = {
+    name: `Test University ${Date.now()}`,
+    url: `https://test-uni-${Date.now()}.edu`,
+    location: {
+      state: 'Test State',
+      city: 'Test City',
+    },
+    accessMethod: 'registration',
+    passwordMethod: 'manual',
+    createdBy: adminUser._id,
+    ...universityData,
+  };
+
+  return await University.create(defaultData);
+};
+
+/**
+ * Alias for generateToken (alternative name)
+ * @param {string|Object} userIdOrUser - User ID or user object
+ * @param {string} role - User role
+ * @returns {string} JWT token
+ */
+const getValidJWT = (userIdOrUser, role = 'User') => {
+  return generateToken(userIdOrUser, role);
 };
 
 /**
@@ -274,6 +334,7 @@ module.exports = {
   generateToken,
   addAuthToken,
   decodeToken,
+  getValidJWT,
   getMockUserWithToken,
 
   // Database
@@ -283,6 +344,7 @@ module.exports = {
   createTestMentor,
   createTestStudent,
   createTestUniAdmin,
+  createTestUniversity,
 
   // Email assertions
   expectEmailSent,

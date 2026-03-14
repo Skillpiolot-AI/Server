@@ -6,11 +6,7 @@
 const mongoose = require('mongoose');
 const User = require('../../../models/User');
 const { testUsers, generateId } = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-  expectErrorMessage,
-} = require('../../helpers/testHelpers');
+const { cleanDatabase, createTestUser, expectErrorMessage } = require('../../helpers/testHelpers');
 
 describe('User Model', () => {
   beforeEach(async () => {
@@ -88,11 +84,11 @@ describe('User Model', () => {
     test('should accept all 6 valid roles', async () => {
       const roles = ['Admin', 'User', 'Mentor', 'UniAdmin', 'UniTeach', 'Student'];
       const { testUniversities, testStudents } = require('../../fixtures/testData');
-      
+
       // Create test references
       let uniId = null;
       let studentId = null;
-      
+
       if (testUniversities && testUniversities.length > 0) {
         uniId = testUniversities[0]._id;
       } else {
@@ -105,9 +101,9 @@ describe('User Model', () => {
         studentId = testStudents[0]._id;
       } else {
         const Student = require('../../../models/Student');
-        const student = await Student.create({ 
+        const student = await Student.create({
           userId: new mongoose.Types.ObjectId(),
-          academicProfile: { rollNumber: 'ROLL001' }
+          academicProfile: { rollNumber: 'ROLL001' },
         });
         studentId = student._id;
       }

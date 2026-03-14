@@ -5,13 +5,8 @@
 
 const mongoose = require('mongoose');
 const Career = require('../../../models/Career');
-const {
-  testCareers,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-} = require('../../helpers/testHelpers');
+const { testCareers, generateId } = require('../../fixtures/testData');
+const { cleanDatabase } = require('../../helpers/testHelpers');
 
 describe('Career Model', () => {
   beforeEach(async () => {
@@ -95,12 +90,12 @@ describe('Career Model', () => {
       const career = await Career.create({
         name: 'Software Engineer',
         description: 'Develops software',
-        requiredEducation: 'Bachelor\'s in Computer Science',
+        requiredEducation: "Bachelor's in Computer Science",
         minimumExperience: 0,
         preferredExperience: 2,
       });
 
-      expect(career.requiredEducation).toBe('Bachelor\'s in Computer Science');
+      expect(career.requiredEducation).toBe("Bachelor's in Computer Science");
       expect(career.minimumExperience).toBe(0);
       expect(career.preferredExperience).toBe(2);
     });

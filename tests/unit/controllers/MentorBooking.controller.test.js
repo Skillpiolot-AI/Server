@@ -1,5 +1,5 @@
 /**
- * Mentor Booking Controller Tests  
+ * Mentor Booking Controller Tests
  * Tests for booking creation, status management, and pricing calculations with coupons
  * Focus: Accurate pricing, status transitions, and coupon application
  */
@@ -11,10 +11,7 @@ const MentorBooking = require('../../../models/MentorBooking');
 const MentorCoupon = require('../../../models/MentorCoupon');
 const User = require('../../../models/User');
 const MentorProfile = require('../../../models/MentorProfile');
-const { 
-  testUsers,
-  generateId 
-} = require('../../fixtures/testData');
+const { testUsers, generateId } = require('../../fixtures/testData');
 const {
   cleanDatabase,
   createTestUser,
@@ -32,10 +29,10 @@ describe('Mentor Booking Controller', () => {
 
   beforeEach(async () => {
     await cleanDatabase();
-    
+
     mentorUser = await createTestMentor('Mentor');
     studentUser = await createTestUser('User');
-    
+
     mentorToken = getValidJWT(mentorUser._id, 'Mentor');
     studentToken = getValidJWT(studentUser._id, 'User');
 
@@ -388,7 +385,7 @@ describe('Mentor Booking Controller', () => {
     });
 
     test('should mark booking as completed', async () => {
-      await MentorBooking.findByIdAndUpdate(booking._id, { 
+      await MentorBooking.findByIdAndUpdate(booking._id, {
         status: 'in-progress',
         sessionStarted: new Date(),
       });
@@ -477,7 +474,7 @@ describe('Mentor Booking Controller', () => {
 
       expect(response.status).toBe(201);
       const booking = response.body.booking;
-      
+
       // Check reminders are scheduled
       expect(booking.reminders.oneHour).toBeDefined();
       expect(booking.reminders.oneHour.scheduled).toBe(true);
@@ -557,7 +554,7 @@ describe('Mentor Booking Controller', () => {
     test('should calculate mentor average rating', async () => {
       // Create multiple rated bookings
       const ratings = [5, 4, 5, 3];
-      
+
       for (const rating of ratings) {
         const booking = await MentorBooking.create({
           mentorId: mentorUser._id,
@@ -608,7 +605,7 @@ describe('Mentor Booking Controller', () => {
         mentorId: mentorUser._id,
         studentId: studentUser._id,
         sessionDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        sessionDate: 60,
+        sessionDuration: 60,
         originalPrice: 500,
         paidPrice: 500,
         status: 'completed',

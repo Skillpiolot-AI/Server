@@ -894,12 +894,10 @@ exports.applyToBeMentor = async (req, res) => {
 
     const existingProfile = await MentorProfile.findOne({ userId });
     if (existingProfile) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: 'Mentor application already submitted or profile exists',
-        });
+      return res.status(400).json({
+        success: false,
+        message: 'Mentor application already submitted or profile exists',
+      });
     }
 
     const {
@@ -968,12 +966,10 @@ exports.applyToBeMentor = async (req, res) => {
       imageUrl: profileImage,
     });
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: 'Mentor application submitted successfully and is pending approval.',
-      });
+    res.status(201).json({
+      success: true,
+      message: 'Mentor application submitted successfully and is pending approval.',
+    });
   } catch (error) {
     console.error('Error in applyToBeMentor:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });

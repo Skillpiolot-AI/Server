@@ -5,13 +5,8 @@
 
 const mongoose = require('mongoose');
 const University = require('../../../models/University');
-const {
-  testUniversities,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-} = require('../../helpers/testHelpers');
+const { testUniversities, generateId } = require('../../fixtures/testData');
+const { cleanDatabase } = require('../../helpers/testHelpers');
 
 describe('University Model', () => {
   beforeEach(async () => {
@@ -450,11 +445,7 @@ describe('University Model', () => {
         name: 'IIT Delhi',
         alumni: {
           totalAlumni: 50000,
-          notableAlumni: [
-            'Sundar Pichai',
-            'Satya Nadella',
-            'Naval Ravikant',
-          ],
+          notableAlumni: ['Sundar Pichai', 'Satya Nadella', 'Naval Ravikant'],
           alumniInLeadership: 500,
           averageAlumniSalary: 2000000,
         },

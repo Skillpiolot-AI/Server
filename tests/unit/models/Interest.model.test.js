@@ -5,14 +5,8 @@
 
 const mongoose = require('mongoose');
 const Interest = require('../../../models/Interest');
-const {
-  testInterests,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-} = require('../../helpers/testHelpers');
+const { testInterests, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestUser } = require('../../helpers/testHelpers');
 
 describe('Interest Model', () => {
   let testUser;
@@ -148,9 +142,7 @@ describe('Interest Model', () => {
       const interest = await Interest.create({
         name: 'Business Management',
         hollandCode: 'E',
-        relevantCareers: [
-          { careerId, relevanceScore: 95 },
-        ],
+        relevantCareers: [{ careerId, relevanceScore: 95 }],
       });
 
       expect(interest.relevantCareers).toHaveLength(1);
@@ -161,7 +153,12 @@ describe('Interest Model', () => {
       const interest = await Interest.create({
         name: 'Product Development',
         hollandCode: 'E',
-        requiredSkills: ['Project Management', 'Problem Solving', 'Communication', 'Technical Knowledge'],
+        requiredSkills: [
+          'Project Management',
+          'Problem Solving',
+          'Communication',
+          'Technical Knowledge',
+        ],
       });
 
       expect(interest.requiredSkills).toHaveLength(4);
@@ -291,9 +288,7 @@ describe('Interest Model', () => {
       const interest = await Interest.create({
         name: 'Urban Planning',
         hollandCode: 'E',
-        userRatings: [
-          { userId: testUser._id, rating: 5, comment: 'Very interesting field' },
-        ],
+        userRatings: [{ userId: testUser._id, rating: 5, comment: 'Very interesting field' }],
       });
 
       expect(interest.userRatings).toHaveLength(1);

@@ -6,15 +6,8 @@
 const mongoose = require('mongoose');
 const Student = require('../../../models/Student');
 const User = require('../../models/User');
-const {
-  testUniversities,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestStudent,
-  createTestUser,
-} = require('../../helpers/testHelpers');
+const { testUniversities, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestStudent, createTestUser } = require('../../helpers/testHelpers');
 
 describe('Student Model', () => {
   let testStudent, testUniversity, testUser;

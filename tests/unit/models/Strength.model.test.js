@@ -5,14 +5,8 @@
 
 const mongoose = require('mongoose');
 const Strength = require('../../../models/Strength');
-const {
-  testStrengths,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-} = require('../../helpers/testHelpers');
+const { testStrengths, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestUser } = require('../../helpers/testHelpers');
 
 describe('Strength Model', () => {
   let testUser;
@@ -186,9 +180,7 @@ describe('Strength Model', () => {
       const strength = await Strength.create({
         name: 'Leadership',
         category: 'Personal Quality',
-        relevantCareers: [
-          { careerId, importance: 'critical' },
-        ],
+        relevantCareers: [{ careerId, importance: 'critical' }],
       });
 
       expect(strength.relevantCareers).toHaveLength(1);

@@ -6,14 +6,8 @@
 const mongoose = require('mongoose');
 const Assessment = require('../../../models/Assessment');
 const User = require('../../../models/User');
-const {
-  testAssessments,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-} = require('../../helpers/testHelpers');
+const { testAssessments, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestUser } = require('../../helpers/testHelpers');
 
 describe('Assessment Model', () => {
   beforeEach(async () => {
@@ -275,9 +269,7 @@ describe('Assessment Model', () => {
       });
 
       expect(secondAssessment.previousAssessmentId).toBeDefined();
-      expect(secondAssessment.previousAssessmentId.toString()).toBe(
-        firstAssessment._id.toString()
-      );
+      expect(secondAssessment.previousAssessmentId.toString()).toBe(firstAssessment._id.toString());
     });
 
     test('should track improvement metrics', async () => {

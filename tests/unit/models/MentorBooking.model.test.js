@@ -6,15 +6,8 @@
 const mongoose = require('mongoose');
 const MentorBooking = require('../../../models/MentorBooking');
 const User = require('../../../models/User');
-const {
-  testBookings,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestMentor,
-  createTestUser,
-} = require('../../helpers/testHelpers');
+const { testBookings, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestMentor, createTestUser } = require('../../helpers/testHelpers');
 
 describe('MentorBooking Model', () => {
   let testMentor, testUserDoc;
@@ -127,7 +120,14 @@ describe('MentorBooking Model', () => {
     });
 
     test('should accept all valid statuses', async () => {
-      const validStatuses = ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled', 'no-show'];
+      const validStatuses = [
+        'pending',
+        'confirmed',
+        'in-progress',
+        'completed',
+        'cancelled',
+        'no-show',
+      ];
 
       for (const status of validStatuses) {
         const booking = await MentorBooking.create({

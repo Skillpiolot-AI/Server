@@ -4,7 +4,17 @@ const Announcement = require('../models/Announcement');
 const User = require('../models/User');
 const pushService = require('../services/pushNotificationService');
 const { sendEmailFast } = require('../config/mailHelper');
-const { marked } = require('marked');
+
+let marked; // Will be loaded dynamically
+
+// Load marked dynamically to handle ESM module
+const loadMarked = async () => {
+  if (!marked) {
+    const markedModule = await import('marked');
+    marked = markedModule.marked;
+  }
+  return marked;
+};
 
 // ==========================================
 // ADMIN ANNOUNCEMENT ENDPOINTS
@@ -549,7 +559,13 @@ async function sendAnnouncementInternal(announcement) {
             // Convert markdown to HTML if needed
             let htmlContent = announcement.description;
             if (announcement.emailSettings?.isMarkdown) {
-              htmlContent = marked(announcement.description);
+              try {
+                const markedFn = await loadMarked();
+                htmlContent = markedFn(announcement.description);
+              } catch (markdownError) {
+                console.warn('Failed to convert markdown, using plain text', markdownError);
+                htmlContent = announcement.description;
+              }
             }
 
             await sendEmailFast({

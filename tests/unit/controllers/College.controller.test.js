@@ -10,15 +10,8 @@ const app = require('../../../index');
 const College = require('../../../models/College');
 const University = require('../../../models/University');
 const User = require('../../../models/User');
-const {
-  testColleges,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-  getValidJWT,
-} = require('../../helpers/testHelpers');
+const { testColleges, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestUser, getValidJWT } = require('../../helpers/testHelpers');
 
 describe('College Controller', () => {
   let testCollege;
@@ -639,8 +632,7 @@ describe('College Controller', () => {
     });
 
     test('Public should view college profile', async () => {
-      const response = await request(app)
-        .get(`/api/colleges/${testCollege._id}/public`);
+      const response = await request(app).get(`/api/colleges/${testCollege._id}/public`);
 
       expect(response.status).toBe(200);
     });

@@ -3,6 +3,16 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 const path = require('path');
 
+// Set test environment variables FIRST, before any other imports
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'test-jwt-secret-key';
+process.env.FRONTEND_URL = 'http://localhost:5173';
+
+// Ensure we're not already connected to a database
+if (mongoose.connection.readyState !== 0) {
+  mongoose.connection.close();
+}
+
 // ============================================================================
 // MOCK EXTERNAL SERVICES - Must be done BEFORE any imports from app code
 // ============================================================================
@@ -84,10 +94,7 @@ beforeEach(async () => {
   }
 });
 
-// Set test environment variables
-process.env.NODE_ENV = 'test';
-process.env.JWT_SECRET = 'test-jwt-secret-key';
-process.env.FRONTEND_URL = 'http://localhost:5173';
+// Set additional test environment variables
 process.env.CLOUDINARY_CLOUD_NAME = 'test-cloud';
 process.env.CLOUDINARY_API_KEY = 'test-key';
 process.env.CLOUDINARY_API_SECRET = 'test-secret';

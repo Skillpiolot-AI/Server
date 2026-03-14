@@ -5,14 +5,8 @@
 
 const mongoose = require('mongoose');
 const College = require('../../../models/College');
-const {
-  testColleges,
-  testUniversities,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-} = require('../../helpers/testHelpers');
+const { testColleges, testUniversities, generateId } = require('../../fixtures/testData');
+const { cleanDatabase } = require('../../helpers/testHelpers');
 
 describe('College Model', () => {
   let testUniversity;
@@ -142,12 +136,7 @@ describe('College Model', () => {
       const college = await College.create({
         name: 'IIT Delhi',
         universityId: testUniversity._id,
-        specializations: [
-          'AI/ML',
-          'Cybersecurity',
-          'Cloud Computing',
-          'Data Science',
-        ],
+        specializations: ['AI/ML', 'Cybersecurity', 'Cloud Computing', 'Data Science'],
       });
 
       expect(college.specializations).toHaveLength(4);
@@ -399,10 +388,7 @@ describe('College Model', () => {
         universityId: testUniversity._id,
         alumni: {
           totalCount: 45000,
-          successfulAlumni: [
-            'Sundar Pichai (Google CEO)',
-            'Satya Nadella (Microsoft CEO)',
-          ],
+          successfulAlumni: ['Sundar Pichai (Google CEO)', 'Satya Nadella (Microsoft CEO)'],
           averageNetWorth: 'High',
         },
       });

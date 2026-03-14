@@ -11,16 +11,8 @@ const Recommendation = require('../../../models/Recommendation');
 const Assessment = require('../../../models/Assessment');
 const Career = require('../../../models/Career');
 const User = require('../../../models/User');
-const {
-  testUsers,
-  testCareers,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-  getValidJWT,
-} = require('../../helpers/testHelpers');
+const { testUsers, testCareers, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestUser, getValidJWT } = require('../../helpers/testHelpers');
 
 describe('Recommendation Controller', () => {
   let testUser;
@@ -250,9 +242,7 @@ describe('Recommendation Controller', () => {
           assessmentId: invAssessment._id,
         });
 
-      const dataAnalyst = response.body.recommendations.find(
-        r => r.careerName === 'Data Analyst'
-      );
+      const dataAnalyst = response.body.recommendations.find(r => r.careerName === 'Data Analyst');
 
       expect(dataAnalyst).toBeDefined();
       expect(dataAnalyst.matchScore).toBeGreaterThan(75);
@@ -308,9 +298,7 @@ describe('Recommendation Controller', () => {
           assessmentId: artAssessment._id,
         });
 
-      const uxDesigner = response.body.recommendations.find(
-        r => r.careerName === 'UX Designer'
-      );
+      const uxDesigner = response.body.recommendations.find(r => r.careerName === 'UX Designer');
 
       expect(uxDesigner).toBeDefined();
       expect(uxDesigner.matchScore).toBeGreaterThan(75);
@@ -354,7 +342,7 @@ describe('Recommendation Controller', () => {
         });
 
       expect(response.status).toBe(200);
-      
+
       // All recommendations should be present but with lower scores
       response.body.recommendations.forEach(rec => {
         expect(rec.matchScore).toBeLessThan(50);
@@ -713,7 +701,14 @@ describe('Recommendation Controller', () => {
       const otherUser = await createTestUser('User');
       const otherAssessment = await Assessment.create({
         userId: otherUser._id,
-        holandCode: { realistic: 50, investigative: 50, artistic: 50, social: 50, enterprising: 50, conventional: 50 },
+        holandCode: {
+          realistic: 50,
+          investigative: 50,
+          artistic: 50,
+          social: 50,
+          enterprising: 50,
+          conventional: 50,
+        },
       });
       const rec = await Recommendation.create({
         userId: otherUser._id,

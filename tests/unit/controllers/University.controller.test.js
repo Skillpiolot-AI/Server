@@ -10,15 +10,8 @@ const app = require('../../../index');
 const University = require('../../../models/University');
 const College = require('../../../models/College');
 const User = require('../../../models/User');
-const {
-  testUniversities,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-  getValidJWT,
-} = require('../../helpers/testHelpers');
+const { testUniversities, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestUser, getValidJWT } = require('../../helpers/testHelpers');
 
 describe('University Controller', () => {
   let testUniversity;
@@ -268,9 +261,7 @@ describe('University Controller', () => {
           name: 'Arts College',
           code: 'AC001',
           universityId: testUniversity._id,
-          academicPrograms: [
-            { name: 'BA English', degree: 'BA', students: 60 },
-          ],
+          academicPrograms: [{ name: 'BA English', degree: 'BA', students: 60 }],
           ranking: { nirf: 50 },
         },
       ]);

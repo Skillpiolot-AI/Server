@@ -9,10 +9,7 @@ const request = require('supertest');
 const app = require('../../../index');
 const User = require('../../../models/User');
 const University = require('../../../models/University');
-const {
-  testUsers,
-  generateId,
-} = require('../../fixtures/testData');
+const { testUsers, generateId } = require('../../fixtures/testData');
 const {
   cleanDatabase,
   createTestUser,
@@ -27,7 +24,7 @@ describe('Auth Controller - RBAC', () => {
   let userUser;
   let uniAdminUser;
   let uniTeachUser;
-  
+
   let adminToken;
   let mentorToken;
   let studentToken;
@@ -93,12 +90,10 @@ describe('Auth Controller - RBAC', () => {
   // =========================================================================
   describe('Login', () => {
     test('should login with valid credentials', async () => {
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          username: 'admin1',
-          password: 'password123',
-        });
+      const response = await request(app).post('/api/auth/login').send({
+        username: 'admin1',
+        password: 'password123',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.token).toBeDefined();
@@ -107,23 +102,19 @@ describe('Auth Controller - RBAC', () => {
     });
 
     test('should reject invalid credentials', async () => {
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          username: 'admin1',
-          password: 'wrongpassword',
-        });
+      const response = await request(app).post('/api/auth/login').send({
+        username: 'admin1',
+        password: 'wrongpassword',
+      });
 
       expect(response.status).toBe(401);
     });
 
     test('should reject non-existent user', async () => {
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          username: 'nonexistent',
-          password: 'pass123',
-        });
+      const response = await request(app).post('/api/auth/login').send({
+        username: 'nonexistent',
+        password: 'pass123',
+      });
 
       expect(response.status).toBe(401);
     });
@@ -131,21 +122,17 @@ describe('Auth Controller - RBAC', () => {
     test('should lock account after failed attempts', async () => {
       // Make 5 failed login attempts
       for (let i = 0; i < 5; i++) {
-        await request(app)
-          .post('/api/auth/login')
-          .send({
-            username: adminUser.username,
-            password: 'wrongpass',
-          });
+        await request(app).post('/api/auth/login').send({
+          username: adminUser.username,
+          password: 'wrongpass',
+        });
       }
 
       // Next attempt should fail with account locked error
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          username: adminUser.username,
-          password: 'password123',
-        });
+      const response = await request(app).post('/api/auth/login').send({
+        username: adminUser.username,
+        password: 'password123',
+      });
 
       expect(response.status).toBe(403);
       expectErrorMessage(response, 'locked');
@@ -153,13 +140,11 @@ describe('Auth Controller - RBAC', () => {
 
     test('should track last login timestamp', async () => {
       const before = new Date();
-      
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          username: 'admin1',
-          password: 'password123',
-        });
+
+      const response = await request(app).post('/api/auth/login').send({
+        username: 'admin1',
+        password: 'password123',
+      });
 
       expect(response.status).toBe(200);
 
@@ -303,7 +288,7 @@ describe('Auth Controller - RBAC', () => {
 
     test('Mentor should NOT manage other mentors', async () => {
       const otherMentor = await createTestUser('Mentor');
-      
+
       const response = await request(app)
         .patch(`/api/mentors/${otherMentor._id}`)
         .set('Authorization', `Bearer ${mentorToken}`)
@@ -386,8 +371,7 @@ describe('Auth Controller - RBAC', () => {
   // =========================================================================
   describe('Token Validation', () => {
     test('should reject missing token', async () => {
-      const response = await request(app)
-        .get('/api/admin/users');
+      const response = await request(app).get('/api/admin/users');
 
       expect(response.status).toBe(401);
     });
@@ -440,13 +424,11 @@ describe('Auth Controller - RBAC', () => {
   describe('Google OAuth', () => {
     test('should create account with Google OAuth', async () => {
       // Mock Google OAuth response
-      const response = await request(app)
-        .post('/api/auth/google')
-        .send({
-          googleId: 'google_123456',
-          email: 'newuser@gmail.com',
-          name: 'New User',
-        });
+      const response = await request(app).post('/api/auth/google').send({
+        googleId: 'google_123456',
+        email: 'newuser@gmail.com',
+        name: 'New User',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.token).toBeDefined();
@@ -464,13 +446,11 @@ describe('Auth Controller - RBAC', () => {
         authProvider: 'google',
       });
 
-      const response = await request(app)
-        .post('/api/auth/google')
-        .send({
-          googleId: 'google_123',
-          email: 'google@test.com',
-          name: 'Google User',
-        });
+      const response = await request(app).post('/api/auth/google').send({
+        googleId: 'google_123',
+        email: 'google@test.com',
+        name: 'Google User',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.user._id.toString()).toBe(googleUser._id.toString());
@@ -486,13 +466,11 @@ describe('Auth Controller - RBAC', () => {
         authProvider: 'local',
       });
 
-      const response = await request(app)
-        .post('/api/auth/google')
-        .send({
-          googleId: 'google_456',
-          email: 'local@test.com', // Same email as local user
-          name: 'Someone Else',
-        });
+      const response = await request(app).post('/api/auth/google').send({
+        googleId: 'google_456',
+        email: 'local@test.com', // Same email as local user
+        name: 'Someone Else',
+      });
 
       // Should either fail or create new account, not override
       expect([400, 201]).toContain(response.status);
@@ -516,7 +494,7 @@ describe('Auth Controller - RBAC', () => {
 
     test('UniAdmin should NOT grant permissions to Admin', async () => {
       const response = await request(app)
-        .patch(`/api/admin/permissions`)
+        .patch('/api/admin/permissions')
         .set('Authorization', `Bearer ${uniAdminToken}`)
         .send({
           permissions: ['anything'],
@@ -555,9 +533,7 @@ describe('Auth Controller - RBAC', () => {
     });
 
     test('should invalidate token after logout', async () => {
-      await request(app)
-        .post('/api/auth/logout')
-        .set('Authorization', `Bearer ${userToken}`);
+      await request(app).post('/api/auth/logout').set('Authorization', `Bearer ${userToken}`);
 
       const response = await request(app)
         .get('/api/assessments/my')
@@ -567,12 +543,10 @@ describe('Auth Controller - RBAC', () => {
     });
 
     test('should track current session', async () => {
-      const loginResponse = await request(app)
-        .post('/api/auth/login')
-        .send({
-          username: 'admin1',
-          password: 'password123',
-        });
+      const loginResponse = await request(app).post('/api/auth/login').send({
+        username: 'admin1',
+        password: 'password123',
+      });
 
       const user = await User.findById(loginResponse.body.user._id);
       expect(user.currentSession).toBeDefined();
@@ -585,12 +559,10 @@ describe('Auth Controller - RBAC', () => {
 
       // Try to create more than max sessions
       for (let i = 0; i < maxSessions + 2; i++) {
-        await request(app)
-          .post('/api/auth/login')
-          .send({
-            username: 'mentor1',
-            password: 'password123',
-          });
+        await request(app).post('/api/auth/login').send({
+          username: 'mentor1',
+          password: 'password123',
+        });
       }
 
       const user = await User.findOne({ username: 'mentor1' });

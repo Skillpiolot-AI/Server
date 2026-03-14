@@ -5,14 +5,8 @@
 
 const mongoose = require('mongoose');
 const Skill = require('../../../models/Skill');
-const {
-  testSkills,
-  generateId,
-} = require('../../fixtures/testData');
-const {
-  cleanDatabase,
-  createTestUser,
-} = require('../../helpers/testHelpers');
+const { testSkills, generateId } = require('../../fixtures/testData');
+const { cleanDatabase, createTestUser } = require('../../helpers/testHelpers');
 
 describe('Skill Model', () => {
   let testUser;
@@ -272,9 +266,7 @@ describe('Skill Model', () => {
       const skill = await Skill.create({
         name: 'JavaScript',
         category: 'Programming Language',
-        relevantCareers: [
-          { careerId, importance: 'essential' },
-        ],
+        relevantCareers: [{ careerId, importance: 'essential' }],
       });
 
       expect(skill.relevantCareers).toHaveLength(1);
@@ -330,9 +322,7 @@ describe('Skill Model', () => {
         name: 'Kubernetes',
         category: 'Tool',
         version: '1.28',
-        updateHistory: [
-          { date: new Date(), change: 'Added new features' },
-        ],
+        updateHistory: [{ date: new Date(), change: 'Added new features' }],
       });
 
       expect(skill.version).toBe('1.28');
