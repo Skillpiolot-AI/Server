@@ -1,21 +1,35 @@
 const Assessment = require('../models/Assessment');
 const Career = require('../models/Career');
+const Question = require('../models/Question');
 
-const calculateScores = answers => {
+const calculateScores = (answers, questionMap) => {
   const domainScores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
 
   Object.entries(answers).forEach(([questionId, value]) => {
-    const domain = questionId.charAt(0);
-    if (Object.hasOwn(domainScores, domain)) {
-      domainScores[domain] += value;
+    // Look up domain from the question map (questionId → domain)
+    const domain = questionMap[questionId];
+    if (domain && Object.hasOwn(domainScores, domain)) {
+      domainScores[domain] += Number(value);
     }
   });
 
-  const total = Object.values(domainScores).reduce((a, b) => a + b, 0);
+  // Calculate max possible scores per domain
+  // We seeded R(7), I(6), A(6), S(7), E(7), C(9).
+  // Each question has max score 5.
+  const maxPossible = {
+    R: 7 * 5,
+    I: 6 * 5,
+    A: 6 * 5,
+    S: 7 * 5,
+    E: 7 * 5,
+    C: 9 * 5
+  };
+
   const percentages = {};
 
   Object.keys(domainScores).forEach(domain => {
-    percentages[domain] = total > 0 ? Math.round((domainScores[domain] / total) * 100) : 0;
+    const max = maxPossible[domain] || 35; // default fallback
+    percentages[domain] = Math.min(100, Math.round((domainScores[domain] / max) * 100));
   });
 
   const sorted = Object.entries(percentages)
@@ -97,7 +111,12 @@ exports.createAssessment = async (req, res) => {
       return res.status(400).json({ error: 'Answers are required' });
     }
 
-    const results = calculateScores(answers);
+    // Build questionId → domain map so scoring works for any id format
+    const allQuestions = await Question.find().select('id domain').lean();
+    const questionMap = {};
+    allQuestions.forEach(q => { questionMap[q.id] = q.domain; });
+
+    const results = calculateScores(answers, questionMap);
 
     // Get career recommendations
     const allCareers = await Career.find().select(

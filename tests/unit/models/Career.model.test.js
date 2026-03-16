@@ -8,6 +8,14 @@ const Career = require('../../../models/Career');
 const { testCareers, generateId } = require('../../fixtures/testData');
 const { cleanDatabase } = require('../../helpers/testHelpers');
 
+// Required fields for Career model
+let _careerIdCounter = 1000;
+const careerRequiredBase = () => ({
+  id: _careerIdCounter++,
+  slug: `career-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  career_cluster_name: 'Technology',
+});
+
 describe('Career Model', () => {
   beforeEach(async () => {
     await cleanDatabase();
@@ -20,6 +28,7 @@ describe('Career Model', () => {
   describe('Schema Validation', () => {
     test('should create a valid career with required fields', async () => {
       const careerData = {
+        ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops and maintains software applications',
       };
@@ -33,14 +42,17 @@ describe('Career Model', () => {
 
     test('should fail validation when name is missing', async () => {
       const careerData = {
+        ...careerRequiredBase(),
         description: 'Develops software',
       };
 
       await expect(Career.create(careerData)).rejects.toThrow();
     });
 
-    test('should fail validation when description is missing', async () => {
+    test('should fail validation when career_cluster_name is missing', async () => {
       const careerData = {
+        id: 9999,
+        slug: 'test-career',
         name: 'Software Engineer',
       };
 
@@ -54,7 +66,7 @@ describe('Career Model', () => {
 
   describe('Career Details', () => {
     test('should store career category', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Data Scientist',
         description: 'Analyzes data and builds ML models',
         category: 'Technology',
@@ -64,7 +76,7 @@ describe('Career Model', () => {
     });
 
     test('should store job title variants', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops software',
         jobTitles: ['SDE', 'Software Developer', 'Programmer', 'Full Stack Engineer'],
@@ -75,7 +87,7 @@ describe('Career Model', () => {
     });
 
     test('should store workplace information', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Consultant',
         description: 'Provides consulting services',
         workEnvironment: ['Corporate Office', 'Remote', 'Hybrid'],
@@ -87,7 +99,7 @@ describe('Career Model', () => {
     });
 
     test('should track required education level', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops software',
         requiredEducation: "Bachelor's in Computer Science",
@@ -107,7 +119,7 @@ describe('Career Model', () => {
 
   describe('Holland Code Matching', () => {
     test('should store Holland Code domains matching', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops software',
         hollandCodes: {
@@ -125,7 +137,7 @@ describe('Career Model', () => {
     });
 
     test('should store primary Holland Code match', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Data Scientist',
         description: 'Analyzes data',
         primaryHollandCode: 'I', // Investigative
@@ -140,7 +152,7 @@ describe('Career Model', () => {
       const codes = ['R', 'I', 'A', 'S', 'E', 'C'];
 
       for (const code of codes) {
-        const career = await Career.create({
+        const career = await Career.create({ ...careerRequiredBase(),
           name: `Career ${code}`,
           description: 'Test',
           primaryHollandCode: code,
@@ -158,7 +170,7 @@ describe('Career Model', () => {
 
   describe('Salary Information', () => {
     test('should store salary range with median', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops software',
         salary: {
@@ -175,7 +187,7 @@ describe('Career Model', () => {
     });
 
     test('should track salary based on experience level', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Senior Software Engineer',
         description: 'Leads development',
         salaryByExperience: [
@@ -191,7 +203,7 @@ describe('Career Model', () => {
     });
 
     test('should track salary growth potential', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Manager',
         description: 'Manages teams',
         salary: {
@@ -213,7 +225,7 @@ describe('Career Model', () => {
 
   describe('Required & Preferred Skills', () => {
     test('should store required technical skills', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Data Scientist',
         description: 'Analyzes data',
         requiredTechnicalSkills: ['Python', 'R', 'SQL', 'Machine Learning', 'Statistics'],
@@ -224,7 +236,7 @@ describe('Career Model', () => {
     });
 
     test('should store soft skills', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Project Manager',
         description: 'Manages projects',
         softSkills: ['Leadership', 'Communication', 'Problem Solving', 'Time Management'],
@@ -235,7 +247,7 @@ describe('Career Model', () => {
     });
 
     test('should store preferred skills (nice-to-have)', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops software',
         preferredSkills: ['Cloud Computing', 'DevOps', 'Kubernetes', 'Docker'],
@@ -251,7 +263,7 @@ describe('Career Model', () => {
 
   describe('Career Growth & Outlook', () => {
     test('should track job market demand', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'AI Engineer',
         description: 'Develops AI solutions',
         demandLevel: 'high',
@@ -264,7 +276,7 @@ describe('Career Model', () => {
     });
 
     test('should store career progression paths', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops software',
         progressionPaths: [
@@ -280,7 +292,7 @@ describe('Career Model', () => {
     });
 
     test('should track alternative career paths', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Consultant',
         description: 'Provides consulting',
         alternativeCareers: ['Project Manager', 'Product Manager', 'Entrepreneur'],
@@ -296,7 +308,7 @@ describe('Career Model', () => {
 
   describe('Industry & Work Style', () => {
     test('should store relevant industries', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Financial Analyst',
         description: 'Analyzes financial data',
         relevantIndustries: ['Banking', 'Insurance', 'Investment', 'Healthcare'],
@@ -306,7 +318,7 @@ describe('Career Model', () => {
     });
 
     test('should track typical work schedule and lifestyle', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Consultant',
         description: 'Provides consulting',
         workLifeBalance: 'moderate',
@@ -326,7 +338,7 @@ describe('Career Model', () => {
   describe('Career Description', () => {
     test('should store detailed role description', async () => {
       const longDesc = 'A comprehensive description of what software engineers do...';
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops software',
         detailedDescription: longDesc,
@@ -336,7 +348,7 @@ describe('Career Model', () => {
     });
 
     test('should store typical responsibilities', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Project Manager',
         description: 'Manages projects',
         responsibilities: [
@@ -351,7 +363,7 @@ describe('Career Model', () => {
     });
 
     test('should store typical challenges', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Entrepreneur',
         description: 'Starts ventures',
         challenges: ['High financial risk', 'Long working hours', 'Uncertain income'],
@@ -367,7 +379,7 @@ describe('Career Model', () => {
 
   describe('Additional Information', () => {
     test('should store icon/image URLs', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops software',
         icon: 'https://example.com/icons/engineer.png',
@@ -379,7 +391,7 @@ describe('Career Model', () => {
     });
 
     test('should track if career is active/featured', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'AI Engineer',
         description: 'Develops AI',
         isActive: true,
@@ -397,7 +409,7 @@ describe('Career Model', () => {
 
   describe('Indexes', () => {
     test('should support efficient search by name', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Data Scientist',
         description: 'Analyzes data',
       });
@@ -408,7 +420,7 @@ describe('Career Model', () => {
     });
 
     test('should support efficient queries by Holland Code', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops software',
         primaryHollandCode: 'I',
@@ -426,7 +438,7 @@ describe('Career Model', () => {
 
   describe('Timestamps', () => {
     test('should automatically set createdAt and updatedAt', async () => {
-      const career = await Career.create({
+      const career = await Career.create({ ...careerRequiredBase(),
         name: 'Software Engineer',
         description: 'Develops software',
       });

@@ -8,6 +8,15 @@ const University = require('../../../models/University');
 const { testUniversities, generateId } = require('../../fixtures/testData');
 const { cleanDatabase } = require('../../helpers/testHelpers');
 
+// Required fields for University model - used as base for all creates in these tests
+const uniRequiredBase = () => ({
+  url: `https://test-uni-${Date.now()}-${Math.random()}.edu`,
+  location: { state: 'Test State', city: 'Test City' },
+  accessMethod: 'registration',
+  passwordMethod: 'manual',
+  createdBy: new mongoose.Types.ObjectId(),
+});
+
 describe('University Model', () => {
   beforeEach(async () => {
     await cleanDatabase();
@@ -20,6 +29,7 @@ describe('University Model', () => {
   describe('Schema Validation', () => {
     test('should create a valid university with required fields', async () => {
       const universityData = {
+        ...uniRequiredBase(),
         name: 'Delhi University',
       };
 
@@ -30,7 +40,7 @@ describe('University Model', () => {
     });
 
     test('should fail validation when name is missing', async () => {
-      const universityData = {};
+      const universityData = { ...uniRequiredBase() }; // name is missing
 
       await expect(University.create(universityData)).rejects.toThrow();
     });
@@ -42,7 +52,7 @@ describe('University Model', () => {
 
   describe('University Profile', () => {
     test('should store university code/abbreviation', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Indian Institute of Technology Delhi',
         code: 'IITD',
       });
@@ -51,7 +61,7 @@ describe('University Model', () => {
     });
 
     test('should store location information', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'IIT Delhi',
         location: {
           city: 'Delhi',
@@ -67,7 +77,7 @@ describe('University Model', () => {
     });
 
     test('should store type/classification of university', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'IIT Delhi',
         type: 'Central Government University',
         category: 'Research Institution',
@@ -78,7 +88,7 @@ describe('University Model', () => {
     });
 
     test('should store founding year and history', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Oxford University',
         foundingYear: 1096,
         description: 'Historic university in UK',
@@ -97,7 +107,7 @@ describe('University Model', () => {
   describe('Affiliated Colleges', () => {
     test('should track affiliated colleges', async () => {
       const collegeIds = [generateId(), generateId(), generateId()];
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Delhi University',
         affiliatedColleges: collegeIds,
       });
@@ -106,7 +116,7 @@ describe('University Model', () => {
     });
 
     test('should track number of affiliated colleges', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Delhi University',
         affiliatedCollegeCount: 77,
       });
@@ -121,7 +131,7 @@ describe('University Model', () => {
 
   describe('Academic Programs', () => {
     test('should list degree programs offered', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'MIT',
         degreePrograms: {
           undergraduate: ['BS in AI', 'BS in CS'],
@@ -135,7 +145,7 @@ describe('University Model', () => {
     });
 
     test('should track total number of programs', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Harvard University',
         totalPrograms: 51,
         faculties: [
@@ -158,7 +168,7 @@ describe('University Model', () => {
 
   describe('Rankings & Ratings', () => {
     test('should store multiple ranking systems', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Stanford University',
         rankings: {
           nirf: {
@@ -180,7 +190,7 @@ describe('University Model', () => {
     });
 
     test('should track overall university rating', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Harvard University',
         overallRating: 4.9,
         ratingCount: 5000,
@@ -198,7 +208,7 @@ describe('University Model', () => {
 
   describe('Placement Statistics', () => {
     test('should track placement statistics', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'IIT Delhi',
         placementStats: {
           averageSalary: 1500000,
@@ -214,7 +224,7 @@ describe('University Model', () => {
     });
 
     test('should track top recruiting companies', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'IIT Bombay',
         topCompanies: [
           { name: 'Google', packageOffered: 2200000, yearsRecruiting: 15 },
@@ -227,7 +237,7 @@ describe('University Model', () => {
     });
 
     test('should track alumni employed at top companies', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'IIT Delhi',
         alumniAtTopCompanies: {
           Google: 450,
@@ -247,7 +257,7 @@ describe('University Model', () => {
 
   describe('Student & Faculty Statistics', () => {
     test('should store student enrollment figures', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'MIT',
         students: {
           totalCount: 11500,
@@ -263,7 +273,7 @@ describe('University Model', () => {
     });
 
     test('should store faculty information', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Stanford University',
         faculty: {
           totalCount: 2300,
@@ -286,7 +296,7 @@ describe('University Model', () => {
 
   describe('Infrastructure & Facilities', () => {
     test('should list available facilities', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'IIT Delhi',
         facilities: [
           'Library',
@@ -304,7 +314,7 @@ describe('University Model', () => {
     });
 
     test('should store campus infrastructure details', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Harvard University',
         infrastructure: {
           campusAreaSquareMiles: 209,
@@ -327,7 +337,7 @@ describe('University Model', () => {
 
   describe('Accreditation & Credentials', () => {
     test('should track accreditations and recognitions', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'IIT Delhi',
         accreditations: [
           { name: 'NAAC', grade: 'A++', year: 2023 },
@@ -341,7 +351,7 @@ describe('University Model', () => {
     });
 
     test('should track international recognitions', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Oxford University',
         internationalRecognitions: [
           'QS World Rankings',
@@ -360,7 +370,7 @@ describe('University Model', () => {
 
   describe('Research & Innovation', () => {
     test('should track research output and citations', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Stanford University',
         research: {
           annualResearchFunding: 1800000000,
@@ -382,7 +392,7 @@ describe('University Model', () => {
 
   describe('Startup Ecosystem', () => {
     test('should track incubation and startup data', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'IIT Delhi',
         incubationProgram: {
           name: 'Startup Incubation Center',
@@ -403,7 +413,7 @@ describe('University Model', () => {
 
   describe('Admission & Enrollment', () => {
     test('should track admission statistics', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'MIT',
         admission: {
           admissionProcess: 'Holistic Review',
@@ -419,7 +429,7 @@ describe('University Model', () => {
     });
 
     test('should track fee structure', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Harvard University',
         fees: {
           currency: 'USD',
@@ -441,7 +451,7 @@ describe('University Model', () => {
 
   describe('Alumni Network', () => {
     test('should track alumni information', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'IIT Delhi',
         alumni: {
           totalAlumni: 50000,
@@ -462,7 +472,7 @@ describe('University Model', () => {
 
   describe('Contact & Metadata', () => {
     test('should store contact information', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'IIT Delhi',
         contactInfo: {
           phone: '+91-11-2659-1234',
@@ -478,7 +488,7 @@ describe('University Model', () => {
     });
 
     test('should track university status and activity', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Stanford University',
         isActive: true,
         isFeatured: true,
@@ -495,7 +505,7 @@ describe('University Model', () => {
 
   describe('Indexes', () => {
     test('should support efficient search by name', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'MIT',
       });
 
@@ -505,7 +515,7 @@ describe('University Model', () => {
     });
 
     test('should support efficient queries by location', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'College A',
         location: { city: 'Delhi' },
       });
@@ -524,7 +534,7 @@ describe('University Model', () => {
 
   describe('Timestamps', () => {
     test('should automatically set createdAt and updatedAt', async () => {
-      const university = await University.create({
+      const university = await University.create({ ...uniRequiredBase(),
         name: 'Test University',
       });
 

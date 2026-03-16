@@ -1,0 +1,99 @@
+══════════════════════════════════════════════════════════════════════
+  SKILLPILOT — FULL MENTOR SEED
+  Generated: 2026-03-16T07:03:44.551Z
+══════════════════════════════════════════════════════════════════════
+
+── MENTOR CREDENTIALS ──────────────────────────────────────────────────
+Name        : Rahul Kapoor
+Username    : rahul_kapoor
+Email       : rahul.kapoor@skillpilot.dev
+Password    : FullMentor@2024!
+Role        : Mentor
+Badge       : ⭐ Star
+Status      : Approved & Verified
+Handle      : /mentor/rahul_kapoor
+Expertise   : DSA, System Design, HLD, LLD, Java, Python
+Placements  : 48 | Rating: 4.9 ⭐ | Reviews: 112
+Referrals   : Google, Atlassian, Swiggy, Razorpay, Microsoft, Amazon
+
+── SERVICES CREATED (15 total) ──────────────────────────────────────────
+  01. 🌱 [LIVE]    Discovery Call
+       Title    : Free Discovery Call
+       Price    : FREE
+       Duration : 30 min
+
+  02. 🎥 [LIVE]    1:1 Session
+       Title    : 1:1 Mentorship Session
+       Price    : ₹1,499
+       Duration : 60 min
+
+  03. ⚡ [LIVE]    Quick Chat
+       Title    : Quick Chat — 15 Min
+       Price    : ₹399
+       Duration : 15 min
+
+  04. 🎯 [LIVE]    Mock Interview
+       Title    : Mock Interview — DSA / System Design
+       Price    : ₹1,999
+       Duration : 60 min
+
+  05. 🧭 [LIVE]    Career Guidance
+       Title    : Career Strategy Call
+       Price    : ₹1,299
+       Duration : 45 min
+
+  06. 🗓️  [LIVE]    Coaching Series
+       Title    : 6-Week FAANG Bootcamp
+       Price    : ₹14,999
+       Duration : 60 min
+
+  07. 💬 [ASYNC]   Priority DM
+       Title    : Priority DM — Monthly Inbox
+       Price    : ₹999
+       Duration : 60 min
+
+  08. 📄 [ASYNC]   Resume Review
+       Title    : ATS Resume Review
+       Price    : ₹799
+       Duration : 60 min
+
+  09. 🖼️  [ASYNC]   Portfolio Review
+       Title    : GitHub / Portfolio Review
+       Price    : ₹599
+       Duration : 60 min
+
+  10. 🙋 [ASYNC]   Ask Me Anything
+       Title    : Ask Me Anything — 1 Question
+       Price    : ₹299
+       Duration : 60 min
+
+  11. 🤝 [PRODUCT] Referral
+       Title    : Employee Referral — Google / Atlassian / Swiggy
+       Price    : ₹2,499
+       Duration : 60 min
+
+  12. 📚 [PRODUCT] Course
+       Title    : Complete DSA + System Design Masterclass
+       Price    : ₹4,999
+       Duration : 60 min
+
+  13. 👥 [GROUP]   Workshop
+       Title    : System Design Workshop — Live (Batch)
+       Price    : ₹1,499
+       Duration : 180 min
+       Capacity : 20 attendees
+
+  14. 🖥️  [GROUP]   Webinar
+       Title    : FAANG Interview Masterclass — Free Webinar
+       Price    : FREE
+       Duration : 90 min
+       Capacity : 200 attendees
+
+  15. ✨ [CUSTOM]  Custom
+       Title    : Custom Engagement — Let's Design It Together
+       Price    : FREE
+       Duration : 60 min
+
+══════════════════════════════════════════════════════════════════════
+  END
+══════════════════════════════════════════════════════════════════════

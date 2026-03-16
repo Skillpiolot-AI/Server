@@ -290,22 +290,63 @@ exports.getMentorPublicProfile = async (req, res) => {
     if (!profile) return res.status(404).json({ error: 'Mentor not found' });
 
     // Fetch active services, sorted by sortOrder
-    const services = await MentorService.find({
+    let services = await MentorService.find({
       mentorId: profile.userId._id,
       isActive: true,
     }).sort({ sortOrder: 1, createdAt: 1 });
 
+    // ── FALLBACK: synthesise services from pricingPlans when no MentorService docs exist ──
+    if (services.length === 0 && profile.pricingPlans && profile.pricingPlans.length > 0) {
+      const sessionCounts = { '1 Month': 4, '3 Months': 12, '6 Months': 24 };
+      services = profile.pricingPlans.map((plan, idx) => ({
+        _id:         `plan_${idx}`,
+        serviceType: 'one_on_one',
+        title:       `1-on-1 Mentorship — ${plan.duration}`,
+        description: plan.features && plan.features.length > 0
+                       ? plan.features.join(' • ')
+                       : `Personal ${plan.duration} mentorship plan with ${profile.displayName}`,
+        price:       plan.price,
+        currency:    'INR',
+        isFree:      plan.price === 0,
+        duration:    60,
+        sessionCount: sessionCounts[plan.duration] || 1,
+        includes:    plan.features || [],
+        sortOrder:   idx,
+        isActive:    true,
+        isFeatured:  idx === 0,
+        _synthetic:  true,
+      }));
+    }
+
+    // Also prepend a free Discovery Call if trialSession is enabled
+    if (profile.trialSession && profile.trialSession.available) {
+      const hasDiscovery = services.some(s => s.serviceType === 'discovery_call');
+      if (!hasDiscovery) {
+        services = [
+          {
+            _id:         'trial_session',
+            serviceType: 'discovery_call',
+            title:       'Free Discovery Call',
+            description: profile.trialSession.description || '30-minute intro call to discuss your goals and how I can help you.',
+            price:       profile.trialSession.price || 0,
+            currency:    'INR',
+            isFree:      !profile.trialSession.price || profile.trialSession.price === 0,
+            duration:    30,
+            includes:    ['Goal discussion', 'Personalised roadmap', 'Q&A'],
+            sortOrder:   -1,
+            isActive:    true,
+            isFeatured:  true,
+            _synthetic:  true,
+          },
+          ...services,
+        ];
+      }
+    }
+
     // Group services by category for the frontend
     const groupedServices = {
       live: services.filter(s =>
-        [
-          'one_on_one',
-          'quick_chat',
-          'mock_interview',
-          'career_guidance',
-          'discovery_call',
-          'coaching_series',
-        ].includes(s.serviceType)
+        ['one_on_one', 'quick_chat', 'mock_interview', 'career_guidance', 'discovery_call', 'coaching_series'].includes(s.serviceType)
       ),
       async: services.filter(s =>
         ['priority_dm', 'resume_review', 'portfolio_review', 'ama'].includes(s.serviceType)
