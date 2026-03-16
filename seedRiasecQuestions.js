@@ -20,9 +20,14 @@ const Question = require('./models/Question');
 
 const questions = [
   // ── R: Realistic ──────────────────────────────────────────────────────────
-  { id: 'q1',  domain: 'R', order: 1,  text: 'I like to work on cars' },
-  { id: 'q7',  domain: 'R', order: 7,  text: 'I like to build things' },
-  { id: 'q22', domain: 'R', order: 22, text: 'I like putting things together or assembling things' },
+  { id: 'q1', domain: 'R', order: 1, text: 'I like to work on cars' },
+  { id: 'q7', domain: 'R', order: 7, text: 'I like to build things' },
+  {
+    id: 'q22',
+    domain: 'R',
+    order: 22,
+    text: 'I like putting things together or assembling things',
+  },
   { id: 'q30', domain: 'R', order: 30, text: 'I like to cook' },
   { id: 'q32', domain: 'R', order: 32, text: 'I am a practical person' },
   { id: 'q37', domain: 'R', order: 37, text: 'I like working outdoors' },
@@ -36,7 +41,7 @@ const questions = [
   { id: 'q39', domain: 'I', order: 39, text: "I'm good at math" },
 
   // ── A: Artistic ───────────────────────────────────────────────────────────
-  { id: 'q8',  domain: 'A', order: 8,  text: 'I like to read about art and music' },
+  { id: 'q8', domain: 'A', order: 8, text: 'I like to read about art and music' },
   { id: 'q17', domain: 'A', order: 17, text: 'I enjoy creative writing' },
   { id: 'q23', domain: 'A', order: 23, text: 'I am a creative person' },
   { id: 'q27', domain: 'A', order: 27, text: 'I like to play instruments or sing' },
@@ -45,7 +50,7 @@ const questions = [
 
   // ── S: Social ─────────────────────────────────────────────────────────────
   { id: 'q12', domain: 'S', order: 12, text: 'I like to teach or train people' },
-  { id: 'q13', domain: 'S', order: 13, text: "I like trying to help people solve their problems" },
+  { id: 'q13', domain: 'S', order: 13, text: 'I like trying to help people solve their problems' },
   { id: 'q14', domain: 'S', order: 14, text: 'I like to take care of animals' },
   { id: 'q20', domain: 'S', order: 20, text: 'I am interested in healing people' },
   { id: 'q28', domain: 'S', order: 28, text: 'I enjoy learning about other cultures' },
@@ -61,11 +66,16 @@ const questions = [
   { id: 'q42', domain: 'E', order: 42, text: 'I like to give speeches' },
 
   // ── C: Conventional ───────────────────────────────────────────────────────
-  { id: 'q2',  domain: 'C', order: 2,  text: 'I like to do puzzles' },
-  { id: 'q5',  domain: 'C', order: 5,  text: 'I am an ambitious person, I set goals for myself' },
-  { id: 'q6',  domain: 'C', order: 6,  text: 'I like to organize things (files, desks/offices)' },
-  { id: 'q9',  domain: 'C', order: 9,  text: 'I like to have clear instructions to follow' },
-  { id: 'q15', domain: 'C', order: 15, text: "I wouldn't mind working 8 hours per day in an office" },
+  { id: 'q2', domain: 'C', order: 2, text: 'I like to do puzzles' },
+  { id: 'q5', domain: 'C', order: 5, text: 'I am an ambitious person, I set goals for myself' },
+  { id: 'q6', domain: 'C', order: 6, text: 'I like to organize things (files, desks/offices)' },
+  { id: 'q9', domain: 'C', order: 9, text: 'I like to have clear instructions to follow' },
+  {
+    id: 'q15',
+    domain: 'C',
+    order: 15,
+    text: "I wouldn't mind working 8 hours per day in an office",
+  },
   { id: 'q24', domain: 'C', order: 24, text: 'I pay attention to details' },
   { id: 'q25', domain: 'C', order: 25, text: 'I like to do filing or typing' },
   { id: 'q35', domain: 'C', order: 35, text: 'I am good at keeping records of my work' },
@@ -74,8 +84,8 @@ const questions = [
   // ── Mixed / Crossover ─────────────────────────────────────────────────────
   // (questions that couldn't map to a single pure domain are placed in their
   //  closest match based on standard RIASEC literature)
-  { id: 'q3',  domain: 'R', order: 3,  text: 'I am good at working independently' },
-  { id: 'q4',  domain: 'S', order: 4,  text: 'I like to work in teams' },
+  { id: 'q3', domain: 'R', order: 3, text: 'I am good at working independently' },
+  { id: 'q4', domain: 'S', order: 4, text: 'I like to work in teams' },
 ];
 
 async function seed() {
@@ -92,8 +102,17 @@ async function seed() {
 
   // Print summary by domain
   const domains = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
-  const labels  = { R: 'Realistic', I: 'Investigative', A: 'Artistic', S: 'Social', E: 'Enterprising', C: 'Conventional' };
-  inserted.forEach(q => { if (domains[q.domain] !== undefined) domains[q.domain]++; });
+  const labels = {
+    R: 'Realistic',
+    I: 'Investigative',
+    A: 'Artistic',
+    S: 'Social',
+    E: 'Enterprising',
+    C: 'Conventional',
+  };
+  inserted.forEach(q => {
+    if (domains[q.domain] !== undefined) domains[q.domain]++;
+  });
 
   console.log('\n📊 Questions per domain:');
   Object.entries(domains).forEach(([d, count]) => {

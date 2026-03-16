@@ -22,7 +22,7 @@ const calculateScores = (answers, questionMap) => {
     A: 6 * 5,
     S: 7 * 5,
     E: 7 * 5,
-    C: 9 * 5
+    C: 9 * 5,
   };
 
   const percentages = {};
@@ -114,7 +114,9 @@ exports.createAssessment = async (req, res) => {
     // Build questionId → domain map so scoring works for any id format
     const allQuestions = await Question.find().select('id domain').lean();
     const questionMap = {};
-    allQuestions.forEach(q => { questionMap[q.id] = q.domain; });
+    allQuestions.forEach(q => {
+      questionMap[q.id] = q.domain;
+    });
 
     const results = calculateScores(answers, questionMap);
 
