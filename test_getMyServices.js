@@ -14,7 +14,7 @@ async function main() {
   }
 
   console.log('👤 User found:', user._id);
-  
+
   try {
     const services = await MentorService.getForMentor(user._id.toString(), true);
     console.log('📊 Services Count:', services.length);

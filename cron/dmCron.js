@@ -36,7 +36,9 @@ async function expireThreads() {
 
     const totalExpired = (expiredActive.modifiedCount || 0) + (expiredOpen.modifiedCount || 0);
     if (totalExpired > 0) {
-      console.log(`🕐 DM Cron: Expired ${totalExpired} threads (${expiredActive.modifiedCount} active, ${expiredOpen.modifiedCount} open)`);
+      console.log(
+        `🕐 DM Cron: Expired ${totalExpired} threads (${expiredActive.modifiedCount} active, ${expiredOpen.modifiedCount} open)`
+      );
     }
   } catch (error) {
     console.error('DM Cron error:', error.message);

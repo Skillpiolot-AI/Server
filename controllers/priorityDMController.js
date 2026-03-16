@@ -14,18 +14,18 @@ const SHORTCUT_SUGGESTIONS = {
     'I need help preparing for interviews.',
     'What resources do you recommend for getting started?',
     'Can you help me with my project approach?',
-    'I\'m stuck on a problem — could you help?',
+    "I'm stuck on a problem — could you help?",
     'Thank you for the great advice!',
     'When would be a good time for a follow-up?',
   ],
   mentor: [
     'Hi! Thanks for reaching out. Let me help you.',
-    'Great question! Here\'s what I suggest:',
-    'I\'ve reviewed your profile. Here are my thoughts:',
+    "Great question! Here's what I suggest:",
+    "I've reviewed your profile. Here are my thoughts:",
     'Let me share some resources with you.',
-    'I\'d recommend focusing on these areas:',
+    "I'd recommend focusing on these areas:",
     'Excellent progress! Keep it up.',
-    'Let\'s schedule a call to discuss this further.',
+    "Let's schedule a call to discuss this further.",
     'Feel free to ask any follow-up questions!',
   ],
 };
@@ -38,11 +38,16 @@ function parseResponseTime(responseTime) {
   const amount = parseInt(match[1]);
   const unit = match[2].toLowerCase();
   switch (unit) {
-    case 'hour': return amount * 3600000;
-    case 'day': return amount * 86400000;
-    case 'week': return amount * 7 * 86400000;
-    case 'month': return amount * 30 * 86400000;
-    default: return 48 * 3600000;
+    case 'hour':
+      return amount * 3600000;
+    case 'day':
+      return amount * 86400000;
+    case 'week':
+      return amount * 7 * 86400000;
+    case 'month':
+      return amount * 30 * 86400000;
+    default:
+      return 48 * 3600000;
   }
 }
 
@@ -100,7 +105,9 @@ exports.startThread = async (req, res) => {
       mentorId,
       status: { $in: ['closed', 'expired'] },
       lastMessageAt: { $gte: thirtyDaysAgo },
-    }).sort({ lastMessageAt: -1 }).select('_id');
+    })
+      .sort({ lastMessageAt: -1 })
+      .select('_id');
 
     if (previousThread) {
       previousThreadId = previousThread._id;
@@ -174,7 +181,9 @@ exports.sendMessage = async (req, res) => {
     }
 
     if (thread.status === 'closed' || thread.status === 'expired') {
-      return res.status(400).json({ error: 'This thread is closed/expired. Start a new DM to continue.' });
+      return res
+        .status(400)
+        .json({ error: 'This thread is closed/expired. Start a new DM to continue.' });
     }
 
     // Check if thread has expired by time
@@ -182,7 +191,9 @@ exports.sendMessage = async (req, res) => {
       thread.status = 'expired';
       thread.closedAt = new Date();
       await thread.save();
-      return res.status(400).json({ error: 'This thread has expired. Start a new DM to continue.' });
+      return res
+        .status(400)
+        .json({ error: 'This thread has expired. Start a new DM to continue.' });
     }
 
     const senderRole = isMentor ? 'mentor' : 'mentee';

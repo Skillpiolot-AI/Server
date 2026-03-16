@@ -954,10 +954,12 @@ exports.requestReschedule = async (req, res) => {
     const mentorName = mentorProfile?.displayName || req.user.name;
 
     // Format proposed slots for email
-    const slotsText = proposedSlots.map((dt, i) => {
-      const d = new Date(dt);
-      return `${i + 1}. ${d.toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
-    }).join('\n');
+    const slotsText = proposedSlots
+      .map((dt, i) => {
+        const d = new Date(dt);
+        return `${i + 1}. ${d.toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+      })
+      .join('\n');
 
     // Send email to user
     sendEmailFast(booking.userId.email, {
@@ -969,10 +971,12 @@ exports.requestReschedule = async (req, res) => {
 <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
 <p><strong>Please select one of the following time slots:</strong></p>
 <ol>
-${proposedSlots.map(dt => {
-  const d = new Date(dt);
-  return `<li>${d.toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</li>`;
-}).join('\n')}
+${proposedSlots
+  .map(dt => {
+    const d = new Date(dt);
+    return `<li>${d.toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</li>`;
+  })
+  .join('\n')}
 </ol>
 <p>Please log in to Skill-Pilot to select your preferred time slot.</p>
 <p>Best regards,<br/>The Skill-Pilot Team</p>
@@ -1071,8 +1075,16 @@ exports.respondToReschedule = async (req, res) => {
     const mentorProfile = await MentorProfile.findOne({ userId: booking.mentorId._id });
     const mentorName = mentorProfile?.displayName || booking.mentorId.name;
 
-    const fmtDate = selectedDate.toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-    const fmtTime = selectedDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    const fmtDate = selectedDate.toLocaleDateString('en-IN', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    const fmtTime = selectedDate.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
 
     // Email to user
     sendEmailFast(booking.userId.email, {
