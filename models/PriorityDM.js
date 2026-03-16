@@ -4,7 +4,8 @@
  * Each thread is tied to a PriorityDM service purchase.
  *
  * Thread lifecycle:
- *   open → (mentor replies) → active → (response_time exceeded or manually closed) → closed
+ *   open → mentee sends message → (mentor first-replies → timer starts → active) → expired/closed
+ *   Timer does NOT start until mentor sends their first reply.
  */
 
 const mongoose = require('mongoose');
@@ -83,9 +84,28 @@ const PriorityDMSchema = new mongoose.Schema(
       default: 'open',
     },
 
+    // Duration for this DM (in milliseconds), stored from service at creation
+    serviceDurationMs: {
+      type: Number,
+      default: 0,
+    },
+
+    // Expiry: set ONLY when mentor sends first reply (timer starts then)
+    expiresAt: {
+      type: Date,
+      default: null,
+    },
+
     // Response commitment from mentor (from MentorService.responseTime)
     responseDeadline: {
       type: Date,
+    },
+
+    // Link to a previous thread between same mentee+mentor (for history)
+    previousThreadId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'PriorityDM',
+      default: null,
     },
 
     // Payment
@@ -132,11 +152,13 @@ const PriorityDMSchema = new mongoose.Schema(
 PriorityDMSchema.index({ mentorId: 1, status: 1, lastMessageAt: -1 });
 PriorityDMSchema.index({ menteeId: 1, lastMessageAt: -1 });
 PriorityDMSchema.index({ mentorId: 1, unreadByMentor: -1 });
+PriorityDMSchema.index({ expiresAt: 1, status: 1 }); // for cron cleanup
 
 // ─── Methods ──────────────────────────────────────────────────────────────────
 
 /**
- * Add a message to the thread and update unread counts
+ * Add a message to the thread and update unread counts.
+ * IMPORTANT: Timer starts on mentor's FIRST reply.
  */
 PriorityDMSchema.methods.addMessage = function (senderId, senderRole, content, attachments = []) {
   this.messages.push({
@@ -151,12 +173,18 @@ PriorityDMSchema.methods.addMessage = function (senderId, senderRole, content, a
   // Update unread counts for the OTHER party
   if (senderRole === 'mentee') {
     this.unreadByMentor += 1;
-    if (this.status === 'open') this.status = 'active'; // first message activates thread
   } else {
     this.unreadByMentee += 1;
+
+    // On mentor's FIRST reply: start the timer, set expiresAt
     if (!this.mentorRepliedAt) {
       this.mentorRepliedAt = new Date();
       this.status = 'active';
+
+      // Calculate expiry based on service duration
+      if (this.serviceDurationMs > 0) {
+        this.expiresAt = new Date(Date.now() + this.serviceDurationMs);
+      }
     }
   }
 

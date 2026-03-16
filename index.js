@@ -38,6 +38,7 @@ const priorityDMRoutes = require('./routes/priorityDMRoutes');
 // Import scheduled jobs
 const tempPasswordReminder = require('./jobs/tempPasswordReminder');
 const bookingReminders = require('./jobs/bookingReminders');
+const { startDMCron } = require('./cron/dmCron');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -291,6 +292,7 @@ const startServer = async () => {
       console.log('\n⏰ Initializing scheduled jobs...');
       tempPasswordReminder.scheduleReminders();
       bookingReminders.scheduleReminders();
+      startDMCron();
 
       console.log('\n✅ Server initialization complete!\n');
     });

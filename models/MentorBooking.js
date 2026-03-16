@@ -187,6 +187,30 @@ const MentorBookingSchema = new mongoose.Schema({
     maxlength: 300,
   },
 
+  // Reschedule flow
+  reschedule: {
+    status: {
+      type: String,
+      enum: ['none', 'pending', 'accepted', 'rejected'],
+      default: 'none',
+    },
+    reason: { type: String, maxlength: 500 },
+    proposedSlots: [
+      {
+        dateTime: { type: Date, required: true },
+      },
+    ],
+    selectedSlot: { type: Date },
+    requestedAt: { type: Date },
+    respondedAt: { type: Date },
+  },
+
+  // Mentor feedback after session completion
+  mentorFeedback: {
+    text: { type: String, maxlength: 2000 },
+    submittedAt: { type: Date },
+  },
+
   // Timestamps
   createdAt: {
     type: Date,

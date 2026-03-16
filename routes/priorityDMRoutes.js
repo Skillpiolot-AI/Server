@@ -13,8 +13,14 @@ router.use(verifyToken);
 // Mentee starts a new thread
 router.post('/dm/start', ctrl.startThread);
 
+// Get shortcut message suggestions
+router.get('/dm/suggestions', ctrl.getSuggestions);
+
 // Get a single thread with all messages (auto-marks read)
 router.get('/dm/:threadId', ctrl.getThread);
+
+// Get previous thread history (linked via previousThreadId, ≤30 days)
+router.get('/dm/:threadId/history', ctrl.getThreadHistory);
 
 // Send a message in an existing thread
 router.post('/dm/:threadId/messages', ctrl.sendMessage);

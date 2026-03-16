@@ -604,6 +604,7 @@ router.post('/login', async (req, res) => {
         universityId: user.universityId?._id,
         universityName: user.universityId?.name,
         lastLogin: user.lastLogin,
+        mentorStatus: user.mentorStatus,
       },
     });
   } catch (error) {
@@ -1287,6 +1288,7 @@ router.get('/me', verifyToken, async (req, res) => {
       isActive: user.isActive,
       isSuspended: user.isSuspended,
       mustChangePassword: user.mustChangePassword,
+      mentorStatus: user.mentorStatus,
     };
 
     if (user.role === 'Student') {

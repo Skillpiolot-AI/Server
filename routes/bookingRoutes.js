@@ -37,6 +37,9 @@ router.put('/:bookingId/cancel', verifyToken, bookingController.cancelBooking);
 // Submit rating for completed booking
 router.post('/:bookingId/rate', verifyToken, bookingController.rateBooking);
 
+// Respond to reschedule (select a proposed slot)
+router.put('/:bookingId/reschedule-respond', verifyToken, bookingController.respondToReschedule);
+
 // ==========================================
 // MENTOR ROUTES (Authenticated + Mentor role)
 // ==========================================
@@ -52,6 +55,15 @@ router.post('/mentor/:bookingId/send-link', mentorAuth, bookingController.sendMe
 
 // Mark session as complete
 router.put('/mentor/:bookingId/complete', mentorAuth, bookingController.completeSession);
+
+// Request reschedule (mentor proposes 3-5 time slots)
+router.put('/mentor/:bookingId/reschedule', mentorAuth, bookingController.requestReschedule);
+
+// Get student profile for a booking
+router.get('/mentor/:bookingId/student-profile', mentorAuth, bookingController.getStudentProfile);
+
+// Submit mentor feedback for completed session
+router.post('/mentor/:bookingId/feedback', mentorAuth, bookingController.submitMentorFeedback);
 
 // ==========================================
 // ADMIN ROUTES (Authenticated + Admin role)

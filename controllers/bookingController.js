@@ -4,6 +4,8 @@ const MentorService = require('../models/MentorService');
 const MentorCoupon = require('../models/MentorCoupon');
 const SystemSettings = require('../models/SystemSettings');
 const User = require('../models/User');
+const Assessment = require('../models/Assessment');
+const Announcement = require('../models/Announcement');
 const { sendEmailFast } = require('../config/mailHelper');
 const crypto = require('crypto');
 
@@ -284,83 +286,49 @@ exports.createBooking = async (req, res) => {
     // Get user details for email
     const user = await User.findById(userId).select('name email');
 
-    // Send confirmation email to user (async)
+    // Send confirmation email to user (simple, no CSS)
     sendEmailFast(user.email, {
-      subject: '✅ Booking Confirmed - Skill-Pilot Mentorship',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #3F3FF3 0%, #2F2FD3 100%); color: white; padding: 30px; text-align: center;">
-            <h1>🎯 Session Booked!</h1>
-          </div>
-          <div style="padding: 30px; background: #fff;">
-            <h2>Hello ${user.name}!</h2>
-            <p>Your ${serviceName} has been ${savedBooking.status === 'confirmed' ? 'confirmed' : 'submitted'}.</p>
-
-            
-            <div style="background: #f8f9ff; border-left: 4px solid #3F3FF3; padding: 15px; margin: 20px 0;">
-              <p><strong>📌 Booking ID:</strong> ${savedBooking.bookingId}</p>
-              <p><strong>👨‍🏫 Mentor:</strong> ${mentorProfile.displayName}</p>
-              <p><strong>📅 Date:</strong> ${scheduledDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-              <p><strong>⏰ Time:</strong> ${scheduledDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
-              <p><strong>⏱️ Duration:</strong> ${finalDuration} minutes</p>
-              ${isFree ? '<p style="color: #28a745;"><strong>💚 This session is FREE!</strong></p>' : `<p><strong>💰 Amount:</strong> ₹${paidAmount}</p>`}
-
-            </div>
-            
-            <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
-              <p><strong>🎥 Video Meeting Link (Jitsi - Free):</strong></p>
-              <p style="word-break: break-all;"><a href="${savedBooking.meetingLink}" style="color: #28a745;">${savedBooking.meetingLink}</a></p>
-              <p style="font-size: 12px; color: #666;">Save this link! You'll use it to join your session.</p>
-            </div>
-            
-            ${remark ? `<p><strong>Your Message:</strong> ${remark}</p>` : ''}
-            
-            <p>You will receive reminders before your session and a meeting link from your mentor.</p>
-            
-            <p style="margin-top: 30px;">Best regards,<br><strong>The Skill-Pilot Team</strong></p>
-          </div>
-        </div>
-      `,
-      text: `Hello ${user.name}!\n\nYour ${serviceName} has been ${savedBooking.status}.\n\nBooking ID: ${savedBooking.bookingId}\nMentor: ${mentorProfile.displayName}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${finalDuration} minutes\n\nBest regards,\nThe Skill-Pilot Team`,
+      subject: 'Booking Confirmed - Skill-Pilot Mentorship',
+      html: `<div style="font-family: Arial, sans-serif;">
+<p>Hello ${user.name},</p>
+<p>Your ${serviceName} with <strong>${mentorProfile.displayName}</strong> has been ${savedBooking.status === 'confirmed' ? 'confirmed' : 'submitted'}.</p>
+<p><strong>Booking Details:</strong></p>
+<ul>
+<li>Booking ID: ${savedBooking.bookingId}</li>
+<li>Mentor: ${mentorProfile.displayName}</li>
+<li>Date: ${scheduledDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</li>
+<li>Time: ${scheduledDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</li>
+<li>Duration: ${finalDuration} minutes</li>
+${isFree ? '<li>Price: FREE</li>' : `<li>Amount: Rs.${paidAmount}</li>`}
+</ul>
+<p><strong>Meeting Link (Jitsi):</strong><br/>${savedBooking.meetingLink}</p>
+${remark ? `<p><strong>Your Message:</strong> ${remark}</p>` : ''}
+<p>You will receive reminders before your session.</p>
+<p>Best regards,<br/>The Skill-Pilot Team</p>
+</div>`,
+      text: `Hello ${user.name},\n\nYour ${serviceName} with ${mentorProfile.displayName} has been ${savedBooking.status}.\n\nBooking ID: ${savedBooking.bookingId}\nMentor: ${mentorProfile.displayName}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${finalDuration} minutes\n${isFree ? 'Price: FREE' : `Amount: Rs.${paidAmount}`}\n\nMeeting Link: ${savedBooking.meetingLink}\n${remark ? `Your Message: ${remark}` : ''}\n\nBest regards,\nThe Skill-Pilot Team`,
     }).catch(err => console.error('Failed to send user booking email:', err));
 
-    // Send notification to mentor (async)
+    // Send notification to mentor (simple, no CSS)
     sendEmailFast(mentorProfile.userId.email, {
-      subject: '📅 New Booking Request - Skill-Pilot',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">
-            <h1>📅 New Session Booked!</h1>
-          </div>
-          <div style="padding: 30px; background: #fff;">
-            <h2>Hello ${mentorProfile.displayName}!</h2>
-            <p>A student has booked a ${serviceName} with you.</p>
-
-            
-            <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
-              <p><strong>📌 Booking ID:</strong> ${savedBooking.bookingId}</p>
-              <p><strong>👤 Student:</strong> ${user.name}</p>
-              <p><strong>📅 Date:</strong> ${scheduledDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-              <p><strong>⏰ Time:</strong> ${scheduledDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
-              <p><strong>⏱️ Duration:</strong> ${finalDuration} minutes</p>
-
-            </div>
-            
-            <div style="background: #e7f3ff; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0;">
-              <p><strong>🎥 Video Meeting Link (Jitsi - Free):</strong></p>
-              <p style="word-break: break-all;"><a href="${savedBooking.meetingLink}" style="color: #007bff;">${savedBooking.meetingLink}</a></p>
-              <p style="font-size: 12px; color: #666;">Use this link to start the video call with your student.</p>
-            </div>
-            
-            ${remark ? `<div style="background: #f8f9fa; padding: 15px; margin: 20px 0; border-radius: 5px;"><p><strong>Student's Message:</strong></p><p>${remark}</p></div>` : ''}
-            
-            <p>You will receive a reminder before the session to share your meeting link.</p>
-            
-            <p style="margin-top: 30px;">Best regards,<br><strong>The Skill-Pilot Team</strong></p>
-          </div>
-        </div>
-      `,
-      text: `Hello ${mentorProfile.displayName}!\n\nA student has booked a ${serviceName} with you.\n\nBooking ID: ${savedBooking.bookingId}\nStudent: ${user.name}\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${finalDuration} minutes\n\nMessage: ${remark || 'No message'}\n\nBest regards,\nThe Skill-Pilot Team`,
+      subject: 'New Booking Request - Skill-Pilot',
+      html: `<div style="font-family: Arial, sans-serif;">
+<p>Hello ${mentorProfile.displayName},</p>
+<p>A student has booked a ${serviceName} with you.</p>
+<p><strong>Booking Details:</strong></p>
+<ul>
+<li>Booking ID: ${savedBooking.bookingId}</li>
+<li>Student: ${user.name} (${user.email})</li>
+<li>Date: ${scheduledDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</li>
+<li>Time: ${scheduledDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</li>
+<li>Duration: ${finalDuration} minutes</li>
+</ul>
+<p><strong>Meeting Link (Jitsi):</strong><br/>${savedBooking.meetingLink}</p>
+${remark ? `<p><strong>Student's Message:</strong> ${remark}</p>` : ''}
+<p>You will receive reminders before the session.</p>
+<p>Best regards,<br/>The Skill-Pilot Team</p>
+</div>`,
+      text: `Hello ${mentorProfile.displayName},\n\nA student has booked a ${serviceName} with you.\n\nBooking ID: ${savedBooking.bookingId}\nStudent: ${user.name} (${user.email})\nDate: ${scheduledDate.toLocaleDateString()}\nTime: ${scheduledDate.toLocaleTimeString()}\nDuration: ${finalDuration} minutes\n\nMeeting Link: ${savedBooking.meetingLink}\n${remark ? `Student Message: ${remark}` : ''}\n\nBest regards,\nThe Skill-Pilot Team`,
     }).catch(err => console.error('Failed to send mentor booking email:', err));
 
     res.status(201).json({
@@ -392,7 +360,7 @@ exports.createBooking = async (req, res) => {
 exports.getUserBookings = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { status, page = 1, limit = 10 } = req.query;
+    const { status, page = 1, limit = 100 } = req.query;
 
     const query = { userId };
     if (status) query.status = status;
@@ -405,7 +373,8 @@ exports.getUserBookings = async (req, res) => {
         .skip(skip)
         .limit(parseInt(limit))
         .populate('mentorId', 'name email imageUrl')
-        .populate('mentorProfileId', 'displayName tagline profileImage'),
+        .populate('mentorProfileId', 'displayName tagline profileImage')
+        .populate('serviceId', 'title serviceType price duration'),
       MentorBooking.countDocuments(query),
     ]);
 
@@ -581,7 +550,7 @@ exports.rateBooking = async (req, res) => {
 exports.getMentorBookings = async (req, res) => {
   try {
     const mentorId = req.user._id;
-    const { status, upcoming, page = 1, limit = 10 } = req.query;
+    const { status, upcoming, page = 1, limit = 100 } = req.query;
 
     const query = { mentorId };
     if (status) query.status = status;
@@ -597,7 +566,8 @@ exports.getMentorBookings = async (req, res) => {
         .sort({ scheduledAt: upcoming === 'true' ? 1 : -1 })
         .skip(skip)
         .limit(parseInt(limit))
-        .populate('userId', 'name email imageUrl'),
+        .populate('userId', 'name email imageUrl')
+        .populate('serviceId', 'title serviceType price duration'),
       MentorBooking.countDocuments(query),
     ]);
 
@@ -936,6 +906,341 @@ exports.getAllBookings = async (req, res) => {
   } catch (error) {
     console.error('Error fetching all bookings:', error);
     res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+};
+// ==========================================
+// RESCHEDULE ENDPOINTS
+// ==========================================
+
+/**
+ * Mentor requests reschedule with 3-5 proposed time slots
+ * PUT /api/bookings/mentor/:bookingId/reschedule
+ */
+exports.requestReschedule = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { reason, proposedSlots } = req.body;
+    const mentorId = req.user._id;
+
+    if (!reason || !proposedSlots || proposedSlots.length < 3 || proposedSlots.length > 5) {
+      return res.status(400).json({ error: 'Please provide a reason and 3-5 proposed time slots' });
+    }
+
+    const booking = await MentorBooking.findOne({
+      $or: [{ _id: bookingId }, { bookingId }],
+      mentorId,
+    }).populate('userId', 'name email');
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    if (['completed', 'cancelled'].includes(booking.status)) {
+      return res.status(400).json({ error: 'Cannot reschedule this booking' });
+    }
+
+    // Update booking with reschedule request
+    booking.reschedule = {
+      status: 'pending',
+      reason,
+      proposedSlots: proposedSlots.map(dt => ({ dateTime: new Date(dt) })),
+      requestedAt: new Date(),
+    };
+    booking.status = 'pending'; // reset to pending while awaiting user response
+    await booking.save();
+
+    // Get mentor profile for display name
+    const mentorProfile = await MentorProfile.findOne({ userId: mentorId });
+    const mentorName = mentorProfile?.displayName || req.user.name;
+
+    // Format proposed slots for email
+    const slotsText = proposedSlots.map((dt, i) => {
+      const d = new Date(dt);
+      return `${i + 1}. ${d.toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+    }).join('\n');
+
+    // Send email to user
+    sendEmailFast(booking.userId.email, {
+      subject: 'Session Rescheduled - Action Required - Skill-Pilot',
+      html: `<div style="font-family: Arial, sans-serif;">
+<p>Hello ${booking.userId.name},</p>
+<p>Your mentor <strong>${mentorName}</strong> needs to reschedule your session.</p>
+<p><strong>Reason:</strong> ${reason}</p>
+<p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+<p><strong>Please select one of the following time slots:</strong></p>
+<ol>
+${proposedSlots.map(dt => {
+  const d = new Date(dt);
+  return `<li>${d.toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</li>`;
+}).join('\n')}
+</ol>
+<p>Please log in to Skill-Pilot to select your preferred time slot.</p>
+<p>Best regards,<br/>The Skill-Pilot Team</p>
+</div>`,
+      text: `Hello ${booking.userId.name},\n\nYour mentor ${mentorName} needs to reschedule your session.\n\nReason: ${reason}\nBooking ID: ${booking.bookingId}\n\nProposed time slots:\n${slotsText}\n\nPlease log in to select your preferred time.\n\nBest regards,\nThe Skill-Pilot Team`,
+    }).catch(err => console.error('Failed to send reschedule email:', err));
+
+    // Create website announcement for the user
+    try {
+      const announcement = new Announcement({
+        subject: `Session Rescheduled by ${mentorName}`,
+        description: `Your mentor ${mentorName} needs to reschedule your session (${booking.bookingId}). Reason: ${reason}. Please go to My Sessions to select a new time slot.`,
+        type: 'important',
+        recipientType: 'specific',
+        recipientIds: [booking.userId._id],
+        channels: { push: true, email: false, inApp: true },
+        status: 'sent',
+        sentAt: new Date(),
+        createdBy: mentorId,
+      });
+      await announcement.save();
+    } catch (annErr) {
+      console.error('Failed to create reschedule announcement:', annErr);
+    }
+
+    res.json({
+      message: 'Reschedule request sent to student',
+      booking: {
+        id: booking._id,
+        bookingId: booking.bookingId,
+        reschedule: booking.reschedule,
+      },
+    });
+  } catch (error) {
+    console.error('Error requesting reschedule:', error);
+    res.status(500).json({ error: 'Failed to request reschedule' });
+  }
+};
+
+/**
+ * User responds to reschedule (selects a proposed slot)
+ * PUT /api/bookings/:bookingId/reschedule-respond
+ */
+exports.respondToReschedule = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { selectedSlot } = req.body;
+    const userId = req.user._id;
+
+    if (!selectedSlot) {
+      return res.status(400).json({ error: 'Please select a time slot' });
+    }
+
+    const booking = await MentorBooking.findOne({
+      $or: [{ _id: bookingId }, { bookingId }],
+      userId,
+    })
+      .populate('userId', 'name email')
+      .populate('mentorId', 'name email');
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    if (booking.reschedule?.status !== 'pending') {
+      return res.status(400).json({ error: 'No pending reschedule request' });
+    }
+
+    // Verify the selected slot is one of the proposed ones
+    const selectedDate = new Date(selectedSlot);
+    const isValidSlot = booking.reschedule.proposedSlots.some(
+      s => new Date(s.dateTime).getTime() === selectedDate.getTime()
+    );
+
+    if (!isValidSlot) {
+      return res.status(400).json({ error: 'Selected slot is not one of the proposed options' });
+    }
+
+    // Update booking
+    booking.reschedule.status = 'accepted';
+    booking.reschedule.selectedSlot = selectedDate;
+    booking.reschedule.respondedAt = new Date();
+    booking.scheduledAt = selectedDate;
+    booking.status = 'confirmed';
+
+    // Regenerate meeting link for new time
+    const generateJitsiLink = bId => {
+      const shortId = bId.replace('BK-', '').substring(0, 12);
+      return `https://meet.jit.si/SkillPilot${shortId}`;
+    };
+    booking.meetingLink = generateJitsiLink(booking.bookingId);
+
+    await booking.save();
+
+    // Get mentor profile
+    const mentorProfile = await MentorProfile.findOne({ userId: booking.mentorId._id });
+    const mentorName = mentorProfile?.displayName || booking.mentorId.name;
+
+    const fmtDate = selectedDate.toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    const fmtTime = selectedDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+    // Email to user
+    sendEmailFast(booking.userId.email, {
+      subject: 'Session Rescheduled Successfully - Skill-Pilot',
+      html: `<div style="font-family: Arial, sans-serif;">
+<p>Hello ${booking.userId.name},</p>
+<p>Your session with <strong>${mentorName}</strong> has been rescheduled successfully.</p>
+<p><strong>New Schedule:</strong></p>
+<ul>
+<li>Date: ${fmtDate}</li>
+<li>Time: ${fmtTime}</li>
+<li>Booking ID: ${booking.bookingId}</li>
+</ul>
+<p><strong>Meeting Link:</strong><br/>${booking.meetingLink}</p>
+<p>Best regards,<br/>The Skill-Pilot Team</p>
+</div>`,
+      text: `Hello ${booking.userId.name},\n\nYour session has been rescheduled.\n\nNew Date: ${fmtDate}\nNew Time: ${fmtTime}\nBooking ID: ${booking.bookingId}\nMeeting Link: ${booking.meetingLink}\n\nBest regards,\nThe Skill-Pilot Team`,
+    }).catch(err => console.error('Failed to send reschedule confirmation to user:', err));
+
+    // Email to mentor
+    sendEmailFast(booking.mentorId.email, {
+      subject: 'Reschedule Accepted by Student - Skill-Pilot',
+      html: `<div style="font-family: Arial, sans-serif;">
+<p>Hello ${mentorName},</p>
+<p>Your student <strong>${booking.userId.name}</strong> has accepted the rescheduled time.</p>
+<p><strong>New Schedule:</strong></p>
+<ul>
+<li>Date: ${fmtDate}</li>
+<li>Time: ${fmtTime}</li>
+<li>Booking ID: ${booking.bookingId}</li>
+</ul>
+<p><strong>Meeting Link:</strong><br/>${booking.meetingLink}</p>
+<p>Best regards,<br/>The Skill-Pilot Team</p>
+</div>`,
+      text: `Hello ${mentorName},\n\nStudent ${booking.userId.name} accepted the reschedule.\n\nNew Date: ${fmtDate}\nNew Time: ${fmtTime}\nBooking ID: ${booking.bookingId}\nMeeting Link: ${booking.meetingLink}\n\nBest regards,\nThe Skill-Pilot Team`,
+    }).catch(err => console.error('Failed to send reschedule confirmation to mentor:', err));
+
+    res.json({
+      message: 'Reschedule accepted. Session updated.',
+      booking: {
+        id: booking._id,
+        bookingId: booking.bookingId,
+        scheduledAt: booking.scheduledAt,
+        status: booking.status,
+        meetingLink: booking.meetingLink,
+      },
+    });
+  } catch (error) {
+    console.error('Error responding to reschedule:', error);
+    res.status(500).json({ error: 'Failed to respond to reschedule' });
+  }
+};
+
+// ==========================================
+// STUDENT PROFILE FOR MENTOR
+// ==========================================
+
+/**
+ * Get student's profile for mentor view (assessment results + past feedback)
+ * GET /api/bookings/mentor/:bookingId/student-profile
+ */
+exports.getStudentProfile = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const mentorId = req.user._id;
+
+    const booking = await MentorBooking.findOne({
+      $or: [{ _id: bookingId }, { bookingId }],
+      mentorId,
+    }).populate('userId', 'name email imageUrl');
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    const studentId = booking.userId._id;
+
+    // Get latest assessment
+    const latestAssessment = await Assessment.findOne({ user: studentId })
+      .sort({ completedAt: -1 })
+      .select('results improvement completedAt');
+
+    // Get all past bookings with this mentor (or any mentor) that have feedback
+    const pastBookings = await MentorBooking.find({
+      userId: studentId,
+      status: 'completed',
+      'mentorFeedback.text': { $exists: true, $ne: '' },
+    })
+      .sort({ completedAt: -1 })
+      .limit(10)
+      .populate('mentorProfileId', 'displayName')
+      .select('bookingId scheduledAt completedAt mentorFeedback mentorProfileId rating');
+
+    res.json({
+      student: {
+        name: booking.userId.name,
+        email: booking.userId.email,
+        imageUrl: booking.userId.imageUrl,
+      },
+      assessment: latestAssessment
+        ? {
+            hollandCode: latestAssessment.results?.hollandCode,
+            domainScores: latestAssessment.results?.percentages,
+            topThreeDomains: latestAssessment.results?.topThreeDomains,
+            recommendedCareers: latestAssessment.results?.recommendedCareers?.slice(0, 5),
+            improvement: latestAssessment.improvement,
+            completedAt: latestAssessment.completedAt,
+          }
+        : null,
+      pastFeedback: pastBookings.map(b => ({
+        bookingId: b.bookingId,
+        mentorName: b.mentorProfileId?.displayName || 'Mentor',
+        date: b.scheduledAt,
+        feedback: b.mentorFeedback?.text,
+        feedbackDate: b.mentorFeedback?.submittedAt,
+        studentRating: b.rating?.score,
+      })),
+    });
+  } catch (error) {
+    console.error('Error fetching student profile:', error);
+    res.status(500).json({ error: 'Failed to fetch student profile' });
+  }
+};
+
+// ==========================================
+// MENTOR FEEDBACK ENDPOINT
+// ==========================================
+
+/**
+ * Submit mentor feedback for a booking
+ * POST /api/bookings/mentor/:bookingId/feedback
+ */
+exports.submitMentorFeedback = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { feedback } = req.body;
+    const mentorId = req.user._id;
+
+    if (!feedback || feedback.trim().length === 0) {
+      return res.status(400).json({ error: 'Feedback text is required' });
+    }
+
+    const booking = await MentorBooking.findOne({
+      $or: [{ _id: bookingId }, { bookingId }],
+      mentorId,
+    });
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    if (booking.status !== 'completed') {
+      return res.status(400).json({ error: 'Can only submit feedback for completed sessions' });
+    }
+
+    booking.mentorFeedback = {
+      text: feedback.trim(),
+      submittedAt: new Date(),
+    };
+    await booking.save();
+
+    res.json({
+      message: 'Feedback submitted successfully',
+      mentorFeedback: booking.mentorFeedback,
+    });
+  } catch (error) {
+    console.error('Error submitting mentor feedback:', error);
+    res.status(500).json({ error: 'Failed to submit feedback' });
   }
 };
 

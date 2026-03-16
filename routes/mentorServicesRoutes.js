@@ -38,9 +38,6 @@ router.get('/mentor/search', ctrl.searchMentors);
 // Full public mentor profile by handle or userId
 router.get('/mentor/profile/:handle', ctrl.getMentorPublicProfile);
 
-// All active services for a mentor (public facing)
-router.get('/mentor/services/:mentorId', ctrl.getMentorServices);
-
 // Validate + calculate a coupon (called at checkout — user must be logged in)
 router.post('/coupons/validate', verifyToken, ctrl.validateCoupon);
 
@@ -57,6 +54,9 @@ const mentorAuth = [verifyToken, isMentor];
 // ── Service management ────────────────────────────────────────────────────────
 router.post('/mentor/services', mentorAuth, ctrl.createService);
 router.get('/mentor/services/my', mentorAuth, ctrl.getMyServices);
+
+// All active services for a mentor (public facing)
+router.get('/mentor/services/:mentorId', ctrl.getMentorServices);
 router.put('/mentor/services/reorder', mentorAuth, ctrl.reorderServices);
 router.put('/mentor/services/:serviceId', mentorAuth, ctrl.updateService);
 router.put('/mentor/services/:serviceId/toggle', mentorAuth, ctrl.toggleService);

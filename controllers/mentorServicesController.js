@@ -109,7 +109,7 @@ exports.getMyServices = async (req, res) => {
     res.json({ success: true, services });
   } catch (error) {
     console.error('getMyServices error:', error);
-    res.status(500).json({ error: 'Failed to fetch services' });
+    res.status(500).json({ error: 'Failed to fetch services', details: error.message });
   }
 };
 
@@ -395,6 +395,7 @@ exports.searchMentors = async (req, res) => {
       minPrice,
       menteeType,
       city,
+      language,
       sort = 'featured',
       page = 1,
       limit = 20,
@@ -427,6 +428,10 @@ exports.searchMentors = async (req, res) => {
 
     if (city) {
       query['location.city'] = new RegExp(city, 'i');
+    }
+
+    if (language) {
+      query.languages = { $in: Array.isArray(language) ? language : [language] };
     }
 
     // Sort options
