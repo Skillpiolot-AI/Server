@@ -45,6 +45,7 @@ exports.submitApplication = async (req, res) => {
       certifications,
       socialLinks,
       curriculum,
+      preferredCurrency,
     } = req.body;
 
     // Validate required fields
@@ -103,6 +104,7 @@ exports.submitApplication = async (req, res) => {
       certifications: certifications || [],
       socialLinks: socialLinks || {},
       curriculum: curriculum || { available: false },
+      preferredCurrency: preferredCurrency || 'INR',
     });
 
     const savedApplication = await newApplication.save();
@@ -418,6 +420,7 @@ exports.approveApplication = async (req, res) => {
       socialLinks: application.socialLinks,
       education: application.education,
       certifications: application.certifications,
+      preferredCurrency: application.preferredCurrency || 'INR',
       isVisible: true, // Visible immediately upon approval
       featured: false,
     });

@@ -365,6 +365,11 @@ const MentorProfileSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  preferredCurrency: {
+    type: String,
+    default: 'INR',
+  },
+
   updatedAt: {
     type: Date,
     default: Date.now,

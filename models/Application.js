@@ -272,6 +272,11 @@ const ApplicationSchema = new mongoose.Schema({
     ref: 'MentorProfile',
   },
 
+  preferredCurrency: {
+    type: String,
+    default: 'INR',
+  },
+
   // ===== TIMESTAMPS =====
   updatedAt: {
     type: Date,
