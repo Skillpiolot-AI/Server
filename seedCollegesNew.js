@@ -10,7 +10,7 @@ const seedColleges = async () => {
     await connectDB();
 
     // 2. Read JSON file
-    const dataPath = path.join(__dirname, 'colleges_data_complete.json');
+    const dataPath = path.join(__dirname, 'colleges_combined.json');
     const collegesData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
 
     console.log(`Found ${collegesData.length} colleges to insert`);
@@ -22,7 +22,6 @@ const seedColleges = async () => {
     // 4. Insert data
     const result = await College.insertMany(collegesData);
     console.log(`Successfully inserted ${result.length} colleges`);
-
   } catch (error) {
     console.error('Error seeding colleges:', error);
   } finally {

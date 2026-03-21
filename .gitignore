@@ -12,3 +12,5 @@ coverage/
 .vscode/
 .idea/
 .env.test
+
+colleges_combined.json

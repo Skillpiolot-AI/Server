@@ -16,6 +16,15 @@
     "format:check": "prettier --check .",
     "prepare": "husky install || true"
   },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  },
   "devDependencies": {
     "@babel/preset-env": "^7.23.0",
     "@types/jest": "^29.5.12",

@@ -465,10 +465,23 @@ exports.searchMentors = async (req, res) => {
     // For simplicity here we do post-filter; for large datasets use aggregation
     let results = mentorProfiles;
     if (serviceType) {
+      let serviceTypes = serviceType;
+      if (typeof serviceType === 'string') {
+        serviceTypes = serviceType
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean);
+      }
+
       const mentorIds = mentorProfiles.map(p => p.userId._id);
+      const queryService =
+        Array.isArray(serviceTypes) && serviceTypes.length > 0
+          ? { $in: [].concat(serviceTypes) }
+          : serviceType;
+
       const matchingServices = await MentorService.find({
         mentorId: { $in: mentorIds },
-        serviceType,
+        serviceType: queryService,
         isActive: true,
       }).distinct('mentorId');
 
@@ -483,10 +496,15 @@ exports.searchMentors = async (req, res) => {
       const priceQuery = {
         mentorId: { $in: mentorIds },
         isActive: true,
-        isFree: false,
       };
-      if (minPrice) priceQuery.price = { ...(priceQuery.price || {}), $gte: Number(minPrice) };
-      if (maxPrice) priceQuery.price = { ...(priceQuery.price || {}), $lte: Number(maxPrice) };
+
+      if (maxPrice !== undefined && Number(maxPrice) === 0) {
+        priceQuery.isFree = true;
+      } else {
+        priceQuery.isFree = false;
+        if (minPrice) priceQuery.price = { ...(priceQuery.price || {}), $gte: Number(minPrice) };
+        if (maxPrice) priceQuery.price = { ...(priceQuery.price || {}), $lte: Number(maxPrice) };
+      }
 
       const affordable = await MentorService.find(priceQuery).distinct('mentorId');
       const affordableSet = new Set(affordable.map(id => id.toString()));
@@ -526,9 +544,13 @@ exports.searchMentors = async (req, res) => {
 
     const total = await MentorProfile.countDocuments(query);
 
+    // Fetch unique domains available in database for visible mentors
+    const availableDomains = await MentorProfile.distinct('targetingDomains', { isVisible: true });
+
     res.json({
       success: true,
       mentors: enriched,
+      availableDomains: availableDomains.filter(Boolean),
       pagination: {
         total,
         page: Number(page),

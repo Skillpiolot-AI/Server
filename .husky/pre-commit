@@ -3,10 +3,11 @@
 
 # Load nvm if available
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && nvm use default > /dev/null
 
 # Add common paths for npm/node
 export PATH="/usr/local/bin:/opt/homebrew/bin:$HOME/.volta/bin:$PATH"
 
 #npm test
-npm run lint:fix && npm run format
+npx lint-staged
+
