@@ -876,7 +876,8 @@ exports.getAllBookings = async (req, res) => {
         .limit(parseInt(limit))
         .populate('userId', 'name email')
         .populate('mentorId', 'name email')
-        .populate('mentorProfileId', 'displayName'),
+        .populate('mentorProfileId', 'displayName')
+        .populate('serviceId', 'title serviceType price duration'),
       MentorBooking.countDocuments(query),
       MentorBooking.aggregate([
         {
