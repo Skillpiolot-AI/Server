@@ -2,8 +2,10 @@ const mongoose = require('mongoose');
 const Application = require('./models/Application');
 const User = require('./models/User');
 
+require('dotenv').config();
+
 // Connect to MongoDB
-const MONGO_URI = 'mongodb://localhost:27017/college-predictor'; // Adjust if burning different port
+const MONGO_URI = process.env.MONGO_URL || 'mongodb://localhost:27017/college-predictor';
 
 async function seedMentorApplication() {
   try {
@@ -14,6 +16,7 @@ async function seedMentorApplication() {
     let user = await User.findOne({ email: 'seed.mentor@example.com' });
     if (!user) {
       user = new User({
+        name: 'Seed Mentor',
         username: 'seedmentor',
         email: 'seed.mentor@example.com',
         phone: '9876543210',
