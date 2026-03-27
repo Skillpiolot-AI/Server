@@ -98,7 +98,7 @@ exports.getGroups = async (req, res) => {
       ];
     }
     const groups = await Group.find(query).populate('owner', 'name avatar');
-    res.status(200).json(groups);
+    res.status(200).json({ groups });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -279,6 +279,32 @@ exports.banUserDirect = async (req, res) => {
     });
 
     res.status(200).json({ message: 'User banned successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 12. Update Group (Admin)
+exports.updateGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { name, description, type, settings } = req.body;
+
+    const group = await Group.findById(groupId);
+    if (!group) return res.status(404).json({ error: 'Group not found' });
+
+    if (name) group.name = xss(name);
+    if (description) group.description = xss(description);
+    if (type) group.type = type;
+    if (settings) {
+      group.settings = {
+        ...group.settings,
+        ...settings,
+      };
+    }
+
+    await group.save();
+    res.status(200).json({ message: 'Group updated successfully', group });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const groupController = require('../controllers/groupController');
 const groupMessageController = require('../controllers/groupMessageController');
-const { auth } = require('../middleware/auth');
+const { auth, optionalAuth } = require('../middleware/auth');
 const { checkGroupPermission } = require('../middleware/groupAuth');
 const rateLimit = require('express-rate-limit');
 
@@ -21,9 +21,9 @@ const postMessageLimiter = rateLimit({
 
 // GROUP MANAGEMENT
 router.post('/', auth, groupActionLimiter, groupController.createGroup);
-router.get('/', auth, groupActionLimiter, groupController.getGroups);
+router.get('/', optionalAuth, groupActionLimiter, groupController.getGroups);
 router.get('/my-groups', auth, groupActionLimiter, groupController.getMyGroups);
-router.get('/:groupId', auth, groupActionLimiter, groupController.getGroupById);
+router.get('/:groupId', optionalAuth, groupActionLimiter, groupController.getGroupById);
 router.post('/:groupId/join', auth, groupActionLimiter, groupController.joinGroup);
 router.post('/:groupId/leave', auth, groupActionLimiter, groupController.leaveGroup);
 router.get('/:groupId/members', auth, groupActionLimiter, groupController.getGroupMembers);
@@ -64,6 +64,45 @@ router.post(
   auth,
   checkGroupPermission(), // internal checks handled inside controller
   groupMessageController.togglePinshoutout
+);
+
+// UPDATE GROUP (Admin only)
+router.put(
+  '/:groupId',
+  auth,
+  checkGroupPermission('updateGroupSettings'),
+  groupController.updateGroup
+);
+
+// ─── SUBGROUPS ─────────────────────────────────────────────
+const groupPostController = require('../controllers/groupPostController');
+router.get('/:groupId/subgroups', optionalAuth, groupPostController.getSubGroups);
+router.post('/:groupId/subgroups', auth, groupPostController.createSubGroup);
+
+// ─── POST FEED ─────────────────────────────────────────────
+router.get('/:groupId/feed', optionalAuth, groupPostController.getGroupFeed);
+router.post('/:groupId/posts', auth, groupPostController.createPost);
+router.get('/:groupId/posts/:postId', optionalAuth, groupPostController.getPost);
+router.post('/:groupId/posts/:postId/vote', auth, groupPostController.votePost);
+router.delete('/:groupId/posts/:postId', auth, groupPostController.deletePost);
+
+// ─── COMMENTS ──────────────────────────────────────────────
+router.get('/:groupId/posts/:postId/comments', optionalAuth, groupPostController.getComments);
+router.post('/:groupId/posts/:postId/comments', auth, groupPostController.createComment);
+router.post(
+  '/:groupId/posts/:postId/comments/:commentId/vote',
+  auth,
+  groupPostController.voteComment
+);
+router.post(
+  '/:groupId/posts/:postId/comments/:commentId/report',
+  auth,
+  groupPostController.reportComment
+);
+router.delete(
+  '/:groupId/posts/:postId/comments/:commentId',
+  auth,
+  groupPostController.deleteComment
 );
 
 module.exports = router;
