@@ -1,0 +1,9 @@
+Backend Load Test Summary
+
+Target: 5,000 req/sec
+Actual (Avg): 6,171.1 req/sec
+Total Successful Requests: 67,876 (in 11s)
+Average Latency: 17.98 ms
+P99 Latency: 395 ms
+
+Detailed results can be found in load_test_results.json.
