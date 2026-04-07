@@ -31,6 +31,7 @@ const GroupSchema = new mongoose.Schema(
       allowMemberInvites: { type: Boolean, default: false },
       autoModerationEnabled: { type: Boolean, default: true },
       contentFiltering: { type: Boolean, default: true },
+      subgroupCreationRequiresApproval: { type: Boolean, default: false },
     },
     rules: [
       {
@@ -71,6 +72,14 @@ const GroupSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    reports: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        reason: { type: String },
+        reportedAt: { type: Date, default: Date.now },
+      },
+    ],
+    mutedNotifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true }
 );

@@ -1,6 +1,7 @@
 const GroupPost = require('../models/GroupPost');
 const GroupComment = require('../models/GroupComment');
 const SubGroup = require('../models/SubGroup');
+const SubGroupRequest = require('../models/SubGroupRequest');
 const Group = require('../models/Group');
 const GroupMember = require('../models/GroupMember');
 const xss = require('xss');
@@ -21,23 +22,107 @@ exports.getSubGroups = async (req, res) => {
 };
 
 // POST /groups/:groupId/subgroups
+// If group requires approval → create a SubGroupRequest instead
 exports.createSubGroup = async (req, res) => {
   try {
     const { name, slug, description } = req.body;
-    const exists = await SubGroup.findOne({
-      parentGroup: req.params.groupId,
-      slug: slug.toLowerCase(),
-    });
+    const group = await Group.findById(req.params.groupId).select('settings owner');
+    if (!group) return res.status(404).json({ error: 'Group not found' });
+
+    const cleanSlug = slug.toLowerCase().replace(/\s+/g, '-');
+
+    // Check if slug already taken for approved subgroups
+    const exists = await SubGroup.findOne({ parentGroup: req.params.groupId, slug: cleanSlug });
     if (exists) return res.status(400).json({ error: 'A subgroup with this slug already exists' });
 
+    const isOwner = group.owner.toString() === req.user._id.toString();
+
+    if (group.settings?.subgroupCreationRequiresApproval && !isOwner) {
+      // Create a pending request instead
+      const alreadyPending = await SubGroupRequest.findOne({
+        group: req.params.groupId,
+        user: req.user._id,
+        slug: cleanSlug,
+        status: 'Pending',
+      });
+      if (alreadyPending)
+        return res.status(400).json({ error: 'You already have a pending request for this slug' });
+
+      const request = await SubGroupRequest.create({
+        group: req.params.groupId,
+        user: req.user._id,
+        name: xss(name),
+        slug: cleanSlug,
+        description: xss(description || ''),
+      });
+      return res.status(201).json({ requiresApproval: true, request });
+    }
+
+    // No approval needed → create directly
     const sg = await SubGroup.create({
       name: xss(name),
-      slug: slug.toLowerCase().replace(/\s+/g, '-'),
+      slug: cleanSlug,
       description: xss(description || ''),
       parentGroup: req.params.groupId,
       owner: req.user._id,
     });
-    res.status(201).json({ subGroup: sg });
+    res.status(201).json({ requiresApproval: false, subGroup: sg });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// GET /groups/:groupId/subgroups/requests (admin only — checked in route)
+exports.getSubgroupRequests = async (req, res) => {
+  try {
+    const requests = await SubGroupRequest.find({ group: req.params.groupId, status: 'Pending' })
+      .populate('user', 'name avatar email')
+      .sort({ createdAt: -1 });
+    res.json({ requests });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// POST /groups/:groupId/subgroups/requests/:reqId/handle  { action: 'approve' | 'reject', rejectionReason? }
+exports.handleSubgroupRequest = async (req, res) => {
+  try {
+    const { action, rejectionReason } = req.body;
+    const request = await SubGroupRequest.findById(req.params.reqId);
+    if (!request) return res.status(404).json({ error: 'Request not found' });
+    if (request.group.toString() !== req.params.groupId)
+      return res.status(403).json({ error: 'Not authorized' });
+
+    if (action === 'approve') {
+      // Create actual subgroup
+      const exists = await SubGroup.findOne({
+        parentGroup: req.params.groupId,
+        slug: request.slug,
+      });
+      if (exists) {
+        request.status = 'Rejected';
+        request.rejectionReason = 'Slug already taken';
+        await request.save();
+        return res.status(400).json({ error: 'A subgroup with this slug was already created' });
+      }
+      await SubGroup.create({
+        name: request.name,
+        slug: request.slug,
+        description: request.description,
+        parentGroup: request.group,
+        owner: request.user,
+      });
+      request.status = 'Approved';
+    } else {
+      request.status = 'Rejected';
+      request.rejectionReason = rejectionReason || '';
+    }
+
+    request.handledBy = req.user._id;
+    request.handledAt = new Date();
+    await request.save();
+
+    res.json({ message: `Request ${request.status}`, request });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -57,7 +142,7 @@ exports.getGroupFeed = async (req, res) => {
     let sortOption = {};
     if (sort === 'new') sortOption = { createdAt: -1 };
     else if (sort === 'top') sortOption = { score: -1 };
-    else sortOption = { isPinned: -1, score: -1, createdAt: -1 }; // hot (approximate)
+    else sortOption = { isPinned: -1, score: -1, createdAt: -1 }; // hot
 
     const [posts, total] = await Promise.all([
       GroupPost.find(query)
@@ -75,21 +160,18 @@ exports.getGroupFeed = async (req, res) => {
   }
 };
 
-// POST /groups/:groupId/posts
+// POST /groups/:groupId/posts — body-only (no title)
 exports.createPost = async (req, res) => {
   try {
-    const { title, body, type, url, subGroup, flair } = req.body;
-    if (!title?.trim()) return res.status(400).json({ error: 'Title is required' });
+    const { body, subGroup, flair } = req.body;
+    if (!body?.trim()) return res.status(400).json({ error: 'Post body is required' });
 
     // Verify membership
     const isMember = await GroupMember.findOne({ group: req.params.groupId, user: req.user._id });
     if (!isMember) return res.status(403).json({ error: 'You must be a member to post' });
 
     const post = await GroupPost.create({
-      title: xss(title.trim()),
-      body: xss(body || ''),
-      type: type || 'text',
-      url: url || '',
+      body: xss(body.trim()),
       author: req.user._id,
       group: req.params.groupId,
       subGroup: subGroup || null,
@@ -119,12 +201,11 @@ exports.getPost = async (req, res) => {
 // POST /groups/:groupId/posts/:postId/vote  { vote: 1 | -1 | 0 }
 exports.votePost = async (req, res) => {
   try {
-    const { vote } = req.body; // 1 = upvote, -1 = downvote, 0 = remove vote
+    const { vote } = req.body;
     const post = await GroupPost.findById(req.params.postId);
     if (!post) return res.status(404).json({ error: 'Post not found' });
 
     const userId = req.user._id;
-    // Remove existing votes
     post.upvotes = post.upvotes.filter(u => u.toString() !== userId.toString());
     post.downvotes = post.downvotes.filter(u => u.toString() !== userId.toString());
 
@@ -168,7 +249,6 @@ exports.getComments = async (req, res) => {
       .sort({ score: -1, createdAt: -1 })
       .limit(50);
 
-    // Fetch top-level replies for each root comment (2 levels shown initially)
     const commentIds = comments.map(c => c._id);
     const replies = await GroupComment.find({
       post: req.params.postId,
@@ -204,7 +284,6 @@ exports.createComment = async (req, res) => {
       depth,
     });
 
-    // Increment commentsCount on post
     await GroupPost.findByIdAndUpdate(req.params.postId, { $inc: { commentsCount: 1 } });
     if (parentId) {
       await GroupComment.findByIdAndUpdate(parentId, { $inc: { repliesCount: 1 } });

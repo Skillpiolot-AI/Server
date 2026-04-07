@@ -2,6 +2,8 @@ const Group = require('../models/Group');
 const GroupRole = require('../models/GroupRole');
 const GroupMember = require('../models/GroupMember');
 const GroupJoinRequest = require('../models/GroupJoinRequest');
+const GroupAnnouncement = require('../models/GroupAnnouncement');
+const GroupPost = require('../models/GroupPost');
 const User = require('../models/User');
 const xss = require('xss');
 
@@ -55,7 +57,7 @@ exports.createGroup = async (req, res) => {
       },
     });
 
-    const memberRole = await GroupRole.create({
+    await GroupRole.create({
       group: newGroup._id,
       name: 'Member',
       isDefault: true,
@@ -112,16 +114,13 @@ exports.joinGroup = async (req, res) => {
 
     if (!group) return res.status(404).json({ error: 'Group not found' });
 
-    // Check if banned
     const isBanned = group.bannedUsers.some(b => b.user.toString() === req.user._id.toString());
     if (isBanned) return res.status(403).json({ error: 'You are banned from this group' });
 
-    // Check membership
     const existingMember = await GroupMember.findOne({ group: groupId, user: req.user._id });
     if (existingMember) return res.status(400).json({ error: 'Already a member' });
 
     if (group.type === 'Private') {
-      // Create Join Request
       const existingReq = await GroupJoinRequest.findOne({
         group: groupId,
         user: req.user._id,
@@ -139,7 +138,6 @@ exports.joinGroup = async (req, res) => {
     } else if (group.type === 'Invite-only') {
       return res.status(403).json({ error: 'This group is invite only' });
     } else {
-      // Public group
       const defaultRole = await GroupRole.findOne({ group: groupId, isDefault: true });
       if (!defaultRole) return res.status(500).json({ error: 'Group configuration error' });
 
@@ -152,10 +150,10 @@ exports.joinGroup = async (req, res) => {
   }
 };
 
-// 4. Handle Join Request (Admin/Moderator action, needs auth middleware to protect)
+// 4. Handle Join Request
 exports.handleJoinRequest = async (req, res) => {
   try {
-    const { requestId, status } = req.body; // status: 'Approved' or 'Rejected'
+    const { requestId, status } = req.body;
     const request = await GroupJoinRequest.findById(requestId);
     if (!request) return res.status(404).json({ error: 'Request not found' });
 
@@ -175,7 +173,7 @@ exports.handleJoinRequest = async (req, res) => {
   }
 };
 
-// 5. Ban or Kick User
+// 5. Remove (Kick) User
 exports.removeUser = async (req, res) => {
   try {
     const { memberId, ban, reason } = req.body;
@@ -245,14 +243,13 @@ exports.getGroupMembers = async (req, res) => {
   }
 };
 
-// 10. Mute User
+// 10. Mute User (admin)
 exports.muteUser = async (req, res) => {
   try {
     const { userId, durationMinutes, reason } = req.body;
     const { groupId } = req.params;
 
-    // Validate duration
-    const mins = parseInt(durationMinutes) || 60; // default 1 hour
+    const mins = parseInt(durationMinutes) || 60;
     const mutedUntil = new Date(Date.now() + mins * 60000);
 
     await Group.findByIdAndUpdate(groupId, {
@@ -264,15 +261,13 @@ exports.muteUser = async (req, res) => {
   }
 };
 
-// 11. Ban User (direct lookup variant to match FE context)
+// 11. Ban User (direct)
 exports.banUserDirect = async (req, res) => {
   try {
     const { userId, reason } = req.body;
     const { groupId } = req.params;
 
-    // Delete membership if exists
     await GroupMember.deleteOne({ group: groupId, user: userId });
-
     await Group.findByIdAndUpdate(groupId, {
       $inc: { membersCount: -1 },
       $push: { bannedUsers: { user: userId, reason, bannedBy: req.user._id } },
@@ -284,7 +279,7 @@ exports.banUserDirect = async (req, res) => {
   }
 };
 
-// 12. Update Group (Admin)
+// 12. Update Group (Admin) — auto-creates settings_change announcement
 exports.updateGroup = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -293,18 +288,137 @@ exports.updateGroup = async (req, res) => {
     const group = await Group.findById(groupId);
     if (!group) return res.status(404).json({ error: 'Group not found' });
 
-    if (name) group.name = xss(name);
-    if (description) group.description = xss(description);
-    if (type) group.type = type;
+    const changes = [];
+
+    if (name && name !== group.name) {
+      changes.push(`Name changed to "${xss(name)}"`);
+      group.name = xss(name);
+    }
+    if (description && description !== group.description) {
+      changes.push('Description updated');
+      group.description = xss(description);
+    }
+    if (type && type !== group.type) {
+      changes.push(`Privacy changed from ${group.type} → ${type}`);
+      group.type = type;
+    }
     if (settings) {
-      group.settings = {
-        ...group.settings,
-        ...settings,
-      };
+      const oldSettings = { ...group.settings };
+      group.settings = { ...group.settings, ...settings };
+      Object.keys(settings).forEach(key => {
+        if (String(oldSettings[key]) !== String(settings[key])) {
+          changes.push(`Setting "${key}" changed to ${settings[key]}`);
+        }
+      });
     }
 
     await group.save();
+
+    // Auto-announce settings changes
+    if (changes.length > 0) {
+      await GroupAnnouncement.create({
+        group: groupId,
+        message: `Group updated: ${changes.join(', ')}`,
+        sentBy: req.user._id,
+        type: 'settings_change',
+        metadata: { changes },
+      });
+    }
+
     res.status(200).json({ message: 'Group updated successfully', group });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 13. Get Latest Posts (across all public groups) — for Discovery page
+exports.getLatestPosts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Get IDs of all public groups
+    const publicGroups = await Group.find({ type: 'Public' }).select('_id').lean();
+    const publicGroupIds = publicGroups.map(g => g._id);
+
+    const posts = await GroupPost.find({ group: { $in: publicGroupIds }, isDeleted: false })
+      .populate('author', 'name avatar')
+      .populate('group', 'name')
+      .populate('subGroup', 'name slug')
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    res.json({ posts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 14. Create Announcement (Admin only — enforced in route)
+exports.createAnnouncement = async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
+
+    const announcement = await GroupAnnouncement.create({
+      group: req.params.groupId,
+      message: xss(message.trim()),
+      sentBy: req.user._id,
+      type: 'message',
+    });
+
+    await announcement.populate('sentBy', 'name avatar');
+    res.status(201).json({ announcement });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 15. Get Announcements (auth required)
+exports.getAnnouncements = async (req, res) => {
+  try {
+    const announcements = await GroupAnnouncement.find({ group: req.params.groupId })
+      .populate('sentBy', 'name avatar')
+      .sort({ createdAt: -1 })
+      .limit(20);
+    res.json({ announcements });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 16. Report Group (auth required)
+exports.reportGroup = async (req, res) => {
+  try {
+    const { reason } = req.body;
+    if (!reason?.trim()) return res.status(400).json({ error: 'Reason is required' });
+
+    await Group.findByIdAndUpdate(req.params.groupId, {
+      $push: { reports: { user: req.user._id, reason: xss(reason.trim()) } },
+    });
+    res.json({ message: 'Group reported successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 17. Mute Self (user mutes own notification dot for this group)
+exports.muteSelf = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const userId = req.user._id;
+
+    const group = await Group.findById(groupId).select('mutedNotifications');
+    if (!group) return res.status(404).json({ error: 'Group not found' });
+
+    const alreadyMuted = group.mutedNotifications.some(id => id.toString() === userId.toString());
+
+    if (alreadyMuted) {
+      await Group.findByIdAndUpdate(groupId, { $pull: { mutedNotifications: userId } });
+      return res.json({ muted: false, message: 'Unmuted notifications' });
+    } else {
+      await Group.findByIdAndUpdate(groupId, { $addToSet: { mutedNotifications: userId } });
+      return res.json({ muted: true, message: 'Muted notifications' });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
