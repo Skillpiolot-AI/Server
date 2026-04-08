@@ -152,6 +152,10 @@ app.use('/api/logs', logsModule.router);
 const announcementRoutes = require('./routes/announcementRoutes');
 app.use('/api/announcements', announcementRoutes);
 
+// AI Proxy routes
+const aiRoutes = require('./routes/aiRoutes');
+app.use('/api/ai', aiRoutes);
+
 // Track application by tracking ID (public endpoint)
 const Application = require('./models/Application');
 app.get('/api/track/:trackingId', async (req, res) => {
