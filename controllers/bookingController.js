@@ -110,10 +110,9 @@ exports.getAvailableSlots = async (req, res) => {
     }
 
     // Get existing bookings for this date
-    const dateStart = new Date(date);
-    dateStart.setHours(0, 0, 0, 0);
-    const dateEnd = new Date(date);
-    dateEnd.setHours(23, 59, 59, 999);
+    // Use the same construction as the frontend for the 24-hour window
+    const dateStart = new Date(`${date}T00:00:00`);
+    const dateEnd = new Date(`${date}T23:59:59`);
 
     const existingBookings = await MentorBooking.find({
       mentorId,
@@ -121,19 +120,30 @@ exports.getAvailableSlots = async (req, res) => {
       status: { $nin: ['cancelled'] },
     }).select('scheduledAt duration');
 
-    // Mark booked slots
-    const bookedTimes = new Set();
-    existingBookings.forEach(booking => {
-      const bookingHour = new Date(booking.scheduledAt).getHours();
-      bookedTimes.add(bookingHour);
-    });
-
     // Build final slots with availability status
-    const slots = availableSlots.map(slot => ({
-      ...slot,
-      isBooked: bookedTimes.has(slot.hour),
-      isAvailable: !bookedTimes.has(slot.hour),
-    }));
+    const slots = availableSlots.map(slot => {
+      // Create a date object for this specific slot to check for conflicts
+      // We use the same construction as the frontend (Local construction)
+      const slotTime = new Date(`${date}T${slot.time}:00`);
+      const slotEndTime = new Date(
+        slotTime.getTime() + (mentorProfile.sessionDuration || 60) * 60000
+      );
+
+      // Check if any existing booking overlaps with this slot
+      const isBooked = existingBookings.some(booking => {
+        const bookingStart = new Date(booking.scheduledAt);
+        const bookingEnd = new Date(bookingStart.getTime() + (booking.duration || 60) * 60000);
+
+        // Overlap: (StartA < EndB) and (EndA > StartB)
+        return slotTime < bookingEnd && slotEndTime > bookingStart;
+      });
+
+      return {
+        ...slot,
+        isBooked,
+        isAvailable: !isBooked,
+      };
+    });
 
     res.json({
       date,
