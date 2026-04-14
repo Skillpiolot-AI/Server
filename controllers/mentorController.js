@@ -138,6 +138,7 @@ exports.getAllMentors = async (req, res) => {
         id: mentor._id,
         mentorProfileId: mentor._id,
         userId: mentor.userId?._id,
+        handle: mentor.handle,
         // User info
         name: mentor.displayName || mentor.userId?.name,
         email: mentor.userId?.email,
