@@ -103,6 +103,18 @@ const MentorBookingSchema = new mongoose.Schema({
     default: 0,
   },
 
+  // Stripe payment tracking
+  stripeSessionId: { type: String, index: true },
+  stripePaymentIntentId: { type: String },
+  platformFee: { type: Number, default: 0 },
+  mentorEarning: { type: Number, default: 0 },
+  paymentStatus: {
+    type: String,
+    enum: ['not_required', 'pending', 'paid', 'failed', 'refunded'],
+    default: 'not_required',
+    index: true,
+  },
+
   // Meeting link (sent by mentor)
   meetingLink: {
     type: String,

@@ -35,6 +35,7 @@ const logsModule = require('./routes/logsRoutes');
 const mentorServicesRoutes = require('./routes/mentorServicesRoutes');
 const priorityDMRoutes = require('./routes/priorityDMRoutes');
 const groupRoutes = require('./routes/groupRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Import scheduled jobs
 const tempPasswordReminder = require('./jobs/tempPasswordReminder');
@@ -66,6 +67,9 @@ app.use(
 //   allowedHeaders: ['Content-Type', 'Authorization']
 // };
 app.use(cors());
+
+// Stripe webhook needs raw body — mount BEFORE express.json()
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 
 // 4. Increase JSON payload limit with streaming
 app.use(
@@ -144,6 +148,9 @@ app.use('/api', priorityDMRoutes);
 
 // Group & Community routes
 app.use('/api/groups', groupRoutes);
+
+// Payment & Stripe routes
+app.use('/api/payments', paymentRoutes);
 
 // Live server logs routes
 app.use('/api/logs', logsModule.router);
