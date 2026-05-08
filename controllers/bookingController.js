@@ -370,16 +370,26 @@ ${remark ? `<p><strong>Student's Message:</strong> ${remark}</p>` : ''}
 exports.getUserBookings = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { status, page = 1, limit = 100 } = req.query;
+    const { status, upcoming, past, page = 1, limit = 100 } = req.query;
 
     const query = { userId };
     if (status) query.status = status;
+
+    if (upcoming === 'true') {
+      query.endTime = { $gte: new Date() };
+      query.status = { $in: ['pending', 'confirmed', 'in-progress'] };
+    } else if (past === 'true') {
+      query.$or = [
+        { endTime: { $lt: new Date() } },
+        { status: { $in: ['completed', 'cancelled', 'no-show'] } },
+      ];
+    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const [bookings, total] = await Promise.all([
       MentorBooking.find(query)
-        .sort({ scheduledAt: -1 })
+        .sort({ scheduledAt: upcoming === 'true' ? 1 : -1 })
         .skip(skip)
         .limit(parseInt(limit))
         .populate('mentorId', 'name email imageUrl')
@@ -560,13 +570,19 @@ exports.rateBooking = async (req, res) => {
 exports.getMentorBookings = async (req, res) => {
   try {
     const mentorId = req.user._id;
-    const { status, upcoming, page = 1, limit = 100 } = req.query;
+    const { status, upcoming, past, page = 1, limit = 100 } = req.query;
 
     const query = { mentorId };
     if (status) query.status = status;
+
     if (upcoming === 'true') {
-      query.scheduledAt = { $gte: new Date() };
-      query.status = { $in: ['pending', 'confirmed'] };
+      query.endTime = { $gte: new Date() };
+      query.status = { $in: ['pending', 'confirmed', 'in-progress'] };
+    } else if (past === 'true') {
+      query.$or = [
+        { endTime: { $lt: new Date() } },
+        { status: { $in: ['completed', 'cancelled', 'no-show'] } },
+      ];
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
