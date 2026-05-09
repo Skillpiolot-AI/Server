@@ -11,7 +11,7 @@ const router = express.Router();
 router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
   const { mentors } = req.body;
 
-  console.log('\n👥 Bulk Mentor Creation Request');
+  console.log('\nBulk Mentor Creation Request');
   console.log(`Count: ${mentors?.length || 0} mentors`);
 
   try {
@@ -91,7 +91,7 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
         // Try to send welcome email (non-blocking)
         try {
           const welcomeEmail = {
-            subject: '🎉 Welcome to Skill-Pilot as a Mentor!',
+            subject: 'Welcome to Skill-Pilot as a Mentor!',
             html: `
               <!DOCTYPE html>
               <html>
@@ -109,11 +109,11 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
               <body>
                 <div class="container">
                   <div class="header">
-                    <h1>🎓 Welcome to Skill-Pilot!</h1>
+                    <h1>Welcome to Skill-Pilot!</h1>
                     <p>You've been registered as a Mentor</p>
                   </div>
                   <div class="content">
-                    <h2>Hello ${name}! 👋</h2>
+                    <h2>Hello ${name}!</h2>
                     <p>Your mentor account has been successfully created. You can now start helping students on their career journey!</p>
                     
                     <div class="credentials">
@@ -124,7 +124,7 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
                       <p><strong>Role:</strong> Mentor</p>
                     </div>
                     
-                    <p><strong>⚠️ Important:</strong> Please change your password after your first login for security.</p>
+                    <p><strong>Important:</strong> Please change your password after your first login for security.</p>
                     
                     <p>Your profile includes:</p>
                     <ul>
@@ -169,7 +169,7 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
           });
         }
 
-        console.log(`✅ Created: ${username} (${email})`);
+        console.log(`Created: ${username} (${email})`);
       } catch (error) {
         console.error('Error creating mentor:', error.message);
         results.failed.push({
@@ -196,7 +196,7 @@ router.post('/bulk-create-mentors', auth, adminOnly, async (req, res) => {
       results,
     });
   } catch (error) {
-    console.error('❌ Bulk mentor creation error:', error);
+    console.error('Bulk mentor creation error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during bulk creation',
@@ -265,7 +265,7 @@ router.post('/verify-mentor/:mentorId', auth, adminOnly, async (req, res) => {
     mentor.isActive = true;
     await mentor.save();
 
-    console.log(`✅ Mentor verified: ${mentor.email}`);
+    console.log(`Mentor verified: ${mentor.email}`);
 
     res.json({
       success: true,
@@ -313,7 +313,7 @@ router.post('/bulk-verify-mentors', auth, adminOnly, async (req, res) => {
       }
     );
 
-    console.log(`✅ Bulk verified ${result.modifiedCount} mentors`);
+    console.log(`Bulk verified ${result.modifiedCount} mentors`);
 
     res.json({
       success: true,
@@ -346,7 +346,7 @@ router.post('/auto-verify-all-mentors', auth, adminOnly, async (req, res) => {
       }
     );
 
-    console.log(`✅ Auto-verified all mentors: ${result.modifiedCount}`);
+    console.log(`Auto-verified all mentors: ${result.modifiedCount}`);
 
     res.json({
       success: true,

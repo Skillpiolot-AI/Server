@@ -23,7 +23,7 @@ const emailStyles = `
  * OTP Email Template
  */
 const otpEmail = (name, otp, validityMinutes = 10) => ({
-  subject: `🔐 Your Verification Code - ${COMPANY_NAME}`,
+  subject: `Your Verification Code - ${COMPANY_NAME}`,
   html: `
     <!DOCTYPE html>
     <html>
@@ -31,22 +31,22 @@ const otpEmail = (name, otp, validityMinutes = 10) => ({
     <body>
       <div class="container">
         <div class="header">
-          <h1>🔐 Verification Code</h1>
+          <h1>Verification Code</h1>
         </div>
         <div class="content">
-          <h2>Hello ${name}! 👋</h2>
+          <h2>Hello ${name}!</h2>
           <p>You requested a verification code for your account. Use the code below to complete your request:</p>
           
           <div class="otp-box">
             <p style="margin: 0 0 15px 0; font-size: 16px; color: #4a5568;">Your Verification Code:</p>
             <div class="otp-code">${otp}</div>
             <div class="expiry">
-              ⏰ This code expires in ${validityMinutes} minutes
+              This code expires in ${validityMinutes} minutes
             </div>
           </div>
           
           <div class="warning-box">
-            <p style="margin: 0;"><strong>⚠️ Security Notice:</strong></p>
+            <p style="margin: 0;"><strong>Security Notice:</strong></p>
             <ul style="margin: 10px 0 0 20px; padding: 0;">
               <li>Never share this code with anyone</li>
               <li>Our team will never ask for your verification code</li>
@@ -71,7 +71,7 @@ const otpEmail = (name, otp, validityMinutes = 10) => ({
  * Password Reset Success Email
  */
 const passwordResetSuccess = name => ({
-  subject: `✅ Password Reset Successful - ${COMPANY_NAME}`,
+  subject: `Password Reset Successful - ${COMPANY_NAME}`,
   html: `
     <!DOCTYPE html>
     <html>
@@ -79,25 +79,25 @@ const passwordResetSuccess = name => ({
     <body>
       <div class="container">
         <div class="header">
-          <h1>✅ Password Changed</h1>
+          <h1>Password Changed</h1>
         </div>
         <div class="content">
-          <h2>Hello ${name}! 👋</h2>
+          <h2>Hello ${name}!</h2>
           
           <div class="success-box">
-            <p style="margin: 0; font-size: 18px;">✅ Your password has been successfully reset!</p>
+            <p style="margin: 0; font-size: 18px;">Your password has been successfully reset!</p>
           </div>
           
           <p>Your account password was changed successfully. You can now log in with your new password.</p>
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${FRONTEND_URL}/login" class="button">
-              🚀 Login to Your Account
+              Login to Your Account
             </a>
           </div>
           
           <div class="warning-box">
-            <p style="margin: 0;"><strong>⚠️ Didn't make this change?</strong></p>
+            <p style="margin: 0;"><strong>Didn't make this change?</strong></p>
             <p style="margin: 10px 0 0 0;">If you didn't reset your password, please contact our support team immediately to secure your account.</p>
           </div>
           
@@ -117,7 +117,7 @@ const passwordResetSuccess = name => ({
  * Account Locked Email
  */
 const accountLockedEmail = (name, unlockTime) => ({
-  subject: `🔒 Account Temporarily Locked - ${COMPANY_NAME}`,
+  subject: `Account Temporarily Locked - ${COMPANY_NAME}`,
   html: `
     <!DOCTYPE html>
     <html>
@@ -125,19 +125,19 @@ const accountLockedEmail = (name, unlockTime) => ({
     <body>
       <div class="container">
         <div class="header">
-          <h1>🔒 Account Locked</h1>
+          <h1>Account Locked</h1>
         </div>
         <div class="content">
           <h2>Hello ${name},</h2>
           
           <div class="warning-box">
-            <p style="margin: 0; font-size: 18px;"><strong>⚠️ Your account has been temporarily locked</strong></p>
+            <p style="margin: 0; font-size: 18px;"><strong>Your account has been temporarily locked</strong></p>
           </div>
           
           <p>Due to multiple failed login attempts, your account has been temporarily locked for security purposes.</p>
           
           <div class="info-box">
-            <p style="margin: 0;"><strong>📅 Unlock Time:</strong></p>
+            <p style="margin: 0;"><strong>Unlock Time:</strong></p>
             <p style="margin: 5px 0 0 0; font-size: 16px; font-weight: 600;">${unlockTime}</p>
           </div>
           
@@ -150,7 +150,7 @@ const accountLockedEmail = (name, unlockTime) => ({
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${FRONTEND_URL}/forgot-password" class="button">
-              🔐 Reset Password
+              Reset Password
             </a>
           </div>
           

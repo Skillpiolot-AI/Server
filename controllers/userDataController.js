@@ -14,10 +14,10 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const sendEmailSafely = async (email, template, logMessage) => {
   try {
     await sendEmailFast(email, template);
-    console.log(`✅ ${logMessage} sent to:`, email);
+    console.log(`${logMessage} sent to:`, email);
     return true;
   } catch (error) {
-    console.error(`❌ Failed to send ${logMessage}:`, error.message);
+    console.error(`Failed to send ${logMessage}:`, error.message);
     return false;
   }
 };
@@ -604,7 +604,7 @@ exports.resetUserPassword = async (req, res) => {
     if (sendEmail) {
       try {
         const passwordResetTemplate = {
-          subject: `🔐 Password Reset by Administrator - ${process.env.COMPANY_NAME || 'Skill-Pilot'}`,
+          subject: `Password Reset by Administrator - ${process.env.COMPANY_NAME || 'Skill-Pilot'}`,
           html: `
             <!DOCTYPE html>
             <html>
@@ -623,7 +623,7 @@ exports.resetUserPassword = async (req, res) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>🔐 Password Reset</h1>
+                  <h1>Password Reset</h1>
                   <p>Administrator Action</p>
                 </div>
                 <div class="content">
@@ -636,7 +636,7 @@ exports.resetUserPassword = async (req, res) => {
                   </div>
                   
                   <div class="warning">
-                    <strong>⚠️ Important Security Notice:</strong><br>
+                    <strong>Important Security Notice:</strong><br>
                     You MUST change this temporary password immediately after logging in. This is required for security purposes.
                   </div>
                   

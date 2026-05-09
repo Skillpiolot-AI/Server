@@ -10,12 +10,12 @@ const wsClients = new Set();
 
 // Log levels with colors
 const LOG_LEVELS = {
-  INFO: { color: '#3B82F6', icon: 'ℹ️' },
-  SUCCESS: { color: '#10B981', icon: '✅' },
-  WARNING: { color: '#F59E0B', icon: '⚠️' },
-  ERROR: { color: '#EF4444', icon: '❌' },
-  DEBUG: { color: '#8B5CF6', icon: '🔍' },
-  HTTP: { color: '#06B6D4', icon: '🌐' },
+  INFO: { color: '#3B82F6', icon: '' },
+  SUCCESS: { color: '#10B981', icon: '' },
+  WARNING: { color: '#F59E0B', icon: '' },
+  ERROR: { color: '#EF4444', icon: '' },
+  DEBUG: { color: '#8B5CF6', icon: '' },
+  HTTP: { color: '#06B6D4', icon: '' },
 };
 
 // Add a log entry

@@ -49,7 +49,7 @@ const OTPSchema = new mongoose.Schema({
 OTPSchema.index({ email: 1, createdAt: -1 });
 OTPSchema.index({ createdAt: 1 }, { expireAfterSeconds: 600 });
 
-// ✅ FIXED: Method to verify OTP - prevents parallel save error
+// FIXED: Method to verify OTP - prevents parallel save error
 OTPSchema.methods.verifyOTP = async function (inputOTP) {
   // Check if OTP is already used
   if (this.isUsed) {
@@ -68,7 +68,7 @@ OTPSchema.methods.verifyOTP = async function (inputOTP) {
     return { success: false, message: 'Maximum attempts exceeded. Please request a new OTP' };
   }
 
-  // ✅ Verify OTP FIRST, then save ONCE
+  // Verify OTP FIRST, then save ONCE
   if (this.otp === inputOTP) {
     // Mark as used and save only once
     this.isUsed = true;

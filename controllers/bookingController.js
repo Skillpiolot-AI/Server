@@ -661,7 +661,7 @@ exports.sendMeetingLink = async (req, res) => {
 
     // Send meeting link to user
     sendEmailFast(user.email, {
-      subject: '🔗 Meeting Link Ready - Your Session Starts Now!',
+      subject: 'Meeting Link Ready - Your Session Starts Now!',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">

@@ -862,7 +862,7 @@ exports.requestProfileUpdate = async (req, res) => {
 
     if (adminEmails.length > 0) {
       const emailContent = {
-        subject: `🔔 Mentor Profile Update Request: ${profile.displayName}`,
+        subject: `Mentor Profile Update Request: ${profile.displayName}`,
         html: `
           <div style="font-family: Arial, sans-serif; padding: 20px;">
             <h2>Profile Update Request</h2>
@@ -910,7 +910,7 @@ exports.approveProfileUpdate = async (req, res) => {
     const user = await User.findById(id);
     if (user) {
       await sendEmailFast(user.email, {
-        subject: '✅ Your Profile Update was Approved!',
+        subject: 'Your Profile Update was Approved!',
         html: `<p>Hi ${profile.displayName}, your recent profile changes have been reviewed and approved. They are now live on the platform.</p>`,
       });
     }
@@ -941,7 +941,7 @@ exports.rejectProfileUpdate = async (req, res) => {
     const user = await User.findById(id);
     if (user) {
       await sendEmailFast(user.email, {
-        subject: '❌ Profile Update Request Feedback',
+        subject: 'Profile Update Request Feedback',
         html: `<p>Hi ${profile.displayName}, your recent profile update request was not approved.</p>
                <p><strong>Reason:</strong> ${reason || 'Does not meet our community standards.'}</p>`,
       });
@@ -1122,7 +1122,7 @@ exports.updateMentorProfile = async (req, res) => {
         .join('');
 
       const emailContent = {
-        subject: `🔔 Mentor Profile Updated: ${profile.displayName}`,
+        subject: `Mentor Profile Updated: ${profile.displayName}`,
         html: `
           <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 700px;">
             <h2 style="color: #1e40af;">Mentor Profile Update</h2>

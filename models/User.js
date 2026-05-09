@@ -327,18 +327,18 @@ const UserSchema = new mongoose.Schema({
 // Indexes for better performance
 UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ username: 1 }, { unique: true });
-UserSchema.index({ googleId: 1 }, { unique: true, sparse: true }); // ✅ Unique sparse index for Google OAuth
+UserSchema.index({ googleId: 1 }, { unique: true, sparse: true }); // Unique sparse index for Google OAuth
 
 UserSchema.index({ role: 1 });
 UserSchema.index({ universityId: 1 });
 UserSchema.index({ registrationNumber: 1 });
 UserSchema.index({ isActive: 1 });
-UserSchema.index({ isVerified: 1 }); // ✅ Index for verification status
+UserSchema.index({ isVerified: 1 }); // Index for verification status
 UserSchema.index({ isSuspended: 1 });
 UserSchema.index({ 'suspensionDetails.until': 1 });
 UserSchema.index({ lastLogin: -1 });
 UserSchema.index({ 'currentSession.sessionId': 1 });
-UserSchema.index({ authProvider: 1 }); // ✅ Index for auth provider
+UserSchema.index({ authProvider: 1 }); // Index for auth provider
 
 // Virtual for account lock status
 UserSchema.virtual('isLocked').get(function () {
@@ -359,7 +359,7 @@ UserSchema.virtual('canLogin').get(function () {
   return this.isActive && this.isVerified && !this.isLocked && !this.isSuspensionActive;
 });
 
-// ✅ Virtual to check if it's a Google account
+// Virtual to check if it's a Google account
 UserSchema.virtual('isGoogleAccount').get(function () {
   return this.authProvider === 'google' && !!this.googleId;
 });
@@ -558,12 +558,12 @@ UserSchema.statics.findStudentsByUniversity = function (universityId) {
   }).populate('studentProfile');
 };
 
-// ✅ Static method to find users by auth provider
+// Static method to find users by auth provider
 UserSchema.statics.findByAuthProvider = function (provider) {
   return this.find({ authProvider: provider });
 };
 
-// ✅ Static method to find Google users
+// Static method to find Google users
 UserSchema.statics.findGoogleUsers = function () {
   return this.find({
     authProvider: 'google',
@@ -612,7 +612,7 @@ UserSchema.statics.cleanExpiredSuspensions = function () {
   );
 };
 
-// ✅ Static method to find unverified users
+// Static method to find unverified users
 UserSchema.statics.findUnverifiedUsers = function (daysOld = null) {
   const query = {
     isVerified: false,
@@ -660,7 +660,7 @@ UserSchema.statics.getUniversityUserStats = function (universityId) {
   ]);
 };
 
-// ✅ Static method to get authentication statistics
+// Static method to get authentication statistics
 UserSchema.statics.getAuthStats = function () {
   return this.aggregate([
     {

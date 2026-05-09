@@ -111,17 +111,17 @@ exports.submitApplication = async (req, res) => {
 
     // Send confirmation email to applicant (async, non-blocking)
     sendEmailFast(email, {
-      subject: '📋 Application Received - Skill-Pilot Mentorship',
+      subject: 'Application Received - Skill-Pilot Mentorship',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #3F3FF3 0%, #2F2FD3 100%); color: white; padding: 30px; text-align: center;">
-            <h1>Application Received! 🎉</h1>
+            <h1>Application Received!</h1>
           </div>
           <div style="padding: 30px; background: #fff;">
             <h2>Hello ${name}!</h2>
             <p>Thank you for applying to become a mentor on Skill-Pilot. We're excited to review your application!</p>
             <div style="background: #f8f9ff; border-left: 4px solid #3F3FF3; padding: 15px; margin: 20px 0;">
-              <p><strong>📌 Tracking ID:</strong> ${savedApplication.trackingId}</p>
+              <p><strong>Tracking ID:</strong> ${savedApplication.trackingId}</p>
               <p style="margin: 0;">Save this ID to track your application status.</p>
             </div>
             <p><strong>What's next?</strong></p>
@@ -140,7 +140,7 @@ exports.submitApplication = async (req, res) => {
       text: `Hello ${name}!\n\nYour mentor application has been received.\n\nTracking ID: ${savedApplication.trackingId}\n\nWe will review it and get back to you within 3-5 business days.\n\nBest regards,\nThe Skill-Pilot Team`,
     })
       .then(() => {
-        console.log('✅ Application confirmation email sent');
+        console.log('Application confirmation email sent');
       })
       .catch(emailError => {
         console.error('Failed to send confirmation email:', emailError);
@@ -328,7 +328,7 @@ exports.approveApplication = async (req, res) => {
       // ========================================
       // UPGRADE EXISTING USER TO MENTOR
       // ========================================
-      console.log(`📌 Upgrading existing user ${existingUser.email} to Mentor role`);
+      console.log(`Upgrading existing user ${existingUser.email} to Mentor role`);
 
       existingUser.role = 'Mentor';
       existingUser.mentorStatus = 'verified';
@@ -346,12 +346,12 @@ exports.approveApplication = async (req, res) => {
       existingUser.isActive = true;
 
       savedMentor = await existingUser.save();
-      console.log(`✅ User ${savedMentor.email} upgraded to Mentor role`);
+      console.log(`User ${savedMentor.email} upgraded to Mentor role`);
     } else {
       // ========================================
       // CREATE NEW USER WITH MENTOR ROLE
       // ========================================
-      console.log(`📌 Creating new mentor account for ${application.email}`);
+      console.log(`Creating new mentor account for ${application.email}`);
 
       // Generate temporary password
       tempPassword = crypto.randomBytes(8).toString('hex');
@@ -386,7 +386,7 @@ exports.approveApplication = async (req, res) => {
       });
 
       savedMentor = await newMentor.save();
-      console.log(`✅ New mentor account created for ${savedMentor.email}`);
+      console.log(`New mentor account created for ${savedMentor.email}`);
     }
 
     // Create MentorProfile
@@ -459,18 +459,18 @@ exports.approveApplication = async (req, res) => {
 
     const emailContent = isExistingUser
       ? {
-          subject: '🎉 Mentor Application Approved - Skill-Pilot',
+          subject: 'Mentor Application Approved - Skill-Pilot',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">
-                <h1>🎉 Congratulations!</h1>
+                <h1>Congratulations!</h1>
               </div>
               <div style="padding: 30px; background: #fff;">
                 <h2>Hello ${application.name}!</h2>
                 <p>Your mentor application has been <strong style="color: #28a745;">APPROVED</strong>! Welcome to the Skill-Pilot mentor community.</p>
                 
                 <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
-                  <p style="margin: 0; font-size: 16px;">✅ Your account has been upgraded to Mentor!</p>
+                  <p style="margin: 0; font-size: 16px;">Your account has been upgraded to Mentor!</p>
                 </div>
                 
                 <p><strong>What's changed:</strong></p>
@@ -495,18 +495,18 @@ exports.approveApplication = async (req, res) => {
           text: `Congratulations ${application.name}!\n\nYour mentor application has been APPROVED!\n\nYour existing account has been upgraded to Mentor role. Login with your existing credentials to access mentor features.\n\nBest regards,\nThe Skill-Pilot Team`,
         }
       : {
-          subject: '🎉 Mentor Application Approved - Skill-Pilot',
+          subject: 'Mentor Application Approved - Skill-Pilot',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center;">
-                <h1>🎉 Congratulations!</h1>
+                <h1>Congratulations!</h1>
               </div>
               <div style="padding: 30px; background: #fff;">
                 <h2>Hello ${application.name}!</h2>
                 <p>Your mentor application has been <strong style="color: #28a745;">APPROVED</strong>! Welcome to the Skill-Pilot mentor community.</p>
                 
                 <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
-                  <p style="margin: 0; font-size: 16px;">✅ You are now a Skill-Pilot Mentor!</p>
+                  <p style="margin: 0; font-size: 16px;">You are now a Skill-Pilot Mentor!</p>
                 </div>
                 
                 <p><strong>Your Login Credentials:</strong></p>
@@ -522,11 +522,11 @@ exports.approveApplication = async (req, res) => {
                 </ol>
                 
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="${verificationLink}" style="display: inline-block; padding: 14px 32px; background: #3F3FF3; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">✅ Verify Email</a>
+                  <a href="${verificationLink}" style="display: inline-block; padding: 14px 32px; background: #3F3FF3; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Verify Email</a>
                 </div>
                 
                 <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
-                  <p><strong>⚠️ Important:</strong></p>
+                  <p><strong>Important:</strong></p>
                   <ul style="margin: 5px 0;">
                     <li>Change your temporary password after first login</li>
                     <li>Complete both email and phone verification</li>
@@ -547,7 +547,7 @@ exports.approveApplication = async (req, res) => {
     // Send approval email (async, non-blocking)
     sendEmailFast(application.email, emailContent)
       .then(() => {
-        console.log('✅ Approval email sent');
+        console.log('Approval email sent');
       })
       .catch(emailError => {
         console.error('Failed to send approval email:', emailError);
@@ -605,7 +605,7 @@ exports.rejectApplication = async (req, res) => {
 
     // Send rejection email (async, non-blocking)
     sendEmailFast(application.email, {
-      subject: '📋 Application Update - Skill-Pilot Mentorship',
+      subject: 'Application Update - Skill-Pilot Mentorship',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%); color: white; padding: 30px; text-align: center;">
@@ -633,7 +633,7 @@ exports.rejectApplication = async (req, res) => {
       text: `Hello ${application.name},\n\nYour mentor application was not approved at this time.\n\nReason: ${rejectionReason}\n\nYou may reapply after addressing the feedback.\n\nBest regards,\nThe Skill-Pilot Team`,
     })
       .then(() => {
-        console.log('✅ Rejection email sent');
+        console.log('Rejection email sent');
       })
       .catch(emailError => {
         console.error('Failed to send rejection email:', emailError);
@@ -677,7 +677,7 @@ exports.requestMoreInfo = async (req, res) => {
 
     // Send email requesting more info (async, non-blocking)
     sendEmailFast(application.email, {
-      subject: '📝 Additional Information Needed - Skill-Pilot',
+      subject: 'Additional Information Needed - Skill-Pilot',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #3F3FF3 0%, #2F2FD3 100%); color: white; padding: 30px; text-align: center;">
@@ -688,7 +688,7 @@ exports.requestMoreInfo = async (req, res) => {
             <p>We are reviewing your mentor application and need some additional information to proceed.</p>
             
             <div style="background: #f8f9ff; border-left: 4px solid #3F3FF3; padding: 15px; margin: 20px 0;">
-              <p><strong>📌 Tracking ID:</strong> ${application.trackingId}</p>
+              <p><strong>Tracking ID:</strong> ${application.trackingId}</p>
             </div>
             
             <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
@@ -708,7 +708,7 @@ exports.requestMoreInfo = async (req, res) => {
       text: `Hello ${application.name},\n\nWe need additional information for your application (${application.trackingId}).\n\nRequest: ${requestDetails}\n\nBest regards,\nThe Skill-Pilot Team`,
     })
       .then(() => {
-        console.log('✅ Info request email sent');
+        console.log('Info request email sent');
       })
       .catch(emailError => {
         console.error('Failed to send info request email:', emailError);
@@ -799,7 +799,7 @@ exports.sendVerificationEmail = async (req, res) => {
     // Send verification email
     try {
       await sendEmailFast(mentor.email, {
-        subject: '✉️ Verify Your Email - Skill-Pilot Mentor',
+        subject: 'Verify Your Email - Skill-Pilot Mentor',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #3F3FF3 0%, #2F2FD3 100%); color: white; padding: 30px; text-align: center;">
@@ -809,7 +809,7 @@ exports.sendVerificationEmail = async (req, res) => {
               <h2>Hello ${mentor.name}!</h2>
               <p>Please verify your email address to complete your mentor registration.</p>
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${verificationLink}" style="display: inline-block; padding: 14px 32px; background: #3F3FF3; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">✅ Verify My Email</a>
+                <a href="${verificationLink}" style="display: inline-block; padding: 14px 32px; background: #3F3FF3; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Verify My Email</a>
               </div>
               <p style="margin-top: 30px;">Best regards,<br><strong>The Skill-Pilot Team</strong></p>
             </div>
@@ -903,7 +903,7 @@ exports.sendPhoneOTP = async (req, res) => {
     // For now, we'll send via email
     try {
       await sendEmailFast(mentor.email, {
-        subject: '🔐 Phone Verification OTP - Skill-Pilot',
+        subject: 'Phone Verification OTP - Skill-Pilot',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #3F3FF3 0%, #2F2FD3 100%); color: white; padding: 30px; text-align: center;">

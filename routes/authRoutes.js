@@ -202,7 +202,7 @@ router.post('/signup', async (req, res) => {
     });
 
     await newUser.save();
-    console.log('✅ User created:', newUser._id);
+    console.log('User created:', newUser._id);
 
     const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
     const userAgent = req.get('User-Agent') || 'Unknown';
@@ -214,7 +214,7 @@ router.post('/signup', async (req, res) => {
       userAgent
     );
 
-    console.log('✅ Verification token created:', verification.token);
+    console.log('Verification token created:', verification.token);
 
     const verificationLink = `${FRONTEND_URL}/verify-email?token=${verification.token}`;
 
@@ -250,14 +250,14 @@ router.post('/signup', async (req, res) => {
     // Send email in background (non-blocking)
     sendEmailFast(email, verificationEmailTemplate(name, verificationLink, username))
       .then(() => {
-        console.log('✅ Verification email sent successfully');
+        console.log('Verification email sent successfully');
       })
       .catch(emailError => {
         console.error('❌ Failed to send verification email:', emailError);
         // Note: User is already created, they can request resend
       });
   } catch (error) {
-    console.error('❌ Signup error:', error);
+    console.error('Signup error:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
@@ -266,7 +266,7 @@ router.post('/signup', async (req, res) => {
 router.post('/verify-email', async (req, res) => {
   const { token } = req.body;
 
-  console.log('\n✉️ Email Verification Request');
+  console.log('\nEmail Verification Request');
   console.log('Token:', token);
 
   try {
@@ -309,7 +309,7 @@ router.post('/verify-email', async (req, res) => {
     user.isActive = true;
     await user.save();
 
-    console.log('✅ Email verified successfully for:', user.email);
+    console.log('Email verified successfully for:', user.email);
 
     try {
       const { verificationSuccessTemplate } = require('../config/mailHelper');
@@ -333,7 +333,7 @@ router.post('/verify-email', async (req, res) => {
       email: user.email,
     });
   } catch (error) {
-    console.error('❌ Email verification error:', error);
+    console.error('Email verification error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during verification',
@@ -346,7 +346,7 @@ router.post('/verify-email', async (req, res) => {
 router.post('/resend-verification', async (req, res) => {
   const { email } = req.body;
 
-  console.log('\n🔄 Resend Verification Request');
+  console.log('\nResend Verification Request');
   console.log('Email:', email);
 
   try {
@@ -389,14 +389,14 @@ router.post('/resend-verification', async (req, res) => {
       verificationEmailTemplate(user.name, verificationLink, user.username)
     );
 
-    console.log('✅ Verification email resent');
+    console.log('Verification email resent');
 
     res.json({
       success: true,
       message: 'Verification email sent! Please check your inbox.',
     });
   } catch (error) {
-    console.error('❌ Resend verification error:', error);
+    console.error('Resend verification error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to resend verification email',
@@ -409,7 +409,7 @@ router.post('/resend-verification', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
-  console.log('\n🔐 Login Request');
+  console.log('\nLogin Request');
   console.log('Username:', username);
 
   try {
@@ -425,7 +425,7 @@ router.post('/login', async (req, res) => {
     }
 
     if (!user.isVerified) {
-      console.log('⚠️ Email not verified');
+      console.log('Email not verified');
       return res.status(403).json({
         message:
           'Please verify your email before logging in. Check your inbox for the verification link.',
@@ -507,7 +507,7 @@ router.post('/login', async (req, res) => {
     const isSuspicious = await isLocationSuspicious(user, ipAddress, location);
 
     if (isSuspicious) {
-      console.log('⚠️ Suspicious location detected');
+      console.log('Suspicious location detected');
 
       const loginVerification = await LoginVerification.createLoginVerification(
         user._id,
@@ -527,7 +527,7 @@ router.post('/login', async (req, res) => {
           suspiciousLocationTemplate(user.name, location, verificationLink, deviceInfo)
         );
 
-        console.log('✅ Suspicious login email sent');
+        console.log('Suspicious login email sent');
 
         await logUserActivity(
           user,
@@ -590,7 +590,7 @@ router.post('/login', async (req, res) => {
       req
     );
 
-    console.log('✅ Login successful');
+    console.log('Login successful');
 
     res.json({
       token,
@@ -608,7 +608,7 @@ router.post('/login', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('❌ Login error:', error);
+    console.error('Login error:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
@@ -650,12 +650,12 @@ router.post('/logout', async (req, res) => {
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
 
-  console.log('\n🔐 Forgot Password Request');
+  console.log('\nPassword Request');
   console.log('Email:', email);
 
   try {
     if (!email) {
-      console.log('❌ No email provided');
+      console.log('No email provided');
       return res.status(400).json({
         message: 'Email is required',
         success: false,
@@ -667,7 +667,7 @@ router.post('/forgot-password', async (req, res) => {
     console.log('User found:', user ? 'Yes' : 'No');
 
     if (!user) {
-      console.log('⚠️ User not found, but sending success response');
+      console.log('User not found, but sending success response');
       return res.status(200).json({
         message: 'If an account exists with this email, you will receive a password reset code.',
         success: true,
@@ -675,7 +675,7 @@ router.post('/forgot-password', async (req, res) => {
     }
 
     if (!user.isActive) {
-      console.log('❌ User account is not active');
+      console.log('User account is not active');
       return res.status(403).json({
         message: 'Account is deactivated. Please contact administrator.',
         success: false,
@@ -689,7 +689,7 @@ router.post('/forgot-password', async (req, res) => {
 
     const otpDoc = await OTP.createOTP(email.toLowerCase(), 'password_reset', ipAddress, userAgent);
 
-    console.log('✅ OTP created:', otpDoc.otp);
+    console.log('OTP created:', otpDoc.otp);
 
     try {
       const emailResult = await sendEmailFast(
@@ -697,7 +697,7 @@ router.post('/forgot-password', async (req, res) => {
         otpEmailTemplates.otpEmail(user.name, otpDoc.otp, 10)
       );
 
-      console.log('✅ Email sent successfully!');
+      console.log('Email sent successfully!');
 
       await logUserActivity(
         user,
@@ -715,7 +715,7 @@ router.post('/forgot-password', async (req, res) => {
         success: true,
       });
     } catch (emailError) {
-      console.error('❌ Error sending OTP email:', emailError);
+      console.error('Error sending OTP email:', emailError);
 
       res.status(500).json({
         message: 'Failed to send reset code. Email server error.',
@@ -726,7 +726,7 @@ router.post('/forgot-password', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('❌ Forgot password error:', error);
+    console.error('Forgot password error:', error);
 
     res.status(500).json({
       message: 'Server error. Please try again later.',
@@ -740,7 +740,7 @@ router.post('/forgot-password', async (req, res) => {
 router.post('/verify-otp', async (req, res) => {
   const { email, otp } = req.body;
 
-  console.log('\n🔍 Verifying OTP');
+  console.log('\nVerifying OTP');
   console.log('Email:', email);
   console.log('OTP:', otp);
 
@@ -755,7 +755,7 @@ router.post('/verify-otp', async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
-      console.log('❌ User not found');
+      console.log('User not found');
       return res.status(404).json({
         message: 'User not found',
         success: false,
@@ -765,7 +765,7 @@ router.post('/verify-otp', async (req, res) => {
     const otpDoc = await OTP.findValidOTP(email.toLowerCase(), 'password_reset');
 
     if (!otpDoc) {
-      console.log('❌ No valid OTP found');
+      console.log('No valid OTP found');
       return res.status(400).json({
         message: 'No valid OTP found. Please request a new one.',
         success: false,
@@ -799,7 +799,7 @@ router.post('/verify-otp', async (req, res) => {
       { expiresIn: '15m' }
     );
 
-    console.log('✅ Reset token generated');
+    console.log('Reset token generated');
 
     await logUserActivity(
       user,
@@ -816,7 +816,7 @@ router.post('/verify-otp', async (req, res) => {
       resetToken,
     });
   } catch (error) {
-    console.error('❌ OTP verification error:', error);
+    console.error('OTP verification error:', error);
 
     res.status(500).json({
       message: 'Server error. Please try again.',
@@ -917,7 +917,7 @@ router.post('/reset-password', async (req, res) => {
 router.post('/resend-otp', async (req, res) => {
   const { email } = req.body;
 
-  console.log('\n🔄 Resending OTP');
+  console.log('\nResending OTP');
   console.log('Email:', email);
 
   try {
@@ -935,12 +935,12 @@ router.post('/resend-otp', async (req, res) => {
 
     const otpDoc = await OTP.createOTP(email.toLowerCase(), 'password_reset', ipAddress, userAgent);
 
-    console.log('✅ New OTP created:', otpDoc.otp);
+    console.log('New OTP created:', otpDoc.otp);
 
     try {
       await sendEmailFast(email, otpEmailTemplates.otpEmail(user.name, otpDoc.otp, 10));
 
-      console.log('✅ Email sent successfully');
+      console.log('Email sent successfully');
 
       await logUserActivity(
         user,
@@ -956,7 +956,7 @@ router.post('/resend-otp', async (req, res) => {
         success: true,
       });
     } catch (emailError) {
-      console.error('❌ Error resending OTP:', emailError);
+      console.error('Error resending OTP:', emailError);
       res.status(500).json({
         message: 'Failed to send code. Please try again.',
         success: false,
@@ -964,7 +964,7 @@ router.post('/resend-otp', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('❌ Resend OTP error:', error);
+    console.error('Resend OTP error:', error);
     res.status(500).json({
       message: 'Server error. Please try again.',
       success: false,
@@ -1087,7 +1087,7 @@ router.get('/login-verification/:token', async (req, res) => {
 router.post('/verify-login', async (req, res) => {
   const { token } = req.body;
 
-  console.log('\n✅ Verify Login Request');
+  console.log('\nVerify Login Request');
 
   try {
     const verification = await LoginVerification.findOne({ token });
@@ -1121,7 +1121,7 @@ router.post('/verify-login', async (req, res) => {
       );
     }
 
-    console.log('✅ Login verified successfully');
+    console.log('Login verified successfully');
 
     res.json({
       success: true,
@@ -1140,7 +1140,7 @@ router.post('/verify-login', async (req, res) => {
 router.post('/deny-login', async (req, res) => {
   const { token } = req.body;
 
-  console.log('\n❌ Deny Login Request');
+  console.log('\nDeny Login Request');
 
   try {
     const verification = await LoginVerification.findOne({ token });
@@ -1175,7 +1175,7 @@ router.post('/deny-login', async (req, res) => {
       );
     }
 
-    console.log('✅ Login denied successfully');
+    console.log('Login denied successfully');
 
     res.json({
       success: true,
@@ -1335,7 +1335,7 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
 
     const { name, username, email, password, role, isVerified } = req.body;
 
-    console.log('\n👤 Admin Creating New User');
+    console.log('\nAdmin Creating New User');
     console.log('Name:', name);
     console.log('Email:', email);
     console.log('Role:', role);
@@ -1396,7 +1396,7 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
     });
 
     await newUser.save();
-    console.log('✅ User created:', newUser._id);
+    console.log('User created:', newUser._id);
 
     const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
     const userAgent = req.get('User-Agent') || 'Admin Panel';
@@ -1411,9 +1411,9 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
           adminEmailTemplates.adminCreatedWelcome(name, username, email, password, role)
         );
         emailSent = true;
-        console.log('✅ Welcome email sent');
+        console.log('Welcome email sent');
       } catch (error) {
-        console.error('❌ Failed to send welcome email:', error);
+        console.error('Failed to send welcome email:', error);
         emailError = error.message;
       }
     } else {
@@ -1439,9 +1439,9 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
           )
         );
         emailSent = true;
-        console.log('✅ Verification email sent');
+        console.log('Verification email sent');
       } catch (error) {
-        console.error('❌ Failed to send verification email:', error);
+        console.error('Failed to send verification email:', error);
         emailError = error.message;
       }
     }
@@ -1475,7 +1475,7 @@ router.post('/admin/create-user', verifyToken, async (req, res) => {
       emailError,
     });
   } catch (error) {
-    console.error('❌ Error creating user:', error);
+    console.error('Error creating user:', error);
     res.status(500).json({
       success: false,
       message: 'Server error while creating user',
@@ -1497,13 +1497,13 @@ router.post('/admin/test-email', verifyToken, async (req, res) => {
 
     const { testEmail, sampleData } = req.body;
 
-    console.log('\n📧 Sending Test Email');
+    console.log('\nSending Test Email');
     console.log('Test Email:', testEmail);
 
     const { name, username, email, role, password, isVerified } = sampleData;
 
     const testEmailTemplate = {
-      subject: `🧪 TEST EMAIL - ${isVerified ? 'Welcome' : 'Verification'} Email Preview`,
+      subject: `TEST EMAIL - ${isVerified ? 'Welcome' : 'Verification'} Email Preview`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -1518,10 +1518,10 @@ router.post('/admin/test-email', verifyToken, async (req, res) => {
           </style>
         </head>
         <body>
-          <div class="banner">🧪 THIS IS A TEST EMAIL - FOR PREVIEW PURPOSES ONLY</div>
+          <div class="banner">THIS IS A TEST EMAIL - FOR PREVIEW PURPOSES ONLY</div>
           <div class="container">
             <div class="info-box">
-              <h3 style="margin-top: 0; color: #2196f3;">📋 Test Email Information</h3>
+              <h3 style="margin-top: 0; color: #2196f3;">Test Email Information</h3>
               <p><strong>Template Type:</strong> ${isVerified ? 'Welcome Email (Pre-Verified)' : 'Verification Email (Unverified)'}</p>
               <p><strong>Sent to:</strong> ${testEmail}</p>
               <p><strong>Test Date:</strong> ${new Date().toLocaleString()}</p>
@@ -1543,7 +1543,7 @@ router.post('/admin/test-email', verifyToken, async (req, res) => {
               <strong>⚠️ Note:</strong> The actual email will have proper styling and interactive buttons.
             </div>
           </div>
-          <div class="banner" style="margin-top: 20px;">🧪 END OF TEST EMAIL</div>
+          <div class="banner" style="margin-top: 20px;">END OF TEST EMAIL</div>
         </body>
         </html>
       `,
@@ -1553,7 +1553,7 @@ router.post('/admin/test-email', verifyToken, async (req, res) => {
     // ✅ FIXED: Use sendEmailFast instead of sendEmail
     await sendEmailFast(testEmail, testEmailTemplate);
 
-    console.log('✅ Test email sent successfully');
+    console.log('Test email sent successfully');
 
     await logUserActivity(
       req.user,
@@ -1572,7 +1572,7 @@ router.post('/admin/test-email', verifyToken, async (req, res) => {
       templateType: isVerified ? 'welcome' : 'verification',
     });
   } catch (error) {
-    console.error('❌ Error sending test email:', error);
+    console.error('Error sending test email:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to send test email',
@@ -1765,7 +1765,7 @@ router.post('/admin/verify-user/:userId', verifyToken, async (req, res) => {
       req
     );
 
-    console.log(`✅ Admin ${req.user.email} manually verified user: ${user.email}`);
+    console.log(`Admin ${req.user.email} manually verified user: ${user.email}`);
 
     res.json({
       success: true,
@@ -1816,7 +1816,7 @@ router.post('/admin/bulk-verify-users', verifyToken, async (req, res) => {
       }
     );
 
-    console.log(`✅ Admin ${req.user.email} bulk verified ${result.modifiedCount} users`);
+    console.log(`Admin ${req.user.email} bulk verified ${result.modifiedCount} users`);
 
     res.json({
       success: true,
@@ -1879,7 +1879,7 @@ router.post('/admin/resend-verification/:userId', verifyToken, async (req, res) 
       verificationEmailTemplate(user.name, verificationLink, user.username)
     );
 
-    console.log(`✅ Admin ${req.user.email} resent verification email to: ${user.email}`);
+    console.log(`Admin ${req.user.email} resent verification email to: ${user.email}`);
 
     res.json({
       success: true,
@@ -2200,7 +2200,7 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
 
 //     await user.save();
 
-//     console.log('✅ Google OAuth login successful');
+//     console.log('Google OAuth login successful');
 
 //     // Return response
 //     res.json({
@@ -2446,7 +2446,7 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
 //       const isSuspicious = await isLocationSuspicious(user, ipAddress, location);
 
 //       if (isSuspicious) {
-//         console.log('⚠️ Suspicious location detected');
+//         console.log('Suspicious location detected');
 
 //         const loginVerification = await LoginVerification.createLoginVerification(
 //           user._id,
@@ -2466,7 +2466,7 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
 //             suspiciousLocationTemplate(user.name, location, verificationLink, deviceInfo)
 //           );
 
-//           console.log('✅ Suspicious login email sent');
+//           console.log('Suspicious login email sent');
 
 //           await logUserActivity(user, 'suspicious_login_detected', {
 //             location,
@@ -2533,7 +2533,7 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
 
 //     await user.save();
 
-//     console.log('✅ Google OAuth login successful');
+//     console.log('Google OAuth login successful');
 
 //     // Return response
 //     res.json({
@@ -2637,7 +2637,7 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
 //       linkedTime: new Date()
 //     }, req);
 
-//     console.log('✅ Google account linked successfully');
+//     console.log('Google account linked successfully');
 
 //     res.json({
 //       success: true,
@@ -2664,7 +2664,7 @@ router.get('/student/portal-access', verifyToken, async (req, res) => {
 router.post('/google', async (req, res) => {
   const { credential } = req.body;
 
-  console.log('\n🔐 Google OAuth Request');
+  console.log('\nGoogle OAuth Request');
 
   try {
     if (!credential) {
@@ -2678,7 +2678,7 @@ router.post('/google', async (req, res) => {
     const verificationResult = await verifyGoogleToken(credential);
 
     if (!verificationResult.success) {
-      console.error('❌ Google token verification failed:', verificationResult.error);
+      console.error('Google token verification failed:', verificationResult.error);
       return res.status(401).json({
         success: false,
         message: 'Invalid Google token',
@@ -2687,7 +2687,7 @@ router.post('/google', async (req, res) => {
     }
 
     const googleData = verificationResult.data;
-    console.log('✅ Google token verified for:', googleData.email);
+    console.log('Google token verified for:', googleData.email);
 
     // Check if user exists by email or Google ID
     let user = await User.findOne({
@@ -2701,7 +2701,7 @@ router.post('/google', async (req, res) => {
 
     // EXISTING USER - Login with Google
     if (user) {
-      console.log('👤 Existing user login with Google');
+      console.log('Existing user login with Google');
 
       // Update Google ID if not set
       if (!user.googleId) {
@@ -2712,7 +2712,7 @@ router.post('/google', async (req, res) => {
 
       // Check if email is verified
       if (!user.isVerified) {
-        console.log('⚠️ User exists but email not verified');
+        console.log('User exists but email not verified');
 
         return res.status(403).json({
           success: false,
@@ -2774,7 +2774,7 @@ router.post('/google', async (req, res) => {
       const isSuspicious = await isLocationSuspicious(user, ipAddress, location);
 
       if (isSuspicious) {
-        console.log('⚠️ Suspicious location detected');
+        console.log('Suspicious location detected');
 
         const loginVerification = await LoginVerification.createLoginVerification(
           user._id,
@@ -2794,7 +2794,7 @@ router.post('/google', async (req, res) => {
             suspiciousLocationTemplate(user.name, location, verificationLink, deviceInfo)
           );
 
-          console.log('✅ Suspicious login email sent');
+          console.log('Suspicious login email sent');
 
           await logUserActivity(
             user,
@@ -2910,7 +2910,7 @@ router.post('/google', async (req, res) => {
 
     await user.save();
 
-    console.log('✅ Google OAuth login successful');
+    console.log('Google OAuth login successful');
 
     res.json({
       success: true,
@@ -3197,7 +3197,7 @@ router.post('/link-google', verifyToken, async (req, res) => {
       req
     );
 
-    console.log('✅ Google account linked successfully');
+    console.log('Google account linked successfully');
 
     res.json({
       success: true,
@@ -3211,7 +3211,7 @@ router.post('/link-google', verifyToken, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('❌ Link Google account error:', error);
+    console.error('Link Google account error:', error);
     res.status(500).json({
       success: false,
       message: 'Server Error',
@@ -3296,14 +3296,14 @@ router.post('/unlink-google', verifyToken, async (req, res) => {
       req
     );
 
-    console.log('✅ Google account unlinked');
+    console.log('Google account unlinked');
 
     res.json({
       success: true,
       message: 'Google account unlinked successfully',
     });
   } catch (error) {
-    console.error('❌ Unlink Google account error:', error);
+    console.error('Unlink Google account error:', error);
     res.status(500).json({
       success: false,
       message: 'Server Error',
@@ -3339,7 +3339,7 @@ router.put('/newsletter', verifyToken, async (req, res) => {
       req
     );
 
-    console.log(`✅ Newsletter preference updated to ${newsletter} for user: ${user.email}`);
+    console.log(`Newsletter preference updated to ${newsletter} for user: ${user.email}`);
 
     res.json({
       success: true,
@@ -3361,7 +3361,7 @@ router.put('/newsletter', verifyToken, async (req, res) => {
 router.post('/request-email-change', verifyToken, async (req, res) => {
   const { newEmail } = req.body;
 
-  console.log('\n📧 Email Change Request');
+  console.log('\nEmail Change Request');
   console.log('Current Email:', req.user.email);
   console.log('New Email:', newEmail);
 
@@ -3410,14 +3410,14 @@ router.post('/request-email-change', verifyToken, async (req, res) => {
       userAgent
     );
 
-    console.log('✅ Email change OTP created:', otpDoc.otp);
+    console.log('Email change OTP created:', otpDoc.otp);
 
     // Send OTP to NEW email
     try {
       const { emailChangeOTPTemplate } = require('../config/emailTemplates');
       await sendEmailFast(newEmail, emailChangeOTPTemplate(req.user.name, otpDoc.otp, newEmail));
 
-      console.log('✅ Email change OTP sent to:', newEmail);
+      console.log('Email change OTP sent to:', newEmail);
 
       await logUserActivity(
         req.user,
@@ -3435,7 +3435,7 @@ router.post('/request-email-change', verifyToken, async (req, res) => {
         message: 'Verification code sent to the new email address',
       });
     } catch (emailError) {
-      console.error('❌ Error sending email change OTP:', emailError);
+      console.error('Error sending email change OTP:', emailError);
       res.status(500).json({
         success: false,
         message: 'Failed to send verification code. Please try again.',
@@ -3457,7 +3457,7 @@ router.post('/request-email-change', verifyToken, async (req, res) => {
 router.post('/verify-email-change', verifyToken, async (req, res) => {
   const { newEmail, otp } = req.body;
 
-  console.log('\n🔍 Verifying Email Change OTP');
+  console.log('\nVerifying Email Change OTP');
   console.log('New Email:', newEmail);
   console.log('OTP:', otp);
 
@@ -3472,7 +3472,7 @@ router.post('/verify-email-change', verifyToken, async (req, res) => {
     const otpDoc = await OTP.findValidOTP(newEmail.toLowerCase(), 'email_change');
 
     if (!otpDoc) {
-      console.log('❌ No valid OTP found');
+      console.log('No valid OTP found');
       return res.status(400).json({
         success: false,
         message: 'Invalid or expired verification code. Please request a new one.',
@@ -3482,7 +3482,7 @@ router.post('/verify-email-change', verifyToken, async (req, res) => {
     const verificationResult = await otpDoc.verifyOTP(otp);
 
     if (!verificationResult.success) {
-      console.log('❌ OTP verification failed:', verificationResult.message);
+      console.log('OTP verification failed:', verificationResult.message);
 
       await logUserActivity(
         req.user,
@@ -3505,7 +3505,7 @@ router.post('/verify-email-change', verifyToken, async (req, res) => {
     user.email = newEmail.toLowerCase();
     await user.save();
 
-    console.log('✅ Email changed successfully');
+    console.log('Email changed successfully');
     console.log('Old Email:', oldEmail);
     console.log('New Email:', user.email);
 
@@ -3525,7 +3525,7 @@ router.post('/verify-email-change', verifyToken, async (req, res) => {
         emailChangeConfirmationTemplate(user.name, oldEmail, user.email)
       );
 
-      console.log('✅ Email change confirmation sent to both emails');
+      console.log('Email change confirmation sent to both emails');
     } catch (emailError) {
       console.error('⚠️ Failed to send email change confirmation:', emailError);
     }
@@ -3577,7 +3577,7 @@ router.post('/verify-email-change', verifyToken, async (req, res) => {
 router.delete('/delete-account', verifyToken, async (req, res) => {
   const { password, confirmDelete } = req.body;
 
-  console.log('\n🗑️ Account Deletion Request');
+  console.log('\nAccount Deletion Request');
   console.log('User:', req.user.email);
 
   try {
@@ -3635,7 +3635,7 @@ router.delete('/delete-account', verifyToken, async (req, res) => {
     // Delete the user
     await User.findByIdAndDelete(user._id);
 
-    console.log('✅ Account deleted:', userData.email);
+    console.log('Account deleted:', userData.email);
 
     // Send confirmation email
     try {

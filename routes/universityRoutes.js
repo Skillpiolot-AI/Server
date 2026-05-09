@@ -496,11 +496,16 @@ router.get('/students', verifyToken, async (req, res) => {
     if (user.role === 'Admin') {
       universityId = req.query.universityId;
     } else {
-      // Find university for UniAdmin
-      const university = await University.findOne({
+      // Find university for UniAdmin — primary lookup via registration arrays
+      let university = await University.findOne({
         $or: [{ registrationNumbers: user.username }, { emails: user.email }],
         isActive: true,
       });
+
+      // Fallback: by universityId stored directly on user
+      if (!university && user.universityId) {
+        university = await University.findOne({ _id: user.universityId, isActive: true });
+      }
 
       if (!university) {
         return res.status(404).json({ message: 'University not found for this user' });
@@ -716,10 +721,15 @@ router.get('/university-stats', verifyToken, async (req, res) => {
     if (user.role === 'Admin') {
       universityId = req.query.universityId;
     } else {
-      const university = await University.findOne({
+      let university = await University.findOne({
         $or: [{ registrationNumbers: user.username }, { emails: user.email }],
         isActive: true,
       });
+
+      // Fallback: by universityId stored directly on user
+      if (!university && user.universityId) {
+        university = await University.findOne({ _id: user.universityId, isActive: true });
+      }
 
       if (!university) {
         return res.status(404).json({ message: 'University not found for this user' });
@@ -854,10 +864,16 @@ router.get('/my-university', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Access denied. UniAdmin only.' });
     }
 
-    const university = await University.findOne({
+    // First try matching by username/email in university registration arrays
+    let university = await University.findOne({
       $or: [{ registrationNumbers: user.username }, { emails: user.email }],
       isActive: true,
     });
+
+    // Fallback: if the user has a universityId stored directly (e.g. created via admin panel)
+    if (!university && user.universityId) {
+      university = await University.findOne({ _id: user.universityId, isActive: true });
+    }
 
     if (!university) {
       return res.status(404).json({ message: 'University not found for this user' });
@@ -878,10 +894,16 @@ router.get('/teacher-access', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Access denied. UniAdmin only.' });
     }
 
-    const university = await University.findOne({
+    // Primary lookup: by username/email in university arrays
+    let university = await University.findOne({
       $or: [{ registrationNumbers: user.username }, { emails: user.email }],
       isActive: true,
     });
+
+    // Fallback: by universityId stored on user document
+    if (!university && user.universityId) {
+      university = await University.findOne({ _id: user.universityId, isActive: true });
+    }
 
     if (!university) {
       return res.status(404).json({ message: 'University not found for this user' });

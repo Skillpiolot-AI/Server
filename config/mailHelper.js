@@ -21,9 +21,9 @@ const transporter = nodemailer.createTransport({
 // Verify transporter on startup
 transporter.verify((error, success) => {
   if (error) {
-    console.error('❌ Email transporter error:', error);
+    console.error('Email transporter error:', error);
   } else {
-    console.log('✅ Email server ready for fast delivery');
+    console.log('Email server ready for fast delivery');
   }
 });
 
@@ -50,8 +50,8 @@ const emailStyles = `
 // Fast email sending function
 const sendMail = async (to, template) => {
   try {
-    console.log(`📧 Sending email to: ${to}`);
-    console.log(`📋 Subject: ${template.subject}`);
+    console.log(`Sending email to: ${to}`);
+    console.log(`Subject: ${template.subject}`);
 
     const mailOptions = {
       from: {
@@ -69,8 +69,8 @@ const sendMail = async (to, template) => {
     const info = await transporter.sendMail(mailOptions);
     const endTime = Date.now();
 
-    console.log(`✅ Email sent successfully in ${endTime - startTime}ms`);
-    console.log(`📨 Message ID: ${info.messageId}`);
+    console.log(`Email sent successfully in ${endTime - startTime}ms`);
+    console.log(`Message ID: ${info.messageId}`);
 
     return {
       success: true,
@@ -79,14 +79,14 @@ const sendMail = async (to, template) => {
       previewUrl: nodemailer.getTestMessageUrl(info),
     };
   } catch (error) {
-    console.error('❌ Email sending failed:', error);
+    console.error('Email sending failed:', error);
     throw error;
   }
 };
 
 // Template function: Email Verification
 const verificationEmailTemplate = (name, verificationLink, username) => ({
-  subject: '✉️ Verify Your Email - Spark Career Guidance',
+  subject: 'Verify Your Email - Spark Career Guidance',
   html: `
     <!DOCTYPE html>
     <html>
@@ -94,22 +94,22 @@ const verificationEmailTemplate = (name, verificationLink, username) => ({
     <body>
       <div class="container">
         <div class="header">
-          <h1>🎯 Welcome to Spark!</h1>
+          <h1>Welcome to Spark!</h1>
         </div>
         <div class="content">
-          <h2>Hello ${name}! 👋</h2>
+          <h2>Hello ${name}!</h2>
           <p>Thank you for signing up with Spark Career Guidance Portal. We're excited to have you on board!</p>
           
           <p><strong>To get started, please verify your email address:</strong></p>
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${verificationLink}" class="button">
-              ✅ Verify My Email
+              Verify My Email
             </a>
           </div>
           
           <div class="info-box">
-            <p><strong>📋 Verification Details:</strong></p>
+            <p><strong>Verification Details:</strong></p>
             <ul>
               <li>This link will expire in <strong>24 hours</strong></li>
               <li>Click the button above to activate your account</li>
@@ -123,7 +123,7 @@ const verificationEmailTemplate = (name, verificationLink, username) => ({
           </div>
           
           <div class="warning-box" style="margin-top: 30px;">
-            <p><strong>⚠️ Didn't sign up?</strong></p>
+            <p><strong>Didn't sign up?</strong></p>
             <p>If you didn't create an account, please ignore this email.</p>
           </div>
           
@@ -142,7 +142,7 @@ const verificationEmailTemplate = (name, verificationLink, username) => ({
 
 // Template function: Verification Success
 const verificationSuccessTemplate = name => ({
-  subject: '🎉 Email Verified Successfully - Spark',
+  subject: 'Email Verified Successfully - Spark',
   html: `
     <!DOCTYPE html>
     <html>
@@ -150,13 +150,13 @@ const verificationSuccessTemplate = name => ({
     <body>
       <div class="container">
         <div class="header">
-          <h1>🎉 Account Verified!</h1>
+          <h1>Account Verified!</h1>
         </div>
         <div class="content">
-          <h2>Congratulations ${name}! 🎊</h2>
+          <h2>Congratulations ${name}!</h2>
           
           <div class="success-box">
-            <p style="margin: 0; font-size: 18px;">✅ Your email has been successfully verified!</p>
+            <p style="margin: 0; font-size: 18px;">Your email has been successfully verified!</p>
           </div>
           
           <p>Your account is now fully activated and ready to use.</p>
@@ -171,7 +171,7 @@ const verificationSuccessTemplate = name => ({
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="http://localhost:5173/login" class="button">
-              🚀 Start Exploring
+              Start Exploring
             </a>
           </div>
           
@@ -189,7 +189,7 @@ const verificationSuccessTemplate = name => ({
 
 // Template function: Suspicious Location
 const suspiciousLocationTemplate = (name, location, verificationLink, deviceInfo) => ({
-  subject: '🔐 New Login Location Detected - Spark',
+  subject: 'New Login Location Detected - Spark',
   html: `
     <!DOCTYPE html>
     <html>
@@ -197,19 +197,19 @@ const suspiciousLocationTemplate = (name, location, verificationLink, deviceInfo
     <body>
       <div class="container">
         <div class="header">
-          <h1>🔐 Security Alert</h1>
+          <h1>Security Alert</h1>
         </div>
         <div class="content">
           <h2>Hello ${name},</h2>
           
           <div class="warning-box">
-            <p style="margin: 0; font-size: 16px;"><strong>⚠️ We detected a login from a new location</strong></p>
+            <p style="margin: 0; font-size: 16px;"><strong>We detected a login from a new location</strong></p>
           </div>
           
           <p>A login attempt was made to your account from a location we don't recognize.</p>
           
           <div class="location-info">
-            <p><strong>📍 Login Details:</strong></p>
+            <p><strong>Login Details:</strong></p>
             <ul style="margin: 10px 0;">
               <li><strong>Location:</strong> ${location.city}, ${location.region}, ${location.country}</li>
               <li><strong>Device:</strong> ${deviceInfo.device}</li>
@@ -223,12 +223,12 @@ const suspiciousLocationTemplate = (name, location, verificationLink, deviceInfo
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${verificationLink}" class="button" style="background: #28a745;">
-              ✅ Yes, It Was Me
+              Yes, It Was Me
             </a>
           </div>
           
           <div class="warning-box" style="margin-top: 30px;">
-            <p><strong>🚨 If this wasn't you:</strong></p>
+            <p><strong>If this wasn't you:</strong></p>
             <ul>
               <li>Change your password immediately</li>
               <li>Review your recent account activity</li>
@@ -278,7 +278,7 @@ const sendLocationVerificationEmail = async (email, name, loginDetails, verifica
 
 const sendLocationVerifiedEmail = async (email, name) => {
   const template = {
-    subject: '✅ New Location Verified - Spark',
+    subject: 'New Location Verified - Spark',
     html: `
       <!DOCTYPE html>
       <html>
@@ -286,13 +286,13 @@ const sendLocationVerifiedEmail = async (email, name) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>✅ Location Verified</h1>
+            <h1>Location Verified</h1>
           </div>
           <div class="content">
             <h2>Hello ${name},</h2>
             
             <div class="success-box">
-              <p style="margin: 0; font-size: 16px;">✅ Your new login location has been verified!</p>
+              <p style="margin: 0; font-size: 16px;">Your new login location has been verified!</p>
             </div>
             
             <p>Thank you for confirming your identity. This location has been added to your trusted devices.</p>
@@ -314,7 +314,7 @@ const sendLocationVerifiedEmail = async (email, name) => {
 module.exports = {
   transporter,
   sendMail,
-  sendEmailFast: sendMail, // ✅ Alias for compatibility
+  sendEmailFast: sendMail, // Alias for compatibility
   // Template functions
   verificationEmailTemplate,
   verificationSuccessTemplate,

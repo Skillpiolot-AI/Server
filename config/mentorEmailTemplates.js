@@ -73,7 +73,7 @@ const applicationApprovedTemplate = (mentorName, loginUrl) => ({
       <div style="max-width: 600px; margin: 0 auto; background-color: white;">
         ${professionalHeader()}
         <div style="padding: 30px;">
-          <h2 style="color: #10B981; margin-bottom: 20px;">🎉 Congratulations!</h2>
+          <h2 style="color: #10B981; margin-bottom: 20px;">Congratulations!</h2>
           <p style="color: #4B5563;">Dear ${mentorName},</p>
           <p style="color: #4B5563;">We are thrilled to inform you that your application to become a mentor at ${COMPANY_NAME} has been <strong style="color: #10B981;">approved</strong>!</p>
           
@@ -325,7 +325,7 @@ const sessionReminderTemplate = (
       <div style="max-width: 600px; margin: 0 auto; background-color: white;">
         ${professionalHeader()}
         <div style="padding: 30px;">
-          <h2 style="color: #F59E0B; margin-bottom: 20px;">⏰ Session Reminder</h2>
+          <h2 style="color: #F59E0B; margin-bottom: 20px;">Session Reminder</h2>
           <p style="color: #4B5563;">Dear ${recipientName},</p>
           <p style="color: #4B5563;">This is a reminder about your upcoming mentorship session.</p>
           
